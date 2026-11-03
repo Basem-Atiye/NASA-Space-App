@@ -5,7 +5,10 @@
 import { admin } from "../_shared/admin.ts";
 import { handler, json } from "../_shared/http.ts";
 
-const DONKI = "https://api.nasa.gov/DONKI";
+// NASA's direct public API moved on September 30, 2026. The api.nasa.gov
+// gateway currently returns upstream 503s; the direct endpoint needs no key.
+// https://ccmc.gsfc.nasa.gov/news/major-updates/
+const DONKI = "https://ccmc.gsfc.nasa.gov/DONKI-API/get";
 const CACHE_MINUTES = 60;
 
 type Flare = { classType?: string; beginTime?: string };
@@ -23,12 +26,13 @@ function flareRank(c: string | undefined): number {
 }
 
 async function donki<T>(path: string, params: Record<string, string>): Promise<T[]> {
-  const key = Deno.env.get("NASA_API_KEY") ?? "DEMO_KEY";
-  const url = `${DONKI}/${path}?${new URLSearchParams({ ...params, api_key: key })}`;
+  const url = `${DONKI}/${path}?${new URLSearchParams(params)}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
   if (!res.ok) throw new Error(`DONKI ${path} ${res.status}`);
   const text = await res.text();
-  return text.trim() ? (JSON.parse(text) as T[]) : [];
+  const data: unknown = text.trim() ? JSON.parse(text) : [];
+  if (!Array.isArray(data)) throw new Error(`DONKI ${path} returned an invalid response`);
+  return data as T[];
 }
 
 Deno.serve(handler(async (_req) => {

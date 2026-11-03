@@ -9,9 +9,10 @@
     "migrate:deploy": "prisma migrate deploy",
     "migrate:status": "prisma migrate status",
     "catalogue": "python3 ../tools/gen_catalogue_sql.py",
-    "test:db": "bash test/run.sh",
-    "functions:deploy": "supabase functions deploy --project-ref $SUPABASE_PROJECT_REF",
-    "functions:secrets": "supabase secrets set --env-file supabase/functions/.env --project-ref $SUPABASE_PROJECT_REF"
+    "test:db": "node test/run.mjs",
+    "test:cloud": "node test/cloud-smoke.mjs",
+    "functions:deploy": "supabase functions deploy --use-api --import-map supabase/functions/deno.json",
+    "functions:secrets": "supabase secrets set --env-file supabase/functions/.env"
   },
   "devDependencies": {
     "prisma": "7.10.1",

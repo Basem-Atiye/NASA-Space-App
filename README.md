@@ -137,11 +137,10 @@ key never go in the app; they live in Supabase Edge Function secrets.
 ### 3. Edge Functions
 ```bash
 cd backend
-cp supabase/functions/.env.example supabase/functions/.env   # CLERK_SECRET_KEY, CLERK_WEBHOOK_SIGNING_SECRET, NASA_API_KEY
-export SUPABASE_PROJECT_REF=abcdefghijklmnop
+cp supabase/functions/.env.example supabase/functions/.env   # CLERK_SECRET_KEY, CLERK_WEBHOOK_SIGNING_SECRET
 npx supabase login
-npm run functions:secrets
-npm run functions:deploy
+npm run functions:secrets -- --project-ref YOUR_PROJECT_REF
+npm run functions:deploy -- --project-ref YOUR_PROJECT_REF
 ```
 | Function | What it does |
 |---|---|
@@ -166,7 +165,7 @@ prisma/migrations/0003_catalogue     the 70 levels, generated from lib/data/cata
                                      (python3 tools/gen_catalogue_sql.py)
 supabase/functions/                  the four Edge Functions (Deno, TypeScript)
 test/rls_test.sql                    73 security and behaviour checks
-test/run.sh                          applies all migrations to a local Postgres and runs them
+test/run.mjs                         cross-platform runner: applies migrations and runs SQL tests
 ```
 
 Identity: Supabase verifies the Clerk token; `public.uid()` returns its `sub` (`user_...`),
@@ -176,6 +175,13 @@ sets the student to the teacher's age level, and changing the class age level mo
 student; only teachers create classes, join codes are generated; attempts cannot be rewritten
 and progress is written only by a trigger; nudges are presets; co-op rooms work for guests
 through functions only; the live lesson channel `class:<id>` is private to the class.
+
+Run database checks with `cd backend` then `npm run test:db`. This requires PostgreSQL
+15+ with `psql` on PATH and a local test server reachable using the standard `PGHOST`,
+`PGPORT`, `PGUSER`, and `PGPASSWORD` environment variables. Use a local test server,
+not the hosted Supabase database: the suite installs a Supabase test shim. The runner
+creates a uniquely named temporary database, stops on the first migration or test
+failure, and removes that database afterward. It works on Windows without Bash.
 
 ## Project structure
 
