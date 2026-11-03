@@ -1,0 +1,8 @@
+{
+  "APP_ENV": "dev",
+  "CLERK_PUBLISHABLE_KEY": "pk_test_xxxxxxxxxxxxxxxxxxxxxxxx",
+  "SUPABASE_URL": "https://abcdefghijklmnop.supabase.co",
+  "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_xxxxxxxxxxxxxxxxxxxxxxxx",
+  "TEACHER_DASHBOARD_URL": "",
+  "COOP_REGION_HINT": "eu-central-1"
+}

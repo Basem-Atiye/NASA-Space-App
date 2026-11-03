@@ -1,0 +1,13 @@
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+android/
+ios/
+env/*.json
+!env/*.example.json
+backend/node_modules/
+backend/.env
+backend/generated/
+backend/supabase/functions/.env
+backend/supabase/.temp/

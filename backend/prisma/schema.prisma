@@ -1,0 +1,397 @@
+// Shackleton Station 2.0: database schema (Supabase Postgres)
+//
+// This file is the source of truth for tables, columns, keys and indexes.
+// Things Prisma cannot express live in hand-written SQL migrations next to it:
+//   prisma/migrations/0002_security  RLS policies, check constraints, functions,
+//                                     triggers, the skill_mastery view, Realtime rules
+//   prisma/migrations/0003_catalogue the levels catalogue (all campaigns and co-op)
+//
+// Identity: users sign in with Clerk. Supabase verifies the Clerk session token
+// (third-party auth) and public.uid() returns its `sub` claim, e.g. "user_2abc...".
+// That is why every user id below is TEXT and defaults to public.uid().
+//
+// Validate:  npm run validate      Apply:  npm run migrate:deploy
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────
+
+enum UserRole {
+  student
+  teacher
+  parent
+  admin
+
+  @@map("user_role")
+}
+
+/// The three age levels. A class's age level is set by its teacher.
+enum AgeMode {
+  cadet // 6–10
+  explorer // 11–14
+  engineer // 15–18
+
+  @@map("age_mode")
+}
+
+enum Campaign {
+  cadet
+  explorer
+  engineer
+  coop
+  survival
+
+  @@map("campaign")
+}
+
+enum Skill {
+  prioritise
+  systems
+  root_cause
+  resource_math
+  procedure
+  teamwork
+
+  @@map("skill")
+}
+
+// ─── People and classes ─────────────────────────────────────────────────
+
+/// One row per Clerk user. No emails or real surnames are stored for students.
+model Profile {
+  id          String   @id @default(dbgenerated("public.uid()"))
+  role        UserRole @default(student)
+  displayName String   @map("display_name") /// 2–24 characters (check constraint)
+  avatar      String   @default("nova")
+  ageMode     AgeMode  @default(explorer) @map("age_mode")
+  /// Clerk username for student accounts made by a teacher (e.g. rana_7b4mxq)
+  username    String?  @unique
+  createdBy   String?  @map("created_by") /// teacher who created this student account
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  classesTaught  Class[]         @relation("ClassTeacher")
+  memberships    ClassMember[]
+  progress       LevelProgress[]
+  attempts       Attempt[]
+  skillEvents    SkillEvent[]
+  campaignStates CampaignState[]
+  assessments    Assessment[]
+  facts          FactUnlock[]
+  settings       Settings?
+  nudges         Nudge[]
+
+  @@map("profiles")
+}
+
+model Class {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  teacherId String   @default(dbgenerated("public.uid()")) @map("teacher_id")
+  name      String /// 1–40 characters (check constraint)
+  /// Six characters A–Z / 0–9, made by public.new_join_code()
+  joinCode  String   @unique @default(dbgenerated("public.new_join_code()")) @map("join_code")
+  /// Chosen by the teacher when the class is created; every student plays this campaign
+  ageMode   AgeMode  @map("age_mode")
+  /// Optional: lock students' rank so they cannot switch age level on the device
+  lockRank  Boolean  @default(true) @map("lock_rank")
+  archived  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  teacher     Profile       @relation("ClassTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  members     ClassMember[]
+  assignments Assignment[]
+  goals       ClassGoal[]
+  nudges      Nudge[]
+
+  @@index([teacherId])
+  @@map("classes")
+}
+
+model ClassMember {
+  classId   String   @map("class_id") @db.Uuid
+  studentId String   @map("student_id")
+  joinedAt  DateTime @default(now()) @map("joined_at") @db.Timestamptz(6)
+
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student Profile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([classId, studentId])
+  @@index([studentId])
+  @@map("class_members")
+}
+
+// ─── Catalogue ──────────────────────────────────────────────────────────
+
+/// Every playable level and co-op mission. Filled by migration 0003_catalogue.
+model Level {
+  id       String   @id /// e.g. "cadet-03", "explorer-12", "coop-05"
+  campaign Campaign
+  number   Int      @db.SmallInt
+  title    String
+  skills   Skill[]  @default([])
+  isCoop   Boolean  @default(false) @map("is_coop")
+  /// Age level a co-op mission is written for (null for campaign levels: the campaign says it)
+  ageMode  AgeMode? @map("age_mode")
+  minutes  Int      @default(10) @db.SmallInt
+
+  progress    LevelProgress[]
+  attempts    Attempt[]
+  assignments Assignment[]
+  goals       ClassGoal[]
+  nudges      Nudge[]
+  coopRooms   CoopRoom[]
+  coopResults CoopResult[]
+
+  @@unique([campaign, number])
+  @@map("levels")
+}
+
+// ─── Play data (written by the app, one owner per row) ─────────────────
+
+/// Best result per level. Kept up to date by a trigger on attempts.
+model LevelProgress {
+  userId      String    @default(dbgenerated("public.uid()")) @map("user_id")
+  levelId     String    @map("level_id")
+  bestStars   Int       @default(0) @map("best_stars") @db.SmallInt
+  attempts    Int       @default(0)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  user  Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level Level   @relation(fields: [levelId], references: [id])
+
+  @@id([userId, levelId])
+  @@map("level_progress")
+}
+
+/// One play of one level. client_id makes offline sync idempotent.
+model Attempt {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clientId  String    @unique @map("client_id") @db.Uuid
+  userId    String    @default(dbgenerated("public.uid()")) @map("user_id")
+  levelId   String    @map("level_id")
+  ageMode   AgeMode   @map("age_mode")
+  startedAt DateTime  @map("started_at") @db.Timestamptz(6)
+  endedAt   DateTime? @map("ended_at") @db.Timestamptz(6)
+  /// complete | failed | quit (check constraint)
+  outcome   String?
+  stars     Int?      @db.SmallInt
+  mistakes  Int       @default(0) @db.SmallInt
+  hints     Int       @default(0) @db.SmallInt
+  durationS Int?      @map("duration_s")
+  /// [{ "step": "triage", "choice": "o2_first", "good": true }, ...]
+  decisions Json      @default("[]")
+
+  user        Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  level       Level        @relation(fields: [levelId], references: [id])
+  skillEvents SkillEvent[]
+
+  @@index([userId, startedAt(sort: Desc)])
+  @@index([levelId])
+  @@map("attempts")
+}
+
+/// Evidence for the skills map: one row per scored decision.
+model SkillEvent {
+  id        BigInt   @id @default(autoincrement())
+  attemptId String?  @map("attempt_id") @db.Uuid
+  userId    String   @default(dbgenerated("public.uid()")) @map("user_id")
+  skill     Skill
+  correct   Boolean
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  attempt Attempt? @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  user    Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, skill, createdAt(sort: Desc)])
+  @@index([attemptId])
+  @@map("skill_events")
+}
+
+/// Numbers carried between levels (health, dose, battery, parts, shielding...).
+model CampaignState {
+  userId       String   @default(dbgenerated("public.uid()")) @map("user_id")
+  campaign     Campaign
+  carry        Json     @default("{}")
+  currentLevel Int      @default(1) @map("current_level") @db.SmallInt
+  updatedAt    DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, campaign])
+  @@map("campaign_state")
+}
+
+/// Readiness Check: 8 questions before ("pre") and after ("post") a campaign.
+model Assessment {
+  id       String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clientId String?  @unique @map("client_id") @db.Uuid
+  userId   String   @default(dbgenerated("public.uid()")) @map("user_id")
+  campaign Campaign
+  kind     String /// pre | post (check constraint)
+  score    Int      @db.SmallInt
+  maxScore Int      @map("max_score") @db.SmallInt
+  /// [{ "q": "cadet-q1", "answer": 2, "correct": true, "skill": "prioritise" }, ...]
+  answers  Json     @default("[]")
+  takenAt  DateTime @default(now()) @map("taken_at") @db.Timestamptz(6)
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, campaign, kind])
+  @@map("assessments")
+}
+
+/// Moon Encyclopedia: facts found with Pip's scanner.
+model FactUnlock {
+  userId     String   @default(dbgenerated("public.uid()")) @map("user_id")
+  factId     String   @map("fact_id")
+  unlockedAt DateTime @default(now()) @map("unlocked_at") @db.Timestamptz(6)
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, factId])
+  @@map("fact_unlocks")
+}
+
+model Settings {
+  userId        String   @id @default(dbgenerated("public.uid()")) @map("user_id")
+  sound         Boolean  @default(true)
+  music         Boolean  @default(true)
+  /// null = follow the age level (on for Cadets)
+  voice         Boolean?
+  reducedMotion Boolean  @default(false) @map("reduced_motion")
+  textSpeed     Float    @default(1.0) @map("text_speed") @db.Real
+  updatedAt     DateTime @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("settings")
+}
+
+// ─── Teacher tools ──────────────────────────────────────────────────────
+
+/// A level the teacher set for the class (or one student: student_id).
+model Assignment {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  classId   String    @map("class_id") @db.Uuid
+  levelId   String    @map("level_id")
+  /// null = whole class
+  studentId String?   @map("student_id")
+  note      String?
+  dueAt     DateTime? @map("due_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+  level Level @relation(fields: [levelId], references: [id])
+
+  @@index([classId])
+  @@map("assignments")
+}
+
+/// Shared class targets: "Everyone reaches Systems 70" or "Finish level 5".
+model ClassGoal {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  classId   String    @map("class_id") @db.Uuid
+  title     String
+  skill     Skill?
+  levelId   String?   @map("level_id")
+  target    Int       @db.SmallInt
+  dueAt     DateTime? @map("due_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  class Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
+  level Level? @relation(fields: [levelId], references: [id])
+
+  @@index([classId])
+  @@map("class_goals")
+}
+
+/// Teacher hints and encouragement, picked from presets (no free text to children).
+model Nudge {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  classId   String    @map("class_id") @db.Uuid
+  studentId String    @map("student_id")
+  /// hint | replay | reminder | well_done (check constraint)
+  kind      String
+  levelId   String?   @map("level_id")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  seenAt    DateTime? @map("seen_at") @db.Timestamptz(6)
+
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  student Profile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  level   Level?  @relation(fields: [levelId], references: [id])
+
+  @@index([studentId, seenAt])
+  @@map("nudges")
+}
+
+// ─── Co-op ──────────────────────────────────────────────────────────────
+
+/// An open co-op room. The game itself runs over Supabase Realtime (channel coop:<code>).
+/// Codes are 4 digits and are reused: open_code is the code while the room is open and
+/// null once it is done (kept by a trigger), so a code is unique among open rooms only.
+model CoopRoom {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code      String /// ^[0-9]{4}$ (check constraint)
+  openCode  String?  @unique @map("open_code")
+  missionId String   @map("mission_id")
+  /// null when the host plays as a guest (not signed in)
+  hostId    String?  @default(dbgenerated("public.uid()")) @map("host_id")
+  /// lobby | playing | done (check constraint)
+  status    String   @default("lobby")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt DateTime @default(dbgenerated("(now() + '02:00:00'::interval)")) @map("expires_at") @db.Timestamptz(6)
+
+  mission Level        @relation(fields: [missionId], references: [id])
+  results CoopResult[]
+
+  @@index([code])
+  @@map("coop_rooms")
+}
+
+model CoopResult {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  roomId    String?  @map("room_id") @db.Uuid
+  missionId String   @map("mission_id")
+  hostId    String?  @default(dbgenerated("public.uid()")) @map("host_id")
+  /// Signed-in players' user ids (guests are not listed)
+  players   String[] @default([])
+  /// { "astronaut": "Rana", "capcom": "Omar", ... } (first names only)
+  roles     Json
+  /// complete | failed (check constraint)
+  outcome   String
+  stars     Int?     @db.SmallInt
+  durationS Int?     @map("duration_s")
+  mistakes  Int?     @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  room    CoopRoom? @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  mission Level     @relation(fields: [missionId], references: [id])
+
+  @@index([missionId])
+  @@map("coop_results")
+}
+
+// ─── NASA data cache ───────────────────────────────────────────────────
+
+/// Today's space weather from NASA DONKI, cached by the space-weather Edge Function.
+model SpaceWeather {
+  day       DateTime @id @db.Date
+  /// calm | watch | storm
+  level     String
+  flares    Int      @default(0)
+  cmes      Int      @default(0)
+  strongest String? /// strongest flare class, e.g. "M2.1"
+  summary   String
+  raw       Json     @default("{}")
+  fetchedAt DateTime @default(now()) @map("fetched_at") @db.Timestamptz(6)
+
+  @@map("space_weather")
+}

@@ -1,0 +1,21 @@
+{
+  "name": "shackleton-station-backend",
+  "private": true,
+  "version": "2.0.0",
+  "description": "Database schema and migrations for Shackleton Station (Supabase + Prisma), and Supabase Edge Functions.",
+  "scripts": {
+    "validate": "prisma validate",
+    "format": "prisma format",
+    "migrate:deploy": "prisma migrate deploy",
+    "migrate:status": "prisma migrate status",
+    "catalogue": "python3 ../tools/gen_catalogue_sql.py",
+    "test:db": "bash test/run.sh",
+    "functions:deploy": "supabase functions deploy --project-ref $SUPABASE_PROJECT_REF",
+    "functions:secrets": "supabase secrets set --env-file supabase/functions/.env --project-ref $SUPABASE_PROJECT_REF"
+  },
+  "devDependencies": {
+    "prisma": "7.10.1",
+    "dotenv": "^16.4.5",
+    "supabase": "2.47.2"
+  }
+}

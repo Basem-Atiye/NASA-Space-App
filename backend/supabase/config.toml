@@ -1,0 +1,23 @@
+# Supabase CLI config for the Edge Functions. Database schema and migrations are
+# managed by Prisma (backend/prisma), not by supabase/migrations.
+project_id = "shackleton-station"
+
+# Clerk is the identity provider (third-party auth). Enable it in the dashboard too:
+# Authentication > Sign In / Providers > Third-party auth > Clerk, with your Clerk domain.
+[auth.third_party.clerk]
+enabled = true
+domain = "env(CLERK_FRONTEND_API_DOMAIN)"
+
+# Every function checks the Clerk session token itself (_shared/auth.ts), so the
+# gateway's legacy Supabase-JWT check is turned off. The webhook is signed by Svix.
+[functions.create-students]
+verify_jwt = false
+
+[functions.clerk-webhook]
+verify_jwt = false
+
+[functions.space-weather]
+verify_jwt = false
+
+[functions.class-report]
+verify_jwt = false
