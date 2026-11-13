@@ -8,20 +8,21 @@ import 'package:flutter/material.dart';
 
 import '../ui/theme.dart';
 
-/// Light palette for the teacher app (high contrast on white).
+/// Teacher UI uses the same dark brand palette as the game ([C]),
+/// with secondary text bright enough to read on dark panels.
 class TC {
-  static const bg = Color(0xFFF2F8F5);
-  static const card = Colors.white;
-  static const ink = C.evergreen;
-  static const sub = Color(0xFF4F6B5C);
-  static const faint = Color(0xFF9DB3A8);
-  static const line = Color(0xFFDDE8E2);
-  static const blue = C.sapphire;
-  static const teal = Color(0xFF07949E); // Strong Cyan, darkened for text on white
-  static const indigo = C.indigo;
-  static const warn = Color(0xFFD9822B);
-  static const bad = Color(0xFFD64550);
-  static const good = Color(0xFF168A55);
+  static const bg = C.bg;
+  static const card = C.panel;
+  static const ink = C.frozen;
+  static const sub = Color(0xFFCFE9DD); // body copy on dark cards
+  static const faint = C.muted; // icons / hints still readable
+  static const line = C.line;
+  static const blue = C.cyan; // the Figma accent
+  static const teal = C.cyan;
+  static const indigo = C.violet;
+  static const warn = C.yellow;
+  static const bad = C.red;
+  static const good = C.green;
 }
 
 /// Six-axis skills radar. [values] 0..1; [compare] draws a second outline (class average).
@@ -153,11 +154,11 @@ class _RingPainter extends CustomPainter {
   void paint(Canvas c, Size s) {
     final r = Rect.fromCircle(center: s.center(Offset.zero), radius: s.width / 2 - 8);
     c.drawArc(r, 0, math.pi * 2, false, Paint()
-      ..color = TC.line
+      ..color = C.ink
       ..style = PaintingStyle.stroke
       ..strokeWidth = 12);
     c.drawArc(r, -math.pi / 2, math.pi * 2 * v, false, Paint()
-      ..shader = SweepGradient(startAngle: -math.pi / 2, endAngle: math.pi * 1.5, colors: [C.cyan, color]).createShader(r)
+      ..shader = SweepGradient(startAngle: -math.pi / 2, endAngle: math.pi * 1.5, colors: [C.progress, color]).createShader(r)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 12
       ..strokeCap = StrokeCap.round);
@@ -184,23 +185,23 @@ class HBar extends StatelessWidget {
           Expanded(
             child: LayoutBuilder(builder: (context, b) {
               return Stack(clipBehavior: Clip.none, children: [
-                Container(height: 12, decoration: BoxDecoration(color: TC.line, borderRadius: BorderRadius.circular(6))),
+                Container(height: 10, decoration: BoxDecoration(color: C.ink, borderRadius: BorderRadius.circular(5))),
                 TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0, end: value.clamp(0, 1).toDouble()),
                   duration: const Duration(milliseconds: 700),
                   curve: Curves.easeOutCubic,
-                  builder: (context, v, _) => Container(width: b.maxWidth * v, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(6))),
+                  builder: (context, v, _) => Container(width: b.maxWidth * v, height: 10, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(5))),
                 ),
                 if (mark != null)
                   Positioned(
-                    left: b.maxWidth * mark!.clamp(0, 1) - 1,
+                    left: b.maxWidth * mark!.clamp(0, 1) - 1.5,
                     top: -3,
-                    child: Container(width: 2, height: 18, color: TC.ink),
+                    child: Container(width: 3, height: 16, decoration: BoxDecoration(color: C.yellow, borderRadius: BorderRadius.circular(2))),
                   ),
               ]);
             }),
           ),
-          SizedBox(width: 44, child: Text(text, textAlign: TextAlign.right, style: const TextStyle(fontFamily: F.mono, fontWeight: FontWeight.w700, fontSize: 12.5, color: TC.ink))),
+          SizedBox(width: 44, child: Text(text, textAlign: TextAlign.right, style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, fontSize: 12.5, color: TC.ink))),
         ]),
       );
 }
@@ -226,7 +227,7 @@ class GainBars extends StatelessWidget {
                   builder: (context, k, _) => Container(
                     width: 46,
                     height: 4 + 104 * k,
-                    decoration: BoxDecoration(color: v == null ? TC.line : c, borderRadius: BorderRadius.circular(10)),
+                    decoration: BoxDecoration(color: v == null ? C.ink : c, borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
@@ -277,7 +278,7 @@ class LevelBars extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text('${i + 1}', style: const TextStyle(fontFamily: F.mono, fontSize: 9.5, color: TC.sub)),
+                  Text('${i + 1}', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w500, fontSize: 10, color: TC.sub)),
                 ]),
               ),
             ),

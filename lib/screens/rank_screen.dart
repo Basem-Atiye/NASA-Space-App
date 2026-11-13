@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../story/story_model.dart';
 import '../ui/theme.dart';
+import '../ui/kit.dart';
 import '../ui/widgets/common.dart';
 
-/// Choose your rank: Cadet, Explorer or Engineer (the three age modes).
+/// Choose your age group: Little Explorer, Explorer or Engineer.
 class RankScreen extends StatefulWidget {
   const RankScreen({super.key});
 
@@ -25,39 +26,28 @@ class _RankScreenState extends State<RankScreen> {
     final picked = _picked ?? p.ageMode;
     final locked = p.rankLocked;
     final bottom = MediaQuery.of(context).padding.bottom;
-    return AuroraBackground(
+    return SpaceBackground(
+      hill: true,
       child: Stack(children: [
-        // the Moon's horizon peeks in at the bottom
-        Positioned(
-          left: -60,
-          right: -60,
-          bottom: -320,
-          height: 420,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(center: const Alignment(0, -1), radius: 1.0, colors: [const Color(0xFF8E8B84).withValues(alpha: 0.9), const Color(0xFF3A3834).withValues(alpha: 0.6)]),
-            ),
-          ),
-        ),
         SafeArea(
           bottom: false,
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+                padding: const EdgeInsets.fromLTRB(24, 18, 24, 12),
                 children: [
                   Row(children: [
                     if (p.rankChosen)
-                      IconButton(onPressed: sv.nav.back, icon: const Icon(Icons.arrow_back_rounded, color: C.frozen))
+                      RoundButton(onTap: sv.nav.back)
                     else
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 44),
                   ]),
-                  Text(p.rankChosen ? 'YOUR CREW RANK' : 'NEW CREW MEMBER', style: T.label.copyWith(letterSpacing: 4, fontSize: 12)),
+                  const SizedBox(height: 14),
+                  Overline(p.rankChosen ? 'Your age group' : 'New crew member', color: C.cyan, size: 11.5),
+                  const SizedBox(height: 4),
+                  const Text('Choose your age group', style: T.h1),
                   const SizedBox(height: 8),
-                  Text('Choose your rank', style: T.hero.copyWith(fontSize: 34)),
-                  const SizedBox(height: 10),
-                  Text('Same mission, same Moon. Your rank sets how much reading, maths and pressure you get. You can change it any time.', style: T.body.copyWith(color: C.muted, fontSize: 15)),
+                  Text('Same Moon, same missions. Your age group sets how much reading, maths and pressure you get. You can change it any time.', style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 15)),
                   const SizedBox(height: 22),
                   for (final m in AgeMode.values)
                     EnterAnim(
@@ -80,26 +70,26 @@ class _RankScreenState extends State<RankScreen> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 16 + bottom),
+              padding: EdgeInsets.fromLTRB(24, 0, 24, 16 + bottom),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(16), border: Border.all(color: C.line)),
+                  decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(18)),
                   child: Row(children: [
                     Icon(locked ? Icons.lock_rounded : Icons.info_outline_rounded, color: C.muted, size: 20),
                     const SizedBox(width: 10),
-                    Expanded(child: Text(locked ? 'Your teacher locked the rank for the class.' : 'Teachers can lock a rank for the whole class.', style: T.body.copyWith(color: C.muted, fontSize: 13.5))),
+                    Expanded(child: Text(locked ? 'Your teacher chose the age group for the class.' : 'Teachers can choose the age group for the whole class.', style: T.body.copyWith(color: C.muted, fontSize: 13.5))),
                   ]),
                 ),
                 const SizedBox(height: 12),
                 PrimaryButton(
-                  label: p.rankChosen ? 'Save rank' : 'Join the crew',
+                  label: p.rankChosen ? 'Save' : 'Join the crew',
                   onTap: () async {
                     await p.setAgeMode(picked);
                     sv.audio.tap();
                     final to = sv.nav.afterRank;
                     if (to == Screen.title) {
-                      sv.nav.back();
+                      sv.nav.resetTo(Screen.title);
                     } else {
                       sv.nav.go(to);
                     }
@@ -122,7 +112,7 @@ class _RankCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = mode == AgeMode.cadet ? C.frozen : C.cyan;
+    final c = selected ? C.cyan : C.frozen;
     return Pressable(
       onTap: onTap,
       child: AnimatedContainer(
@@ -130,10 +120,9 @@ class _RankCard extends StatelessWidget {
         curve: Motion.curve,
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
         decoration: BoxDecoration(
-          color: C.panel,
+          color: selected ? C.raised : C.panel,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: selected ? C.cyan : C.line, width: selected ? 2 : 1),
-          boxShadow: selected ? [BoxShadow(color: C.cyan.withValues(alpha: 0.28), blurRadius: 26)] : null,
+          border: Border.all(color: selected ? C.cyan : Colors.transparent, width: 2.5),
         ),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SizedBox(width: 56, height: 56, child: CustomPaint(painter: _RankIcon(mode))),
@@ -141,7 +130,7 @@ class _RankCard extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, runSpacing: 4, children: [
-                Text(mode.title.toUpperCase(), style: T.h3.copyWith(fontSize: 18, letterSpacing: 2, color: c, fontWeight: FontWeight.w800)),
+                Text(mode.title, style: T.h3.copyWith(fontSize: 20, color: c)),
                 Text(mode.ages, style: T.body.copyWith(color: C.muted, fontSize: 13.5)),
                 AnimatedOpacity(
                   duration: Motion.fast,
@@ -149,7 +138,7 @@ class _RankCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(color: C.cyan, borderRadius: BorderRadius.circular(10)),
-                    child: Text('SELECTED', style: T.label.copyWith(color: C.evergreen, fontSize: 10, letterSpacing: 1.6)),
+                    child: Text('CHOSEN', style: T.label.copyWith(color: C.ink, fontSize: 10, letterSpacing: 1.6)),
                   ),
                 ),
               ]),
@@ -172,16 +161,16 @@ class _RankIcon extends CustomPainter {
     final c = s.center(Offset.zero);
     final r = s.width / 2;
     final bg = switch (mode) {
-      AgeMode.cadet => const Color(0xFF0E3A26),
-      AgeMode.explorer => const Color(0xFF0E2C4A),
-      AgeMode.engineer => const Color(0xFF3A2414),
+      AgeMode.cadet => const Color(0xFF2A4F6E),
+      AgeMode.explorer => const Color(0xFF2B3F7A),
+      AgeMode.engineer => const Color(0xFF5A3A3A),
     };
     canvas.drawCircle(c, r, Paint()..color = bg);
     switch (mode) {
       case AgeMode.cadet:
         // a helmet with a gold visor and a star
         canvas.drawCircle(c + const Offset(0, 3), r * 0.48, Paint()..color = const Color(0xFFF6F6F2));
-        canvas.drawOval(Rect.fromCenter(center: c + const Offset(0, 5), width: r * 0.68, height: r * 0.48), Paint()..color = const Color(0xFFF2B544));
+        canvas.drawOval(Rect.fromCenter(center: c + const Offset(0, 5), width: r * 0.68, height: r * 0.48), Paint()..color = const Color(0xFF2E3FB8));
         canvas.drawPath(sparklePath(c - Offset(0, r * 0.52), r * 0.24), Paint()..color = C.cyan);
         break;
       case AgeMode.explorer:

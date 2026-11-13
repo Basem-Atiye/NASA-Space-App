@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../story/story_model.dart' show AgeModeInfo;
 import '../ui/theme.dart';
+import '../ui/figma_art.dart';
+import '../ui/kit.dart';
+import '../ui/line_icons.dart';
 import '../services/audio.dart';
 import '../ui/widgets/common.dart';
 import '../world/mission_theme.dart';
@@ -29,6 +32,11 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   late final AnimationController _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 1600))..repeat();
   late final AnimationController _draw = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..forward();
   late final AnimationController _zoom = AnimationController(vsync: this, duration: const Duration(milliseconds: 650));
+
+  /// The Sun goes once round the horizon (at the pole it never rises high),
+  /// so the crater shadows slowly sweep around.
+  late final AnimationController _sun = AnimationController(vsync: this, duration: const Duration(seconds: 50));
+  bool _sunStarted = false;
   final ScrollController _scroll = ScrollController();
 
   /// The rover drives along the path to the level you pick (in node units).
@@ -41,11 +49,42 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   final List<(Offset, int)> _taps = [];
   bool _scrolled = false;
 
+  /// The level card's real height, so the map ends just above it.
+  final GlobalKey _cardKey = GlobalKey();
+  double? _cardH;
+  double _viewH = 0;
+
+  void _measureCard() {
+    final h = _cardKey.currentContext?.size?.height;
+    if (h == null || !mounted) return;
+    if (_cardH == null || (h - _cardH!).abs() > 1) {
+      setState(() => _cardH = h);
+      WidgetsBinding.instance.addPostFrameCallback((_) => _reveal(_selected));
+    }
+  }
+
+  /// Scrolls the map so [level] sits comfortably above the card.
+  void _reveal(int level, {bool animate = true}) {
+    if (!mounted || !_scroll.hasClients || _viewH <= 0) return;
+    final pos = _scroll.position;
+    final fromBottom = 84 + (level - 1) * _rowH;
+    const margin = 70.0;
+    final o = pos.pixels;
+    if (fromBottom >= o + margin && fromBottom <= o + _viewH - margin) return;
+    final target = (fromBottom - _viewH * 0.4).clamp(0.0, pos.maxScrollExtent);
+    if (animate) {
+      _scroll.animateTo(target, duration: const Duration(milliseconds: 450), curve: Curves.easeOutCubic);
+    } else {
+      _scroll.jumpTo(target);
+    }
+  }
+
   @override
   void dispose() {
     _pulse.dispose();
     _draw.dispose();
     _zoom.dispose();
+    _sun.dispose();
     _drive.dispose();
     _scroll.dispose();
     super.dispose();
@@ -77,22 +116,25 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     final post = p.assessment(camp.id, 'post');
     final showPre = pre == null && _selected == 1 && !p.storyStarted();
     final showPost = post == null && p.campaignComplete();
+    final reduced = p.reducedMotion || MediaQuery.of(context).disableAnimations;
+    if (!_sunStarted && !reduced) {
+      _sunStarted = true;
+      _sun.repeat();
+    }
     return ColoredBox(
-      color: const Color(0xFF8B8781),
+      color: _ground,
       child: LayoutBuilder(builder: (context, box) {
-        final mapTop = top + (p.className != null ? 122 : 96);
-        final cardH = 330.0 + (showPre || showPost ? 52 : 0);
-        final viewH = math.max(200.0, box.maxHeight - mapTop - cardH - bottom + 26);
-        final contentH = math.max(viewH, n * _rowH + 90);
-        Offset nodeAt(int i) => Offset(_nodeX(i) * box.maxWidth, contentH - 60 - i * _rowH);
+        final mapTop = top + (p.className != null ? 124 : 98);
+        final cardH = _cardH ?? 346.0 + (showPre || showPost ? 132 : 0);
+        // the map stops just above the card (a little overlap hides under its shadow)
+        final viewH = math.max(200.0, box.maxHeight - mapTop - (cardH + 16 + bottom) + 10);
+        _viewH = viewH;
+        final contentH = math.max(viewH, n * _rowH + 170);
+        Offset nodeAt(int i) => Offset(_nodeX(i) * box.maxWidth, contentH - 84 - i * _rowH);
+        WidgetsBinding.instance.addPostFrameCallback((_) => _measureCard());
         if (!_scrolled) {
           _scrolled = true;
-          // start with the current level in view
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!_scroll.hasClients) return;
-            final y = (current - 1) * _rowH - viewH * 0.35;
-            _scroll.jumpTo(y.clamp(0.0, _scroll.position.maxScrollExtent));
-          });
+          WidgetsBinding.instance.addPostFrameCallback((_) => _reveal(_selected, animate: false));
         }
         return AnimatedBuilder(
           animation: _zoom,
@@ -101,7 +143,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             return Transform.scale(scale: 1 + z * 1.4, child: Opacity(opacity: 1 - z * 0.9, child: child));
           },
           child: Stack(fit: StackFit.expand, children: [
-            CustomPaint(painter: _TerrainPainter()),
+            const ColoredBox(color: _ground),
             // the scrolling path
             Positioned(
               left: 0,
@@ -122,6 +164,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   child: SizedBox(
                     height: contentH,
                     child: Stack(clipBehavior: Clip.none, children: [
+                      // the Moon's surface, moving with the path
+                      Positioned.fill(
+                        child: RepaintBoundary(
+                          child: CustomPaint(painter: _SurfacePainter(sun: _sun, nodes: [for (var i = 0; i < n; i++) nodeAt(i)])),
+                        ),
+                      ),
                       Positioned.fill(
                         child: AnimatedBuilder(
                           animation: Listenable.merge([_pulse, _draw]),
@@ -133,13 +181,26 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       for (final s in camp.seasons)
                         if (camp.seasons.length > 1)
                           Positioned(
-                            left: 14,
-                            top: nodeAt(s.first - 1).dy + 30,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(color: C.bg.withValues(alpha: 0.7), borderRadius: BorderRadius.circular(10)),
-                              child: Text(s.name.toUpperCase(), style: T.label.copyWith(fontSize: 9.5, letterSpacing: 1.6)),
-                            ),
+                            left: 24,
+                            top: nodeAt(s.first - 1).dy + 34,
+                            child: Builder(builder: (_) {
+                              final seasonOpen = p.storyUnlocked(s.first);
+                              final seasonNew = seasonOpen && p.storyStars(s.first) == 0 && current == s.first;
+                              return Container(
+                                height: 28,
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: seasonNew ? C.sapphire : C.ink.withValues(alpha: 0.82),
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: seasonNew ? [BoxShadow(color: C.sapphire.withValues(alpha: 0.45), blurRadius: 16)] : null,
+                                ),
+                                child: Text(
+                                  seasonNew ? '${s.name.toUpperCase()} · NEW' : s.name.toUpperCase(),
+                                  style: T.label.copyWith(fontSize: 10, letterSpacing: 1.6, color: seasonNew ? C.frozen : C.muted),
+                                ),
+                              );
+                            }),
                           ),
                       // tap the ground: a dust ring
                       Positioned.fill(
@@ -181,64 +242,58 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                           );
                         },
                       ),
-                      Positioned(left: nodeAt(0).dx - 50, top: nodeAt(0).dy + 18, child: const _MiniLander()),
-                      Positioned(left: nodeAt(n - 1).dx + 52, top: nodeAt(n - 1).dy - 6, child: const _MiniRocket()),
+                      Positioned(left: nodeAt(0).dx - 74, top: nodeAt(0).dy - 6, child: const IgnorePointer(child: _MiniLander())),
+                      Positioned(left: nodeAt(n - 1).dx + 46, top: nodeAt(n - 1).dy - 44, child: IgnorePointer(child: _MiniRocket(sun: _sun))),
                     ]),
                   ),
                 ),
               ),
             ),
-            // dark sky band at the top
+            // the black sky and the horizon at the top, with the low Sun and Earth
             Positioned(
               left: 0,
               right: 0,
               top: 0,
-              height: mapTop,
-              child: const DecoratedBox(
-                  decoration: BoxDecoration(
-                      gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [C.bg, Color(0xCC071A10), Color(0x00071A10)], stops: [0, 0.7, 1]))),
+              height: mapTop + 10,
+              child: IgnorePointer(child: RepaintBoundary(child: CustomPaint(painter: _HorizonPainter(_sun)))),
             ),
             // header
             Positioned(
-              left: 20,
-              right: 20,
+              left: 24,
+              right: 24,
               top: top + 14,
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  IconButton(
-                    onPressed: () => sv.nav.resetTo(Screen.title),
-                    icon: const Icon(Icons.arrow_back_rounded, color: C.frozen),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 40, minHeight: 44),
-                  ),
-                  const SizedBox(width: 4),
+                Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                  RoundButton(onTap: () => sv.nav.resetTo(Screen.title)),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(camp.title.toUpperCase(), style: T.label.copyWith(letterSpacing: 3), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(camp.title.toUpperCase(), style: T.label.copyWith(fontSize: 11, letterSpacing: 2.4), maxLines: 1, overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 2),
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
-                        child: Text(camp.dayLabel(current), style: T.h1.copyWith(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: 24, letterSpacing: 0.5)),
+                        child: Text(camp.dayLabel(current), style: T.h2.copyWith(fontSize: 22)),
                       ),
                     ]),
                   ),
                   Container(
                     height: 44,
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(16), border: Border.all(color: C.cyan.withValues(alpha: 0.5))),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: C.raised, borderRadius: BorderRadius.circular(22)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      const SparkleStar(size: 16),
-                      const SizedBox(width: 8),
+                      const LineIcon(Ln.star, size: 17, color: C.yellow),
+                      const SizedBox(width: 7),
                       Text('${p.storyTotalStars()} / ${n * 3}', style: T.h3.copyWith(fontSize: 15)),
                     ]),
                   ),
                 ]),
                 if (p.className != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8, left: 44),
+                    padding: const EdgeInsets.only(top: 10, left: 56),
                     child: Row(children: [
-                      const Icon(Icons.groups_rounded, size: 16, color: C.cyan),
+                      const LineIcon(Ln.users, size: 16, color: C.cyan),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text('${p.className}${(p.teacherName ?? '').isEmpty ? '' : ' · ${p.teacherName}'} · ${camp.mode.title} level',
@@ -250,58 +305,93 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             ),
             // the level card
             Positioned(
-              left: 16,
-              right: 16,
+              left: 24,
+              right: 24,
               bottom: 16 + bottom,
               child: AnimatedSwitcher(
+                key: _cardKey,
                 duration: Motion.normal,
                 switchInCurve: Motion.curve,
                 transitionBuilder: (c, a) =>
                     FadeTransition(opacity: a, child: SlideTransition(position: Tween(begin: const Offset(0, 0.06), end: Offset.zero).animate(a), child: c)),
                 child: Container(
                   key: ValueKey('${camp.id}-$_selected'),
-                  padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
                   decoration: BoxDecoration(
-                    color: C.indigo.withValues(alpha: 0.96),
-                    borderRadius: BorderRadius.circular(26),
-                    border: Border.all(color: selTheme.accent.withValues(alpha: 0.6), width: 1.5),
-                    boxShadow: [BoxShadow(color: selTheme.accent.withValues(alpha: 0.25), blurRadius: 30, offset: const Offset(0, 10))],
-                  ),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                    Row(children: [
-                      Text('LEVEL $_selected', style: T.label.copyWith(fontSize: 12, letterSpacing: 3)),
-                      Flexible(child: Text('  · about $mins min', style: T.bodySmall, overflow: TextOverflow.ellipsis)),
-                      const Spacer(),
-                      if (p.storyStars(_selected) > 0) StarRow(stars: p.storyStars(_selected), size: 14),
-                    ]),
-                    const SizedBox(height: 4),
-                    Text(task.title, style: T.h1.copyWith(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: 24)),
-                    const SizedBox(height: 4),
-                    Row(children: [
-                      Icon(moodIcon(selTheme), size: 14, color: selTheme.accent),
-                      const SizedBox(width: 6),
-                      Text(selTheme.name, style: T.label.copyWith(color: selTheme.accent, fontSize: 10.5, letterSpacing: 2)),
-                    ]),
-                    const SizedBox(height: 6),
-                    Text(info.brief, style: T.body.copyWith(color: C.muted, fontSize: 14), maxLines: 3, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 10),
-                    Wrap(spacing: 6, runSpacing: 6, children: [
-                      for (final g in info.games) _chip(g, C.panelDeep, C.text),
-                      _chip(info.chip, const Color(0xFF2A1F12), const Color(0xFFF3E9D8)),
-                    ]),
-                    const SizedBox(height: 14),
-                    if (showPre || showPost) ...[
-                      HudButton(
-                        label: showPre ? 'READINESS CHECK FIRST (2 MIN)' : 'FINAL READINESS CHECK',
-                        icon: Icons.quiz_rounded,
-                        onTap: () => sv.nav.go(Screen.readiness),
-                      ),
-                      const SizedBox(height: 10),
+                    color: C.panel,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 30, offset: const Offset(0, 12)),
+                      BoxShadow(color: selTheme.accent.withValues(alpha: 0.18), blurRadius: 40),
                     ],
-                    PrimaryButton(
-                      label: p.storyUnlocked(_selected) ? 'Play level $_selected' : 'Locked',
-                      icon: p.storyUnlocked(_selected) ? Icons.play_arrow_rounded : Icons.lock_rounded,
-                      onTap: p.storyUnlocked(_selected) ? _playLevel : null,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+                    // a strip in the colour of the mission
+                    Container(height: 5, color: selTheme.accent),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                        Row(children: [
+                          Overline('LEVEL $_selected', color: C.cyan, size: 11.5),
+                          const SizedBox(width: 8),
+                          const LineIcon(Ln.clock, size: 14, color: C.muted),
+                          const SizedBox(width: 4),
+                          Flexible(child: Text('about $mins min', style: T.bodySmall.copyWith(fontSize: 12.5), overflow: TextOverflow.ellipsis)),
+                          const Spacer(),
+                          if (p.storyStars(_selected) > 0) StarRow(stars: p.storyStars(_selected), size: 15),
+                        ]),
+                        const SizedBox(height: 8),
+                        Text(task.title, style: T.h2.copyWith(fontSize: 23), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 8),
+                        Row(children: [
+                          Container(
+                            height: 26,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            decoration: BoxDecoration(color: selTheme.accent.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(13)),
+                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                              Icon(moodIcon(selTheme), size: 14, color: selTheme.accent),
+                              const SizedBox(width: 6),
+                              Text(selTheme.name.toUpperCase(), style: T.label.copyWith(color: selTheme.accent, fontSize: 10.5, letterSpacing: 1.6)),
+                            ]),
+                          ),
+                        ]),
+                        const SizedBox(height: 10),
+                        Text(info.brief, style: T.body.copyWith(color: C.muted, fontSize: 14, height: 1.4), maxLines: 3, overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 12),
+                        Wrap(spacing: 8, runSpacing: 8, children: [
+                          for (final g in info.games) _chip(g, C.panelDeep, C.text),
+                          _chip(info.chip, C.info, C.frozen),
+                        ]),
+                        const SizedBox(height: 16),
+                        if (showPre || showPost) ...[
+                          Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(color: C.yellow.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(16)),
+                            child: Row(children: [
+                              const IconBox(Ln.bulb, color: C.yellow, size: 34),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  showPre ? 'Take the short readiness check before Level 1 (about 2 min).' : 'Campaign complete! Finish the final readiness check.',
+                                  style: T.body.copyWith(fontSize: 13.5, color: C.frozen),
+                                ),
+                              ),
+                            ]),
+                          ),
+                          KitButton(showPre ? 'Readiness check first' : 'Final readiness check', icon: Ln.check, onTap: () => sv.nav.go(Screen.readiness)),
+                          const SizedBox(height: 12),
+                        ],
+                        KitButton(
+                          p.storyUnlocked(_selected)
+                              ? (_selected == current && p.storyStars(_selected) == 0 ? 'Play next · Level $_selected' : 'Play level $_selected')
+                              : 'Locked',
+                          icon: p.storyUnlocked(_selected) ? Ln.play : Ln.lock,
+                          style: showPre || showPost ? KitButtonStyle.secondary : KitButtonStyle.primary,
+                          onTap: p.storyUnlocked(_selected) ? _playLevel : null,
+                        ),
+                      ]),
                     ),
                   ]),
                 ),
@@ -314,9 +404,11 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   }
 
   Widget _chip(String text, Color bg, Color fg) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
-        child: Text(text, style: T.body.copyWith(fontSize: 12.5, color: fg)),
+        height: 30,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(15)),
+        child: Text(text, style: T.body.copyWith(fontSize: 12.5, color: fg, fontWeight: FontWeight.w700, height: 1.1)),
       );
 
   Widget _node(int n, Offset at, int current) {
@@ -325,99 +417,126 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     final isCurrent = n == current && !done;
     final unlocked = p.storyUnlocked(n);
     final selected = n == _selected;
-    final size = isCurrent || selected ? 58.0 : 46.0;
+    final size = isCurrent || selected ? 60.0 : 50.0;
     final info = p.campaign.info(n);
     final task = p.campaign.task(n);
     final theme = themeForText('${task.title} ${task.subtitle} ${task.lesson}', n);
     final mood = theme.accent;
+    // a raised 3D button, like the Figma buttons
+    final (face, edge, ink) = isCurrent
+        ? (C.cyan, C.cyanEdge, C.ink)
+        : done
+            ? (C.raised, C.raisedEdge, C.text)
+            : unlocked
+                ? (C.panel, C.raisedEdge, C.text)
+                : (C.locked, const Color(0xFF26224A), C.dim);
     return Positioned(
       left: at.dx - size / 2,
       top: at.dy - size / 2,
-      child: GestureDetector(
-        onTap: unlocked
-            ? () {
-                final sv = Services.of(context);
-                sv.audio.tap();
-                if (n != _selected) {
-                  _roverFrom = _rover;
-                  _roverTo = (n - 1).toDouble();
-                  _drive.duration = Duration(milliseconds: (380 + 260 * (_roverTo - _roverFrom).abs()).clamp(380, 2200).round());
-                  _drive.forward(from: 0);
-                  sv.audio.play(Sfx.step, volume: 0.25);
+      child: Semantics(
+        button: true,
+        label: 'Level $n${done ? ', ${p.storyStars(n)} stars' : ''}${unlocked ? '' : ', locked'}',
+        child: GestureDetector(
+          onTap: unlocked
+              ? () {
+                  final sv = Services.of(context);
+                  sv.audio.tap();
+                  if (n != _selected) {
+                    _roverFrom = _rover;
+                    _roverTo = (n - 1).toDouble();
+                    _drive.duration = Duration(milliseconds: (380 + 260 * (_roverTo - _roverFrom).abs()).clamp(380, 2200).round());
+                    _drive.forward(from: 0);
+                    sv.audio.play(Sfx.step, volume: 0.25);
+                  }
+                  setState(() => _selected = n);
+                  WidgetsBinding.instance.addPostFrameCallback((_) => _reveal(n));
                 }
-                setState(() => _selected = n);
-              }
-            : null,
-        child: Stack(clipBehavior: Clip.none, children: [
-          if (isCurrent)
-            AnimatedBuilder(
-              animation: _pulse,
-              builder: (context, _) => Transform.scale(
-                scale: 1 + _pulse.value * 0.5,
-                child: Container(
-                  width: size,
-                  height: size,
-                  decoration: BoxDecoration(shape: BoxShape.circle, color: C.sapphire.withValues(alpha: 0.35 * (1 - _pulse.value))),
+              : null,
+          child: Stack(clipBehavior: Clip.none, children: [
+            if (isCurrent)
+              AnimatedBuilder(
+                animation: _pulse,
+                builder: (context, _) => Transform.scale(
+                  scale: 1 + _pulse.value * 0.6,
+                  child: Container(
+                    width: size,
+                    height: size,
+                    decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: C.cyan.withValues(alpha: 0.7 * (1 - _pulse.value)), width: 3)),
+                  ),
                 ),
               ),
-            ),
-          AnimatedContainer(
-            duration: Motion.normal,
-            curve: Motion.curve,
-            width: size,
-            height: size,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              // each level wears the colour of its mission (ice, storm, night...)
-              gradient: RadialGradient(
-                center: const Alignment(-0.3, -0.4),
-                colors: isCurrent
-                    ? [Color.lerp(mood, Colors.white, 0.2)!, Color.lerp(mood, C.sapphire, 0.5)!]
-                    : (done
-                        ? [Color.lerp(mood, Colors.black, 0.45)!, const Color(0xFF0B1A12)]
-                        : (unlocked ? [Color.lerp(mood, Colors.black, 0.55)!, const Color(0xFF1F2225)] : [const Color(0xFF2A2D31), const Color(0xFF1F2225)])),
-              ),
-              border: Border.all(color: isCurrent || selected ? C.frozen : (unlocked || done ? mood : const Color(0xFF9A9FA6)), width: isCurrent || selected ? 3.5 : 2.5),
-              boxShadow: isCurrent || selected ? [BoxShadow(color: mood.withValues(alpha: 0.65), blurRadius: 26)] : null,
-            ),
-            child: unlocked || done
-                ? Text('$n', style: T.h3.copyWith(fontSize: isCurrent ? 22 : 18, fontWeight: FontWeight.w800))
-                : const Icon(Icons.lock_rounded, size: 16, color: Color(0xFF9A9FA6)),
-          ),
-          // a small badge with the mission's mood
-          if (unlocked || done)
+            // the 3D edge underneath
             Positioned(
-              left: -6,
-              top: -6,
-              child: Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(color: C.bg, shape: BoxShape.circle, border: Border.all(color: mood, width: 1.5)),
-                child: Icon(moodIcon(theme), size: 13, color: mood),
+              left: 0,
+              top: 5,
+              child: Container(width: size, height: size, decoration: BoxDecoration(shape: BoxShape.circle, color: edge, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))])),
+            ),
+            AnimatedContainer(
+              duration: Motion.normal,
+              curve: Motion.curve,
+              width: size,
+              height: size,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: face,
+                border: Border.all(color: selected && !isCurrent ? C.frozen : (unlocked && !isCurrent ? mood.withValues(alpha: 0.9) : Colors.transparent), width: selected ? 3 : 2.5),
+                boxShadow: isCurrent || selected ? [BoxShadow(color: (isCurrent ? C.cyan : mood).withValues(alpha: 0.55), blurRadius: 24)] : null,
               ),
+              child: unlocked || done
+                  ? Text('$n', style: T.h3.copyWith(fontSize: isCurrent || selected ? 23 : 19, color: ink, height: 1))
+                  : LineIcon(Ln.lock, size: 18, color: ink),
             ),
-          if (info.wow)
-            Positioned(
-              left: size - 6,
-              top: size / 2 - 11,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(color: C.sapphire, borderRadius: BorderRadius.circular(10)),
-                child: Text('WOW', style: T.label.copyWith(color: C.frozen, fontSize: 10, letterSpacing: 1.4)),
+            // the mission's mood, as a little badge
+            if (unlocked || done)
+              Positioned(
+                left: -5,
+                top: -5,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(color: C.ink, shape: BoxShape.circle, border: Border.all(color: mood, width: 1.5)),
+                  child: Icon(moodIcon(theme), size: 13, color: mood),
+                ),
               ),
-            ),
-          if (done)
-            Positioned(
-              left: size / 2 - 33,
-              top: size + 2,
-              child: SizedBox(width: 66, child: Center(child: StarRow(stars: p.storyStars(n), size: 15))),
-            ),
-        ]),
+            if (done)
+              Positioned(
+                right: -5,
+                top: -5,
+                child: Container(
+                  width: 22,
+                  height: 22,
+                  decoration: const BoxDecoration(color: C.green, shape: BoxShape.circle),
+                  child: const Center(child: LineIcon(Ln.check, size: 13, color: C.ink, stroke: 3)),
+                ),
+              ),
+            if (info.wow)
+              Positioned(
+                left: size + 4,
+                top: size / 2 - 11,
+                child: Container(
+                  height: 22,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(color: C.yellow, borderRadius: BorderRadius.circular(11)),
+                  child: Text('WOW', style: T.label.copyWith(color: C.ink, fontSize: 10, letterSpacing: 1.4)),
+                ),
+              ),
+            if (done)
+              Positioned(
+                left: size / 2 - 33,
+                top: size + 8,
+                child: SizedBox(width: 66, child: Center(child: StarRow(stars: p.storyStars(n), size: 15))),
+              ),
+          ]),
+        ),
       ),
     );
   }
 }
+
+/// The colour of the ground on the map (Figma's hill colour, a bit darker).
+const _ground = Color(0xFF3B3468);
 
 class _PathPainter extends CustomPainter {
   final List<Offset> points;
@@ -427,7 +546,7 @@ class _PathPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final dots = Paint()..color = Colors.white.withValues(alpha: 0.75);
+    final dots = Paint()..color = const Color(0xFFB9B4E0).withValues(alpha: 0.75);
     for (var i = 0; i < points.length - 1; i++) {
       final a = points[i], b = points[i + 1];
       final ctrl = Offset((a.dx + b.dx) / 2, (a.dy + b.dy) / 2 + 14);
@@ -435,21 +554,36 @@ class _PathPainter extends CustomPainter {
         ..moveTo(a.dx, a.dy)
         ..quadraticBezierTo(ctrl.dx, ctrl.dy, b.dx, b.dy);
       if (i < done) {
-        // the path to the current level draws itself on arrival
+        // the path already travelled glows; it draws itself on arrival
         final m = path.computeMetrics().first;
         final k = (drawn * done - i).clamp(0.0, 1.0);
+        final part = m.extractPath(0, m.length * k);
         canvas.drawPath(
-            m.extractPath(0, m.length * k),
+            part,
+            Paint()
+              ..color = C.cyan.withValues(alpha: 0.28)
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 16
+              ..strokeCap = StrokeCap.round
+              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
+        canvas.drawPath(
+            part,
             Paint()
               ..color = C.cyan
               ..style = PaintingStyle.stroke
-              ..strokeWidth = 5
+              ..strokeWidth = 6
               ..strokeCap = StrokeCap.round);
+        // rover tyre tracks along the middle
+        for (var d = 6.0; d < m.length * k - 6; d += 12) {
+          final tan = m.getTangentForOffset(d);
+          if (tan == null) continue;
+          canvas.drawCircle(tan.position, 1.3, Paint()..color = C.cyanEdge);
+        }
       } else {
         for (final m in path.computeMetrics()) {
-          for (var d = 10.0; d < m.length - 10; d += 14) {
+          for (var d = 12.0; d < m.length - 12; d += 14) {
             final tan = m.getTangentForOffset(d);
-            if (tan != null) canvas.drawCircle(tan.position, 2.4, dots);
+            if (tan != null) canvas.drawCircle(tan.position, 2.6, dots);
           }
         }
       }
@@ -460,76 +594,148 @@ class _PathPainter extends CustomPainter {
   bool shouldRepaint(covariant _PathPainter old) => old.drawn != drawn || old.done != done;
 }
 
-class _TerrainPainter extends CustomPainter {
+double _hash(double v) {
+  final s = math.sin(v * 12.9898 + 78.233) * 43758.5453;
+  return s - s.floorToDouble();
+}
+
+/// The Moon's surface under the path: craters whose shadows sweep round as
+/// the low Sun circles the horizon, a few craters in shadow for ever with
+/// ice glinting inside, rocks, and the landing site and crater rim labels.
+class _SurfacePainter extends CustomPainter {
+  final Animation<double> sun;
+  final List<Offset> nodes;
+  _SurfacePainter({required this.sun, required this.nodes}) : super(repaint: sun);
+
   @override
-  void paint(Canvas canvas, Size s) {
+  void paint(Canvas c, Size s) {
+    final a = sun.value * math.pi * 2;
+    final t = sun.value * 50;
     final r = Offset.zero & s;
-    canvas.drawRect(
-        r,
-        Paint()
-          ..shader =
-              const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF6E6B66), Color(0xFF8E8A84), Color(0xFF7A7671)]).createShader(r));
-    final rnd = math.Random(17);
-    for (var i = 0; i < 9; i++) {
-      final c = Offset(rnd.nextDouble() * s.width, 140 + rnd.nextDouble() * (s.height - 300));
-      final cr = 20 + rnd.nextDouble() * 80;
-      canvas.drawCircle(
-          c,
-          cr,
-          Paint()
-            ..shader = RadialGradient(
-                center: const Alignment(0.2, 0.25),
-                colors: [const Color(0xFF3F3D3A).withValues(alpha: 0.85), const Color(0xFF6E6B66).withValues(alpha: 0.6), const Color(0xFF9B978F).withValues(alpha: 0.0)],
-                stops: const [0, 0.7, 1]).createShader(Rect.fromCircle(center: c, radius: cr)));
-      canvas.drawArc(
-          Rect.fromCircle(center: c, radius: cr * 0.92),
-          math.pi * 0.15,
-          math.pi * 0.8,
-          false,
-          Paint()
-            ..color = const Color(0xFFB9B5AD).withValues(alpha: 0.5)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2);
+    c.drawRect(r, Paint()..shader = const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF4A4378), Color(0xFF433C72), _ground]).createShader(r));
+    // the light comes from the Sun's side; shadows fall the other way, long
+    final light = Offset(math.cos(a), math.sin(a) * 0.45);
+
+    // big Shackleton crater rim across the top: dark for ever inside
+    final rimC = Offset(s.width * 0.5, -s.width * 0.26);
+    final rim = Rect.fromCenter(center: rimC, width: s.width * 1.5, height: s.width * 0.72);
+    c.drawOval(rim.inflate(10), Paint()..color = const Color(0xFF5A5290));
+    c.drawOval(rim, Paint()..color = const Color(0xFF1C1D43));
+    final rnd0 = math.Random(5);
+    for (var i = 0; i < 14; i++) {
+      final p = Offset(rnd0.nextDouble() * s.width, rnd0.nextDouble() * rim.bottom * 0.85);
+      if (p.dy < 4) continue;
+      paintSparkle(c, p, 4 + 3 * (0.5 + 0.5 * math.sin(t * 2 + i)), const Color(0xFFBDF4FF).withValues(alpha: 0.75));
     }
-    for (var i = 0; i < 40; i++) {
-      final c = Offset(rnd.nextDouble() * s.width, rnd.nextDouble() * s.height);
-      canvas.drawCircle(c, 2 + rnd.nextDouble() * 5, Paint()..color = const Color(0xFF5E5B57).withValues(alpha: 0.6));
+    _label(c, 'SHACKLETON CRATER · ICE IN THE SHADOWS', Offset(s.width / 2, rim.bottom + 20), C.frozen);
+
+    final rnd = math.Random(23);
+    final count = (s.height / 70).round() + 6;
+    for (var i = 0; i < count; i++) {
+      final p = Offset(rnd.nextDouble() * s.width, rim.bottom + 40 + rnd.nextDouble() * (s.height - rim.bottom - 60));
+      final rad = 12 + rnd.nextDouble() * 34;
+      final dark = rnd.nextDouble() < 0.18; // a crater the Sun never reaches
+      if (nodes.any((n) => (n - p).distance < rad + 34)) continue;
+      final bowl = Rect.fromCenter(center: p, width: rad * 2, height: rad * 1.1);
+      // the long shadow outside the rim, falling away from the Sun
+      c.drawOval(bowl.shift(-light * rad * 0.55), Paint()..color = const Color(0xFF2A2456).withValues(alpha: 0.5));
+      c.drawOval(bowl.inflate(2), Paint()..color = const Color(0xFF524A85));
+      c.drawOval(bowl, Paint()..color = dark ? const Color(0xFF1C1D43) : const Color(0xFF3A3366));
+      if (!dark) {
+        // the lit inner wall faces the Sun (light enters from the far side)
+        c.save();
+        c.clipPath(Path()..addOval(bowl));
+        c.drawOval(bowl.shift(-light * rad * 0.5), Paint()..color = const Color(0xFF5E5690).withValues(alpha: 0.75));
+        c.restore();
+      } else {
+        for (var k = 0; k < 2; k++) {
+          final g = p + Offset((_hash(i + k * 3.0) - 0.5) * rad, (_hash(i + k * 7.0) - 0.5) * rad * 0.4);
+          paintSparkle(c, g, 3.5 + 2 * (0.5 + 0.5 * math.sin(t * 2.4 + i + k)), const Color(0xFFBDF4FF).withValues(alpha: 0.8));
+        }
+      }
+      c.drawArc(bowl.inflate(1), math.atan2(light.dy, light.dx) - 1.1, 2.2, false, Paint()
+        ..color = Colors.white.withValues(alpha: 0.14)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2);
     }
+    // rocks with short moving shadows
+    for (var i = 0; i < count * 2; i++) {
+      final p = Offset(rnd.nextDouble() * s.width, rim.bottom + 30 + rnd.nextDouble() * (s.height - rim.bottom - 40));
+      if (nodes.any((n) => (n - p).distance < 30)) continue;
+      final w = 4 + rnd.nextDouble() * 9;
+      c.drawOval(Rect.fromCenter(center: p - light * w * 0.9, width: w * 2.2, height: w * 0.7), Paint()..color = const Color(0xFF2A2456).withValues(alpha: 0.45));
+      c.drawOval(Rect.fromCenter(center: p, width: w * 1.6, height: w), Paint()..color = const Color(0xFF6A62A0));
+      c.drawOval(Rect.fromCenter(center: p + Offset(light.dx * w * 0.25, -w * 0.15), width: w * 0.8, height: w * 0.35), Paint()..color = Colors.white.withValues(alpha: 0.18));
+    }
+    if (nodes.isNotEmpty) _label(c, 'LANDING SITE', nodes.first + const Offset(0, 52), C.muted);
+  }
+
+  void _label(Canvas c, String text, Offset at, Color col) {
+    final tp = TextPainter(
+      text: TextSpan(text: text, style: TextStyle(fontFamily: F.body, fontWeight: FontWeight.w800, fontSize: 10.5, letterSpacing: 2, color: col.withValues(alpha: 0.8))),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final box = RRect.fromRectAndRadius(Rect.fromCenter(center: at, width: tp.width + 22, height: 24), const Radius.circular(12));
+    c.drawRRect(box, Paint()..color = C.ink.withValues(alpha: 0.7));
+    tp.paint(c, Offset(at.dx - tp.width / 2, at.dy - tp.height / 2));
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter old) => false;
+  bool shouldRepaint(covariant _SurfacePainter old) => old.nodes.length != nodes.length || (old.nodes.isNotEmpty && nodes.isNotEmpty && old.nodes.first != nodes.first);
+}
+
+/// The black sky over the horizon: stars, Earth, and the low Sun gliding
+/// along the edge (at the south pole it circles, it never climbs high).
+class _HorizonPainter extends CustomPainter {
+  final Animation<double> sun;
+  _HorizonPainter(this.sun) : super(repaint: sun);
+
+  @override
+  void paint(Canvas c, Size s) {
+    final r = Offset.zero & s;
+    c.drawRect(r, Paint()..shader = const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [C.bg, C.bg, Color(0x000A1331)], stops: [0, 0.72, 1]).createShader(r));
+    final rnd = math.Random(9);
+    for (var i = 0; i < 40; i++) {
+      final p = Offset(rnd.nextDouble() * s.width, rnd.nextDouble() * s.height * 0.7);
+      c.drawCircle(p, 0.6 + rnd.nextDouble(), Paint()..color = Colors.white.withValues(alpha: 0.25 + 0.45 * rnd.nextDouble()));
+    }
+    // the Sun slides along the horizon (left to right and round again)
+    final x = ((sun.value * 1.4) % 1.4 - 0.2) * s.width;
+    final y = s.height * 0.78;
+    c.drawCircle(Offset(x, y), 70, Paint()..shader = const RadialGradient(colors: [Color(0x66FFD23F), Color(0x00FFD23F)]).createShader(Rect.fromCircle(center: Offset(x, y), radius: 70)));
+    c.drawCircle(Offset(x, y), 9, Paint()..color = const Color(0xFFFFF3C4));
+    // Earth, low and far
+    paintEarthBall(c, Offset(s.width * 0.82, s.height * 0.62), 9);
+  }
+
+  @override
+  bool shouldRepaint(covariant _HorizonPainter old) => false;
 }
 
 class _MiniLander extends StatelessWidget {
   const _MiniLander();
   @override
-  Widget build(BuildContext context) => Transform.rotate(
-        angle: -0.2,
-        child: CustomPaint(
-          size: const Size(40, 30),
-          painter: _LanderIcon(),
-        ),
-      );
+  Widget build(BuildContext context) => CustomPaint(size: const Size(52, 46), painter: _LanderIcon());
 }
 
+/// The lander you arrived in, parked at the landing site.
 class _LanderIcon extends CustomPainter {
   @override
   void paint(Canvas c, Size s) {
-    c.drawLine(
-        Offset(s.width * 0.2, s.height * 0.1),
-        Offset(s.width * 0.2, s.height * 0.6),
-        Paint()
-          ..color = Colors.white
-          ..strokeWidth = 2);
-    c.drawPath(
-        Path()
-          ..moveTo(s.width * 0.2, s.height * 0.35)
-          ..lineTo(s.width * 0.85, s.height * 0.3)
-          ..lineTo(s.width * 0.75, s.height)
-          ..lineTo(s.width * 0.15, s.height * 0.95)
-          ..close(),
-        Paint()..color = const Color(0xFFE1A23A));
+    final grey = Paint()..color = const Color(0xFFB9CBC6);
+    c.drawOval(Rect.fromCenter(center: Offset(s.width / 2, s.height - 2), width: s.width * 0.95, height: 6), Paint()..color = Colors.black.withValues(alpha: 0.3));
+    // legs
+    final leg = Paint()
+      ..color = const Color(0xFFB9CBC6)
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+    c.drawLine(Offset(s.width * 0.3, s.height * 0.55), Offset(s.width * 0.1, s.height - 3), leg);
+    c.drawLine(Offset(s.width * 0.7, s.height * 0.55), Offset(s.width * 0.9, s.height - 3), leg);
+    // gold body and white top
+    c.drawRRect(RRect.fromLTRBR(s.width * 0.2, s.height * 0.32, s.width * 0.8, s.height * 0.72, const Radius.circular(5)), Paint()..color = C.yellow);
+    c.drawRRect(RRect.fromLTRBR(s.width * 0.28, s.height * 0.06, s.width * 0.72, s.height * 0.38, const Radius.circular(8)), Paint()..color = const Color(0xFFF2FFF8));
+    c.drawCircle(Offset(s.width * 0.5, s.height * 0.22), 5, Paint()..color = C.sapphire);
+    c.drawRect(Rect.fromLTRB(s.width * 0.2, s.height * 0.5, s.width * 0.8, s.height * 0.54), grey);
   }
 
   @override
@@ -537,29 +743,20 @@ class _LanderIcon extends CustomPainter {
 }
 
 class _MiniRocket extends StatelessWidget {
-  const _MiniRocket();
+  final Animation<double> sun;
+  const _MiniRocket({required this.sun});
   @override
-  Widget build(BuildContext context) => CustomPaint(size: const Size(32, 40), painter: _RocketIcon());
+  Widget build(BuildContext context) => SizedBox(width: 44, height: 70, child: CustomPaint(painter: _RocketIcon(sun)));
 }
 
+/// The rocket home, waiting at the end of the path.
 class _RocketIcon extends CustomPainter {
+  final Animation<double> sun;
+  _RocketIcon(this.sun) : super(repaint: sun);
   @override
   void paint(Canvas c, Size s) {
-    c.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(s.width * 0.2, 0, s.width * 0.6, s.height * 0.75), const Radius.circular(8)), Paint()..color = Colors.white);
-    c.drawPath(
-        Path()
-          ..moveTo(s.width * 0.2, s.height * 0.5)
-          ..lineTo(0, s.height * 0.85)
-          ..lineTo(s.width * 0.2, s.height * 0.75)
-          ..close(),
-        Paint()..color = C.sapphire);
-    c.drawPath(
-        Path()
-          ..moveTo(s.width * 0.8, s.height * 0.5)
-          ..lineTo(s.width, s.height * 0.85)
-          ..lineTo(s.width * 0.8, s.height * 0.75)
-          ..close(),
-        Paint()..color = C.sapphire);
+    c.drawOval(Rect.fromCenter(center: Offset(s.width / 2, s.height - 2), width: s.width * 0.9, height: 6), Paint()..color = Colors.black.withValues(alpha: 0.3));
+    paintRocket(c, Offset(s.width / 2, s.height * 0.46), s.height * 0.86, flame: 0.15 + 0.1 * math.sin(sun.value * math.pi * 60), t: sun.value * 50);
   }
 
   @override

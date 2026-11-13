@@ -1,5 +1,5 @@
 /// The player's session: who is signed in, their class, and the offline sync.
-/// Ties together Clerk (AuthService), Supabase (Cloud) and the local Progress.
+/// Local AuthService + optional Cloud + Progress.
 library;
 
 import 'dart:async';
@@ -16,6 +16,7 @@ import '../cloud/teacher_repo.dart';
 import '../data/catalogue.dart';
 import '../story/level_record.dart';
 import '../teacher/demo_repo.dart';
+import '../teacher/local_class_hub.dart';
 import 'auth_service.dart';
 import 'env.dart';
 import 'progress.dart';
@@ -63,20 +64,32 @@ class Session extends ChangeNotifier {
   bool get signedIn => auth.signedIn;
   bool get isTeacher => signedIn && (profile?.isTeacher ?? progress.accountRole == 'teacher');
   bool get isStudent => signedIn && !isTeacher;
-  String get name => profile?.displayName ?? progress.displayName ?? auth.firstName ?? auth.username ?? 'Cadet';
+  String get name => profile?.displayName ?? progress.displayName ?? auth.displayName;
   int get pending => queue.length;
 
-  /// The teacher dashboard's data: the real class when a teacher is signed in,
-  /// otherwise a sample class so anyone (and the judges) can explore it.
-  TeacherRepo get teacherRepo => isTeacher && cloud.ready ? cloud.teacherRepo() : (_demo ??= DemoTeacherRepo());
+  /// Teacher dashboard always uses rich local demo classes (students + levels).
+  TeacherRepo get teacherRepo => _demo ??= DemoTeacherRepo(teacherName: isTeacher ? name : null);
 
   Future<void> start() async {
     await auth.init(progress.prefs);
+    await LocalClassHub.instance.init(progress.prefs);
     await cloud.init();
     if (signedIn) unawaited(refresh());
-    // retry the queue every few minutes while the app is open
     _retry = Timer.periodic(const Duration(minutes: 3), (_) => flush());
     notifyListeners();
+  }
+
+  /// Push this player's progress into the on-device class roster (teacher demo).
+  Future<void> _syncClassRoster() async {
+    if (!signedIn || isTeacher) return;
+    final id = auth.userId;
+    if (id == null || progress.classId == null) return;
+    await LocalClassHub.instance.upsertPlayer(
+      studentId: id,
+      name: name,
+      username: auth.username ?? profile?.username,
+      progress: progress,
+    );
   }
 
   @override
@@ -84,30 +97,43 @@ class Session extends ChangeNotifier {
     _retry?.cancel();
     _closeLive();
     auth.removeListener(notifyListeners);
+    auth.disposeAuth();
     super.dispose();
   }
 
-  /// Loads the profile, class, nudges and cloud progress after sign-in.
+  /// Builds a local profile after sign-in. Cloud sync is optional.
   Future<void> refresh({Role? intent}) async {
-    if (!signedIn || !cloud.ready) return;
+    if (!signedIn) return;
     try {
-      var p = await cloud.myProfile();
-      p ??= await cloud.ensureProfile(role: intent ?? Role.student, displayName: auth.firstName, ageMode: progress.ageMode);
-      profile = p;
-      await progress.setAccount(role: p.isTeacher ? 'teacher' : 'student', name: p.displayName);
-      if (!p.isTeacher) {
-        final classes = await cloud.myClasses();
-        if (classes.isNotEmpty) {
-          final c = classes.first;
-          await progress.setClass(id: c.id, name: c.name, teacher: c.teacherName, mode: c.ageMode, lock: c.lockRank);
-        } else if (progress.classId != null) {
-          await progress.setClass();
+      final role = intent ?? (auth.roleIntent == 'teacher' ? Role.teacher : Role.student);
+      profile = Profile(
+        id: auth.userId ?? 'local',
+        role: role,
+        displayName: auth.displayName,
+        ageMode: progress.ageMode,
+        username: auth.username,
+      );
+      await progress.setAccount(role: profile!.isTeacher ? 'teacher' : 'student', name: profile!.displayName);
+      // Reset demo repo so teacher name / classes match the signed-in teacher.
+      if (profile!.isTeacher) _demo = DemoTeacherRepo(teacherName: profile!.displayName);
+      // Re-publish player progress into the local class roster (survives app restarts).
+      if (!profile!.isTeacher) unawaited(_syncClassRoster());
+
+      if (!profile!.isTeacher && cloud.ready) {
+        try {
+          final classes = await cloud.myClasses();
+          if (classes.isNotEmpty) {
+            final c = classes.first;
+            await progress.setClass(id: c.id, name: c.name, teacher: c.teacherName, mode: c.ageMode, lock: c.lockRank);
+          }
+          final pulled = await cloud.pullProgress();
+          await progress.mergeCloud(stars: pulled.stars, cloudFacts: pulled.facts, carry: pulled.carry);
+          nudges = await cloud.unseenNudges();
+          assignments = await cloud.myAssignments();
+          unawaited(_connectLive());
+        } catch (e) {
+          debugPrint('optional cloud refresh: $e');
         }
-        final pulled = await cloud.pullProgress();
-        await progress.mergeCloud(stars: pulled.stars, cloudFacts: pulled.facts, carry: pulled.carry);
-        nudges = await cloud.unseenNudges();
-        assignments = await cloud.myAssignments();
-        unawaited(_connectLive());
       }
       lastError = null;
       await flush();
@@ -119,6 +145,23 @@ class Session extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------- sign in
+
+  Future<String?> signInEmail(String email, String password, {Role role = Role.student}) async {
+    final err = await auth.signInEmail(email, password);
+    if (err == null) await refresh(intent: role);
+    return err ?? (signedIn && profile == null ? lastError : null);
+  }
+
+  Future<String?> signUp({
+    required String name,
+    required String email,
+    required String password,
+    required bool asTeacher,
+  }) async {
+    final err = await auth.signUp(displayName: name, email: email, password: password, asTeacher: asTeacher);
+    if (err == null) await refresh(intent: asTeacher ? Role.teacher : Role.student);
+    return err ?? (signedIn && profile == null ? lastError : null);
+  }
 
   Future<String?> signInStudent(String username, String pin) async {
     final err = await auth.signInStudent(username, pin);
@@ -132,7 +175,8 @@ class Session extends ChangeNotifier {
     return err;
   }
 
-  Future<String?> startTeacherSignUp(String name, String email, String password) => auth.startTeacherSignUp(name, email, password);
+  Future<String?> startTeacherSignUp(String name, String email, String password) =>
+      signUp(name: name, email: email, password: password, asTeacher: true);
 
   Future<String?> verifyTeacherCode(String code) async {
     final err = await auth.verifyTeacherCode(code);
@@ -155,13 +199,28 @@ class Session extends ChangeNotifier {
   /// A signed-in student joins a class with the teacher's code.
   Future<String?> joinClass(String code) async {
     if (!signedIn) return 'Sign in first.';
+    if (isTeacher) return 'Switch to a player account to join a class.';
     busy = true;
     notifyListeners();
     try {
-      final c = await cloud.joinClass(code);
-      await progress.setClass(id: c.id, name: c.name, teacher: c.teacherName, mode: c.ageMode, lock: c.lockRank);
-      unawaited(refresh());
-      return null;
+      final cleaned = code.trim().toUpperCase();
+      // Local demo / teacher-made rooms on this device (shared with the teacher dashboard).
+      final local = LocalClassHub.instance.findByCode(cleaned) ?? demoClassCatalog[cleaned];
+      if (local != null) {
+        await LocalClassHub.instance.registerClass(local);
+        await progress.setClass(id: local.id, name: local.name, teacher: 'Demo teacher', mode: local.ageMode, lock: local.lockRank);
+        await _syncClassRoster();
+        notifyListeners();
+        return null;
+      }
+      if (cloud.ready) {
+        final c = await cloud.joinClass(cleaned);
+        await progress.setClass(id: c.id, name: c.name, teacher: c.teacherName, mode: c.ageMode, lock: c.lockRank);
+        await _syncClassRoster();
+        unawaited(refresh());
+        return null;
+      }
+      return 'Unknown class code. Try MOON7B, STAR4A or ART11P.';
     } catch (e) {
       return cloudMessage(e);
     } finally {
@@ -249,6 +308,7 @@ class Session extends ChangeNotifier {
       await queue.add(SyncOp('campaign', {'campaign': r.campaign.name, 'carry': r.carry, 'current_level': (r.n + 1).clamp(1, 99)}, key: r.campaign.name));
     }
     await queue.add(SyncOp('facts', {'ids': progress.facts.where((f) => RegExp(r'^[a-z0-9_:.-]{1,64}$').hasMatch(f)).toList()}, key: 'all'));
+    unawaited(_syncClassRoster());
     notifyListeners();
     unawaited(flush());
   }
@@ -265,14 +325,24 @@ class Session extends ChangeNotifier {
       'answers': answers,
       'taken_at': DateTime.now().toUtc().toIso8601String(),
     }));
+    unawaited(_syncClassRoster());
     notifyListeners();
     unawaited(flush());
   }
 
-  Future<void> recordCoop(Map<String, dynamic> result) async {
-    final me = auth.userId;
-    if (!signedIn || isTeacher || me == null) return;
-    await queue.add(SyncOp('coop_result', {...result, 'players': [me]}));
+  /// A Base Commander mission finished: queue it for the teacher dashboard.
+  Future<void> recordBaseRun(Map<String, dynamic> run, {List<String> badges = const []}) async {
+    if (!_records) return;
+    await queue.add(SyncOp('base_run', {'client_id': newClientId(), ...run}));
+    if (badges.isNotEmpty) await queue.add(SyncOp('badges', {'ids': badges}));
+    notifyListeners();
+    unawaited(flush());
+  }
+
+  /// A Supply Run finished.
+  Future<void> recordSupplyRun(Map<String, dynamic> run) async {
+    if (!_records) return;
+    await queue.add(SyncOp('supply_run', {'client_id': newClientId(), ...run}));
     unawaited(flush());
   }
 

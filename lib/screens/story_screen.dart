@@ -445,12 +445,12 @@ class _StoryScreenState extends State<StoryScreen> {
       tap = c.action;
       // the action button wears this mission's colour
       color = _accent;
-      textColor = _accent.computeLuminance() > 0.45 ? C.evergreen : Colors.white;
+      textColor = _accent.computeLuminance() > 0.45 ? C.ink : Colors.white;
     } else if (explore && c.sprinting) {
       text = 'SPRINT';
       tap = c.jump;
       color = C.cyan;
-      textColor = C.evergreen;
+      textColor = C.ink;
     } else if (canGo) {
       text = 'GO';
       tap = c.goToGoal;
@@ -992,7 +992,7 @@ class _DebriefOverlayState extends State<_DebriefOverlay> {
                   if (won && run.hintsUsed > 0 && !mode.hintsFree)
                     const Padding(
                       padding: EdgeInsets.only(top: 4),
-                      child: const Text('A hint was used: one star less.', style: T.bodySmall, textAlign: TextAlign.center),
+                      child: Text('A hint was used: one star less.', style: T.bodySmall, textAlign: TextAlign.center),
                     ),
                   const SizedBox(height: 20),
                   EnterAnim(delayMs: 200, child: _lesson(info, mode)),
@@ -1073,7 +1073,7 @@ class _DebriefOverlayState extends State<_DebriefOverlay> {
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
       decoration: BoxDecoration(
-        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [C.cyan.withValues(alpha: 0.12), C.evergreen.withValues(alpha: 0.6)]),
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [C.cyan.withValues(alpha: 0.12), C.ink.withValues(alpha: 0.6)]),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: C.cyan.withValues(alpha: 0.45)),
       ),

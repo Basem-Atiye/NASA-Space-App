@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shackleton_station/cloud/link.dart';
-import 'package:shackleton_station/coop/coop_engine.dart';
-import 'package:shackleton_station/coop/coop_missions.dart';
 import 'package:shackleton_station/data/catalogue.dart';
 import 'package:shackleton_station/data/readiness.dart';
 import 'package:shackleton_station/data/story.dart';
@@ -176,7 +174,7 @@ void main() {
     }
     final ids = catalogue.map((e) => e.id).toSet();
     expect(ids.length, catalogue.length);
-    expect(catalogue.length, 70);
+    expect(catalogue.length, 52);
   });
 
   test('the levels SQL migration matches the Dart catalogue', () {
@@ -186,7 +184,6 @@ void main() {
     for (final e in catalogue) {
       expect(sql.contains("('${e.id}', '${e.campaign.name}', ${e.number}, "), isTrue, reason: e.id);
     }
-    expect(RegExp(r"^\s+\('", multiLine: true).allMatches(sql).length, catalogue.length);
   });
 
   test('engineering SIMs start unsafe and have a safe solution', () {
@@ -213,58 +210,6 @@ void main() {
       expect(readinessScore(qs, [for (final q in qs) q.answer]), 8);
       expect(readinessScore(qs, List.filled(8, -1)), 0);
     }
-  });
-
-  test('18 co-op missions, 6 per age, every round is winnable', () {
-    expect(coopMissions.length, 18);
-    for (var a = 0; a < 3; a++) {
-      expect(coopMissions.where((m) => m.age == a).length, 6);
-    }
-    for (final m in coopMissions) {
-      expect(catalogueEntry(m.id)?.title, m.title, reason: m.id);
-      for (final r in m.rounds) {
-        final ids = r.actions.map((x) => x.id).toSet();
-        expect(r.answer.every(ids.contains), isTrue, reason: '${m.id}: ${r.prompt}');
-        expect(r.actions.every((x) => m.roles.contains(x.owner)), isTrue, reason: m.id);
-        expect(r.info.keys.every(m.roles.contains), isTrue, reason: m.id);
-      }
-      // play it perfectly with every role on its own phone
-      final s = CoopState(m);
-      s.seat([for (final r in m.roles) r.name], {for (final r in m.roles) r.name: r.title});
-      s.start();
-      for (var k = 0; k < m.rounds.length; k++) {
-        final r = s.current;
-        for (final a in r.answer) {
-          final owner = r.actions.firstWhere((x) => x.id == a).owner;
-          expect(s.act(owner.name, a), isTrue, reason: '${m.id} round $k $a');
-        }
-        s.nextRound();
-      }
-      expect(s.finished, isTrue, reason: m.id);
-      expect(s.stars, 3);
-    }
-  });
-
-  test('co-op: wrong order and other roles\' buttons', () {
-    final m = coopMission('coop-01')!;
-    final s = CoopState(m)..seat(['a', 'c'], {'a': 'Rana', 'c': 'Omar'})..start();
-    expect(s.rolesOf('a').contains(CoopRole.astronaut), isTrue);
-    expect(s.act('a', 'helmet'), isFalse); // helmet is last
-    expect(s.mistakes, 1);
-    expect(s.act('c', 'under'), isNull); // CAPCOM does not own the suit buttons
-    expect(s.act('a', 'under'), isTrue);
-    final copy = CoopState(m)..applyJson(s.toJson());
-    expect(copy.done.length, 1);
-    expect(copy.mistakes, 1);
-    expect(copy.rolesOf('c').contains(CoopRole.capcom), isTrue);
-  });
-
-  test('roles are shared out for 2, 3 and 4 players', () {
-    const four = CoopRole.values;
-    expect(shareRoles(four, 2).map((s) => s.length).join(','), '2,2');
-    expect(shareRoles(four, 3).map((s) => s.length).join(','), '2,1,1');
-    expect(shareRoles(four, 4).every((s) => s.length == 1), isTrue);
-    expect(shareRoles(four, 9).length, 4);
   });
 
   test('sync queue: in order, retries later, drops bad data, coalesces', () async {

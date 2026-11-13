@@ -281,7 +281,7 @@ class _JumpGameState extends State<JumpGame> with SingleTickerProviderStateMixin
               alignment: Alignment.topRight,
               child: Padding(
                 padding: const EdgeInsets.all(10),
-                child: Text('${_cleared}/${_craters.length}', style: T.mono.copyWith(fontSize: 16, color: C.frozen)),
+                child: Text('$_cleared/${_craters.length}', style: T.mono.copyWith(fontSize: 16, color: C.frozen)),
               ),
             ),
           ),
@@ -682,7 +682,7 @@ class _FitnessGameState extends State<FitnessGame> with SingleTickerProviderStat
     return GameFrame(
       spec: s,
       mistakes: 0,
-      status: _status ?? 'Do each move ${_target} times. Tap the big button after each one, or switch on motion counting.',
+      status: _status ?? 'Do each move $_target times. Tap the big button after each one, or switch on motion counting.',
       statusColor: C.cyan,
       scroll: false,
       footer: Row(children: [
@@ -892,7 +892,7 @@ class _DotsPainter extends CustomPainter {
       final col = i == wrong ? C.red : (done0 ? C.cyan : (isNext ? C.frozen : C.dim));
       c.drawCircle(p(i), isNext ? 13 + 3 * math.sin(glow * math.pi * 4) : 11, Paint()..color = col.withValues(alpha: done0 ? 1 : 0.9));
       final tp = TextPainter(
-        text: TextSpan(text: '${i + 1}', style: TextStyle(fontFamily: F.mono, fontWeight: FontWeight.w700, fontSize: 11, color: done0 || isNext ? C.evergreen : C.bg)),
+        text: TextSpan(text: '${i + 1}', style: TextStyle(fontFamily: F.mono, fontWeight: FontWeight.w700, fontSize: 11, color: done0 || isNext ? C.ink : C.bg)),
         textDirection: TextDirection.ltr,
       )..layout();
       tp.paint(c, p(i) - Offset(tp.width / 2, tp.height / 2));
@@ -958,20 +958,24 @@ class _SimGameState extends State<SimGame> {
       mistakes: _mistakes,
       status: _status,
       statusColor: _done ? C.green : C.amber,
+      scroll: false,
       footer: confirmButton('Run the numbers', _done ? null : _run, icon: Icons.calculate_rounded),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text(m.title.toUpperCase(), style: T.label),
         const SizedBox(height: 8),
         // twist the dials; the needles show at once if the design is safe
-        Wrap(alignment: WrapAlignment.spaceEvenly, spacing: 6, runSpacing: 8, children: [
+        Wrap(alignment: WrapAlignment.spaceEvenly, spacing: 4, runSpacing: 10, children: [
           for (var i = 0; i < m.sliders.length; i++)
             SizedBox(
-              width: 104,
+              width: 132,
               child: Knob(
                 value: _v[i].clamp(m.sliders[i].min, m.sliders[i].max).toDouble(),
                 min: m.sliders[i].min,
                 max: m.sliders[i].max,
                 step: m.sliders[i].step,
+                size: 112,
                 label: m.sliders[i].label,
                 text: '${_fmt(_v[i], m.sliders[i].step)} ${m.sliders[i].unit}',
                 color: const [C.cyan, C.violet, Color(0xFFFFC857), C.green][i % 4],
@@ -1011,6 +1015,7 @@ class _SimGameState extends State<SimGame> {
             ),
           ),
       ]),
+      ),
     );
   }
 

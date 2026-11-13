@@ -162,7 +162,7 @@ class _RulesGameState extends State<RulesGame> with SingleTickerProviderStateMix
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: C.lineSoft)),
         child: const Padding(
           padding: EdgeInsets.all(16),
-          child: const Text('Set your rules above, then run the tests.\nEach test simulates 2 hours of habitat life.', style: T.bodySmall, textAlign: TextAlign.center),
+          child: Text('Set your rules above, then run the tests.\nEach test simulates 2 hours of habitat life.', style: T.bodySmall, textAlign: TextAlign.center),
         ),
       );
     }

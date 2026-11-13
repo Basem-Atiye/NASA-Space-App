@@ -35,7 +35,7 @@ class SkillsScreen extends StatelessWidget {
             for (final n in nudges) _nudge(context, n),
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(24), border: Border.all(color: C.line)),
+              decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(24)),
               child: Column(children: [
                 Row(children: [
                   Text('SKILLS MAP', style: T.label.copyWith(fontSize: 12)),
@@ -60,7 +60,7 @@ class SkillsScreen extends StatelessWidget {
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: C.panelDeep, borderRadius: BorderRadius.circular(20), border: Border.all(color: C.line)),
+              decoration: BoxDecoration(color: C.panelDeep, borderRadius: BorderRadius.circular(20)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('READINESS CHECK', style: T.label.copyWith(fontSize: 12)),
                 const SizedBox(height: 10),

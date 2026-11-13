@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../services/audio.dart';
+import '../ui/theme.dart';
 import '../world/characters.dart';
 import '../world/mission_theme.dart';
 import '../world/world_art.dart';
@@ -22,7 +23,15 @@ class HomeScene extends StatefulWidget {
   final MissionTheme theme;
   final Audio? audio;
   final bool reducedMotion;
-  const HomeScene({super.key, required this.theme, this.audio, this.reducedMotion = false});
+  /// Page colour the lower ground dissolves into (avoids a hard crop).
+  final Color blendTo;
+  const HomeScene({
+    super.key,
+    required this.theme,
+    this.audio,
+    this.reducedMotion = false,
+    this.blendTo = C.bg,
+  });
 
   @override
   State<HomeScene> createState() => _HomeSceneState();
@@ -428,10 +437,25 @@ class _HomePainter extends CustomPainter {
       if (a > 0.5) tp.paint(canvas, Offset(left + 10 * u, top + 7 * u));
     }
 
-    // fade into the page below, so the scene has no hard bottom edge
-    final fade = Rect.fromLTWH(0, size.height * 0.86, size.width, size.height * 0.14 + 1);
+    // Soft dissolve into the page colour — long enough that the crop is invisible.
+    final blend = s.widget.blendTo;
+    final fadeH = size.height * 0.34;
+    final fade = Rect.fromLTWH(0, size.height - fadeH, size.width, fadeH + 1);
     canvas.drawRect(
-        fade, Paint()..shader = const LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x0004120A), Color(0xFF04120A)]).createShader(fade));
+      fade,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            blend.withValues(alpha: 0),
+            Color.lerp(th.groundMid, blend, 0.35)!.withValues(alpha: 0.25),
+            Color.lerp(th.groundLow, blend, 0.7)!.withValues(alpha: 0.7),
+            blend,
+          ],
+          stops: const [0.0, 0.35, 0.7, 1.0],
+        ).createShader(fade),
+    );
   }
 
   void _earth(Canvas canvas, Offset c, double r, double spin) {

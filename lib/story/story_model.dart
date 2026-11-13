@@ -26,7 +26,7 @@ enum AgeMode {
 }
 
 extension AgeModeInfo on AgeMode {
-  String get title => const ['Cadet', 'Explorer', 'Engineer'][index];
+  String get title => const ['Little Explorer', 'Explorer', 'Engineer'][index];
   String get ages => const ['ages 6–10', 'ages 11–14', 'ages 15–18'][index];
   String get blurb => const [
         'Every line read aloud. Pictures instead of numbers. Pip shows the way and nothing runs out of time.',

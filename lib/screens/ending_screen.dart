@@ -79,7 +79,7 @@ class _EndingScreenState extends State<EndingScreen> with SingleTickerProviderSt
             dy: 40,
             child: Container(
               padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-              decoration: BoxDecoration(color: C.indigo.withValues(alpha: 0.95), borderRadius: BorderRadius.circular(26), border: Border.all(color: C.line)),
+              decoration: BoxDecoration(color: C.indigo.withValues(alpha: 0.95), borderRadius: BorderRadius.circular(26)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
                 Row(children: [
                   Text('MISSION COMPLETE', style: T.label.copyWith(letterSpacing: 3, fontSize: 12)),
@@ -101,15 +101,30 @@ class _EndingScreenState extends State<EndingScreen> with SingleTickerProviderSt
                   HudButton(label: 'TAKE THE FINAL READINESS CHECK', icon: Icons.quiz_rounded, onTap: () => sv.nav.go(Screen.readiness)),
                   const SizedBox(height: 10),
                 ],
-                Pressable(
-                  onTap: () => sv.nav.resetTo(Screen.title),
-                  child: Container(
-                    height: 56,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(color: C.cyan, borderRadius: BorderRadius.circular(18), boxShadow: [BoxShadow(color: C.cyan.withValues(alpha: 0.4), blurRadius: 24)]),
-                    child: Text('BACK TO MISSION CONTROL', style: T.button.copyWith(color: C.evergreen, fontSize: 15)),
+                if (seasonOne) ...[
+                  PrimaryButton(
+                    label: 'Start Season 2 · Level 11',
+                    icon: Icons.rocket_launch_rounded,
+                    onTap: () {
+                      sv.audio.tap();
+                      sv.nav.endStory(to: Screen.map);
+                      // Jump straight into the newly unlocked season.
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (!context.mounted) return;
+                        sv.nav.startStory(11, sv);
+                      });
+                    },
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  HudButton(label: 'Back to Mission Control', icon: Icons.home_rounded, onTap: () => sv.nav.resetTo(Screen.title)),
+                ] else
+                  PrimaryButton(
+                    label: 'Back to Mission Control',
+                    icon: Icons.home_rounded,
+                    color: C.cyan,
+                    textColor: C.ink,
+                    onTap: () => sv.nav.resetTo(Screen.title),
+                  ),
               ]),
             ),
           ),

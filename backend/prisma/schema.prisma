@@ -87,6 +87,9 @@ model Profile {
   facts          FactUnlock[]
   settings       Settings?
   nudges         Nudge[]
+  baseRuns       BaseRun[]
+  badges         BadgeEarned[]
+  supplyRuns     SupplyRun[]
 
   @@map("profiles")
 }
@@ -377,6 +380,69 @@ model CoopResult {
 
   @@index([missionId])
   @@map("coop_results")
+}
+
+// ─── Base Commander (the Figma "Mission Trainer" game) ──────────────────
+
+/// One finished Base Commander mission (won or lost). Sent from the phone's
+/// offline queue; never changed afterwards.
+model BaseRun {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clientId   String?  @unique @map("client_id") @db.Uuid
+  userId     String   @default(dbgenerated("public.uid()")) @map("user_id")
+  /// 1–5 Moon, 6–10 Mars (check constraint)
+  mission    Int      @db.SmallInt
+  /// little_explorer | explorer | engineer (check constraint)
+  level      String
+  won        Boolean
+  stars      Int      @default(0) @db.SmallInt
+  dayReached Int      @map("day_reached") @db.SmallInt
+  days       Int      @db.SmallInt
+  crewHealth Int      @map("crew_health") @db.SmallInt
+  research   Int      @default(0)
+  /// { "Power": 4, "Crew": 5, "Food": 3, "Water": 4, "Research": 3 }
+  ratings    Json     @default("{}")
+  mainProblem  String? @map("main_problem")
+  bestDecision String? @map("best_decision")
+  /// oxygen | water | food | power | crew | launch (when lost)
+  lostCause  String?  @map("lost_cause")
+  /// [{ "day": 12, "title": "You turned the greenhouse up to 70%", "score": 2 }, ...]
+  decisions  Json     @default("[]")
+  playedAt   DateTime @default(now()) @map("played_at") @db.Timestamptz(6)
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, mission])
+  @@map("base_runs")
+}
+
+/// A badge a player earned (First Mission, Water Saver, ...).
+model BadgeEarned {
+  userId   String   @default(dbgenerated("public.uid()")) @map("user_id")
+  badgeId  String   @map("badge_id")
+  earnedAt DateTime @default(now()) @map("earned_at") @db.Timestamptz(6)
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, badgeId])
+  @@map("badges_earned")
+}
+
+/// One Supply Run (the rocket bonus round).
+model SupplyRun {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clientId  String?  @unique @map("client_id") @db.Uuid
+  userId    String   @default(dbgenerated("public.uid()")) @map("user_id")
+  stars     Int      @db.SmallInt
+  pods      Int      @db.SmallInt
+  fuelLeft  Int      @map("fuel_left") @db.SmallInt
+  hits      Int      @default(0) @db.SmallInt
+  playedAt  DateTime @default(now()) @map("played_at") @db.Timestamptz(6)
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("supply_runs")
 }
 
 // ─── NASA data cache ───────────────────────────────────────────────────

@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import '../services/audio.dart';
 import '../ui/theme.dart';
 import '../ui/widgets/common.dart';
+import '../ui/widgets/rotary_dial.dart';
 import '../world/characters.dart';
 import 'story_logic.dart';
 import 'hands_on.dart';
@@ -151,7 +152,7 @@ class _GameFrameState extends State<GameFrame> with SingleTickerProviderStateMix
           if (widget.mistakes > 0)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Text('Mistakes: ${widget.mistakes}', style: T.label.copyWith(color: C.amber, letterSpacing: 1)),
+              child: Text('Mistakes: ${widget.mistakes}', style: T.label.copyWith(color: C.violet, letterSpacing: 1)),
             ),
           AnimatedSize(
             duration: Motion.fast,
@@ -205,9 +206,12 @@ String _titleCase(String s) {
   ].join(' ').replaceAll('O2', 'O₂').replaceAll('Kg', 'kg');
 }
 
-/// A full-width confirm button for the bottom of a mini-game.
+/// A full-width confirm button for the bottom of a mini-game (sapphire = confirm).
 Widget confirmButton(String label, VoidCallback? onTap, {IconData icon = Icons.check_rounded, Color color = C.sapphire}) =>
     PrimaryButton(label: label, icon: icon, onTap: onTap, color: color, height: 54);
+
+/// Shared status tint for ok / near / wrong feedback inside games.
+Color gameStatusColor({required bool ok, bool near = false}) => ok ? C.cyan : (near ? C.amber : C.violet);
 
 /// Deterministic shuffle so the same task always looks the same.
 List<int> shuffled(int n, int seed) {
@@ -807,6 +811,14 @@ class _TuneGameState extends State<TuneGame> {
   bool _done = false;
   String? _status;
 
+  void _setAngle(double a) => setState(() => _angle = normalizeDegrees(a));
+
+  void _nudge(double deg) {
+    if (_done) return;
+    widget.audio.typeClick();
+    _setAngle(_angle + deg);
+  }
+
   void _lock() {
     final out = panelOutput(_angle, widget.spec.best);
     if (panelAimed(_angle, widget.spec.best)) {
@@ -828,32 +840,70 @@ class _TuneGameState extends State<TuneGame> {
   @override
   Widget build(BuildContext context) {
     final out = panelOutput(_angle, widget.spec.best);
+    final aimed = panelAimed(_angle, widget.spec.best);
     return GameFrame(
       spec: widget.spec,
       mistakes: _mistakes,
       status: _status,
-      statusColor: _done ? C.green : C.amber,
+      statusColor: _done ? gameStatusColor(ok: true) : gameStatusColor(ok: aimed, near: true),
+      scroll: false,
       footer: confirmButton('Lock panels', _done ? null : _lock, icon: Icons.lock_rounded),
-      child: Column(children: [
-        GestureDetector(
-          onPanUpdate: _done ? null : (d) => setState(() => _angle = (_angle + d.delta.dx * 0.8 - d.delta.dy * 0.8) % 360),
-          child: SizedBox(width: 210, height: 210, child: CustomPaint(painter: _SunDial(angle: _angle, best: widget.spec.best))),
+      child: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Column(children: [
+        RotaryDial(
+          value: _angle,
+          min: 0,
+          max: 360,
+          step: 1,
+          size: 200,
+          absoluteDegrees: true,
+          color: aimed ? C.cyan : C.sapphire,
+          onChanged: _done ? null : _setAngle,
+          onStep: widget.audio.typeClick,
+          child: CustomPaint(painter: _SunDial(angle: _angle, best: widget.spec.best, aimed: aimed)),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 8),
+        DialNudges(
+          onMinus: _done ? null : () => _nudge(-1),
+          onPlus: _done ? null : () => _nudge(1),
+          label: '±1°',
+        ),
+        const SizedBox(height: 6),
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          TextButton(onPressed: _done ? null : () => _nudge(-5), child: const Text('−5°')),
+          TextButton(onPressed: _done ? null : () => _nudge(5), child: const Text('+5°')),
+        ]),
+        const SizedBox(height: 8),
         Row(children: [
           const Text('POWER OUTPUT', style: T.label),
           const Spacer(),
-          Text('${(out * 1.2).toStringAsFixed(2)} kW', style: T.h3.copyWith(fontSize: 18)),
+          Text('${(out * 1.2).toStringAsFixed(2)} kW', style: T.h3.copyWith(fontSize: 18, color: aimed ? C.cyan : null)),
         ]),
         const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: LinearProgressIndicator(value: out, minHeight: 16, backgroundColor: C.lineSoft, color: out > 0.99 ? C.cyan : (out > 0.7 ? C.sapphire : C.red)),
+          child: LinearProgressIndicator(
+            value: out,
+            minHeight: 16,
+            backgroundColor: C.lineSoft,
+            color: aimed ? C.cyan : (out > 0.7 ? C.sapphire : C.red),
+          ),
         ),
         const SizedBox(height: 10),
-        Slider(value: _angle, min: 0, max: 359, onChanged: _done ? null : (v) => setState(() => _angle = v)),
-        Text('Panel heading ${_angle.round()}°  ·  output = cos(angle to the Sun)', style: T.bodySmall, textAlign: TextAlign.center),
+        Slider(
+          value: _angle.clamp(0, 359),
+          min: 0,
+          max: 359,
+          onChanged: _done ? null : (v) => _setAngle(v),
+        ),
+        Text(
+          aimed ? 'On target — lock the panels.' : 'Panel heading ${_angle.round()}°  ·  twist toward the Sun',
+          style: T.bodySmall.copyWith(color: aimed ? C.cyan : C.muted),
+          textAlign: TextAlign.center,
+        ),
       ]),
+      ),
     );
   }
 }
@@ -861,7 +911,8 @@ class _TuneGameState extends State<TuneGame> {
 class _SunDial extends CustomPainter {
   final double angle;
   final double best;
-  _SunDial({required this.angle, required this.best});
+  final bool aimed;
+  _SunDial({required this.angle, required this.best, this.aimed = false});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -873,6 +924,16 @@ class _SunDial extends CustomPainter {
         Paint()
           ..color = C.panelSolid
           ..style = PaintingStyle.fill);
+    if (aimed) {
+      canvas.drawCircle(
+        c,
+        r,
+        Paint()
+          ..color = C.cyan.withValues(alpha: 0.18)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 8,
+      );
+    }
     // the low Sun on the rim of the dial
     final sa = best * math.pi / 180 - math.pi / 2;
     final sp = c + Offset(math.cos(sa), math.sin(sa)) * (r + 0.0);
@@ -883,9 +944,9 @@ class _SunDial extends CustomPainter {
         c,
         r,
         Paint()
-          ..color = C.line
+          ..color = aimed ? C.cyan : C.line
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5);
+          ..strokeWidth = aimed ? 2.2 : 1.5);
     for (var d = 0; d < 360; d += 30) {
       final a = d * math.pi / 180 - math.pi / 2;
       canvas.drawLine(
@@ -917,7 +978,7 @@ class _SunDial extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_SunDial old) => old.angle != angle || old.best != best;
+  bool shouldRepaint(_SunDial old) => old.angle != angle || old.best != best || old.aimed != aimed;
 }
 
 // =================================================================== CHECKLIST

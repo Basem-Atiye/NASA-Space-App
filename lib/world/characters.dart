@@ -61,16 +61,20 @@ class NovaPose {
 }
 
 // palette for the suit (real objects keep real colours)
-const _suit = Color(0xFFF6F6F2);
-const _suitShade = Color(0xFFD5D8DE);
-const _suitDeep = Color(0xFFB4BAC4);
-const _joint = Color(0xFF9EA6B3);
-const _boot = Color(0xFF3B3F48);
+// The Figma astronaut's colours: mint-white suit, grey-green details,
+// orange gloves and boots, a deep blue visor.
+const _suit = Color(0xFFF2FFF8);
+const _suitShade = Color(0xFFDCEDE6);
+const _suitDeep = Color(0xFFB9CBC6);
+const _joint = Color(0xFFB9CBC6);
+const _boot = Color(0xFFFF8A3D);
+const _glove = Color(0xFFFF8A3D);
+const _gloveFar = Color(0xFFE0782F);
 const _skin = Color(0xFFC99872);
 const _hair = Color(0xFF2B1D16);
-const _goldA = Color(0xFFFFD27A);
-const _goldB = Color(0xFFE1A23A);
-const _goldC = Color(0xFF8A5A17);
+const _goldA = Color(0xFF4A63F2); // the visor (blue in the design)
+const _goldB = Color(0xFF2E3FB8);
+const _goldC = Color(0xFF1C2580);
 
 Paint _fill(Color c) => Paint()..color = c;
 
@@ -189,7 +193,7 @@ void paintNova(Canvas c, NovaPose p) {
   final whip = walking ? math.sin(cyc * 2 - 1.8) * 2.6 : math.sin(t * 2.2) * 0.8;
   final antTip = Offset(-26 + whip - lean * 30, torsoTop - 22 + packLag * 0.5);
   c.drawLine(Offset(-21, torsoTop + 3 + packLag), antTip, _stroke(const Color(0xFFB9BEC6), 1.3));
-  c.drawCircle(antTip, 2.1, _fill(const Color(0xFFFF5A5F)));
+  c.drawCircle(antTip, 2.4, _fill(_glove));
 
   c.save();
   c.translate(0, -37 + body);
@@ -220,7 +224,7 @@ void paintNova(Canvas c, NovaPose p) {
       handFar = shoulderFar + Offset(p.sprint ? armSwing * 0.5 : armSwing * 0.55, 22 - stride * (p.sprint ? 8 : 3));
   }
   _limb(c, shoulderFar, handFar, -3, 10.5, _suitShade, band: C.sapphire, bandAt: 0.85);
-  c.drawCircle(handFar, 5.2, _fill(const Color(0xFFD9DBDF)));
+  c.drawCircle(handFar, 5.4, _fill(_gloveFar));
 
   // torso
   final torso = RRect.fromRectAndCorners(
@@ -235,10 +239,11 @@ void paintNova(Canvas c, NovaPose p) {
   c.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(-12, torsoTop - 3, 25, 7), const Radius.circular(4)), _fill(_joint));
   // chest control box
   final box = RRect.fromRectAndRadius(Rect.fromLTWH(1, torsoTop + 9, 13, 9), const Radius.circular(2.5));
-  c.drawRRect(box, _fill(const Color(0xFFE0DED8)));
-  c.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(2.6, torsoTop + 10.8, 6.5, 2.6), const Radius.circular(1)), _fill(C.cyan));
-  c.drawCircle(Offset(11.5, torsoTop + 12), 1.2, _fill(const Color(0xFFFF5A5F)));
-  c.drawCircle(Offset(11.5, torsoTop + 15.6), 1.2, _fill(C.cyan));
+  // the design's chest panel: indigo with three lights
+  c.drawRRect(box, _fill(const Color(0xFF4A4378)));
+  c.drawCircle(Offset(4, torsoTop + 13.5), 1.5, _fill(C.cyan));
+  c.drawCircle(Offset(7.6, torsoTop + 13.5), 1.5, _fill(_glove));
+  c.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(9.8, torsoTop + 12, 2.8, 2.8), const Radius.circular(0.6)), _fill(C.green));
   // mission patch: navy disc with a cyan star
   c.drawCircle(Offset(-5, torsoTop + 18), 4.2, _fill(C.sapphire));
   c.drawCircle(Offset(-5, torsoTop + 18), 3.2, _fill(const Color(0xFF0E1B33)));
@@ -272,7 +277,7 @@ void paintNova(Canvas c, NovaPose p) {
   c.rotate(look);
   c.translate(-neck.dx, -neck.dy);
   // neck ring
-  c.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: hc + const Offset(-1, 14), width: 22, height: 6), const Radius.circular(3)), _fill(_joint));
+  c.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: hc + const Offset(-1, 14), width: 22, height: 6), const Radius.circular(3)), _fill(C.sapphire));
   // shell
   c.drawCircle(
     hc,
@@ -312,7 +317,7 @@ void paintNova(Canvas c, NovaPose p) {
     // reflections: a sky band and a tiny Earth
     c.save();
     c.clipPath(Path()..addOval(visorR));
-    c.drawArc(Rect.fromCenter(center: visorC + const Offset(-1, 7), width: 26, height: 16), math.pi * 0.1, math.pi * 0.8, false, _stroke(const Color(0x66704010), 1.4));
+    c.drawArc(Rect.fromCenter(center: visorC + const Offset(-1, 7), width: 26, height: 16), math.pi * 0.1, math.pi * 0.8, false, _stroke(const Color(0x55101850), 1.4));
     c.drawCircle(visorC + const Offset(5, -3), 3.2, _fill(const Color(0xFF6FB6E9)));
     c.drawCircle(visorC + const Offset(5.6, -3.2), 1.2, _fill(const Color(0xFF4F9F55)));
     c.drawOval(Rect.fromCenter(center: visorC + const Offset(-5, -6), width: 9, height: 4), _fill(Colors.white.withValues(alpha: 0.45)));
@@ -363,7 +368,7 @@ void paintNova(Canvas c, NovaPose p) {
       handNear = shoulderNear + Offset(p.sprint ? armSwing * 0.5 : -armSwing * 0.55 + 2, 22 - stride * (p.sprint ? 8 : 3));
   }
   _limb(c, shoulderNear, handNear, 3, 11, _suit, band: C.sapphire, bandAt: 0.85);
-  c.drawCircle(handNear, 5.6, _fill(const Color(0xFFE6E6E1)));
+  c.drawCircle(handNear, 5.9, _fill(_glove));
   c.drawCircle(shoulderNear, 5, _fill(_joint));
   if (p.action == NovaAction.work || p.action == NovaAction.kneel) {
     // a small tool with a spark
@@ -381,8 +386,8 @@ void paintNova(Canvas c, NovaPose p) {
 
 void _boot_(Canvas c, Offset f, {bool darker = false}) {
   final r = RRect.fromRectAndRadius(Rect.fromLTWH(f.dx - 7, f.dy - 7, 16, 7.5), const Radius.circular(3.5));
-  c.drawRRect(r, _fill(darker ? const Color(0xFF2C2F36) : _boot));
-  c.drawRect(Rect.fromLTWH(f.dx - 7, f.dy - 1.6, 16, 1.6), _fill(const Color(0xFF1E2026)));
+  c.drawRRect(r, _fill(darker ? const Color(0xFFE0782F) : _boot));
+  c.drawRect(Rect.fromLTWH(f.dx - 7, f.dy - 1.6, 16, 1.6), _fill(const Color(0xFFB85A1F)));
 }
 
 Path _miniStar(Offset c, double r) {

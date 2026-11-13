@@ -1,21 +1,57 @@
-/// Build-time configuration, passed with
-///   flutter run --dart-define-from-file=env/dev.json
-/// Only public keys belong here (Clerk publishable key, Supabase publishable key).
-/// Without them the app runs fully offline: guest play, progress on the device.
+/// Cloud configuration for Supabase (auth + data).
+///
+/// Prefers `--dart-define-from-file=env/dev.json` at build time. If those
+/// defines are missing (common when launching from the IDE), loads the same
+/// public keys from the bundled `env/dev.json` asset so sign-in still works.
 library;
 
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+
 class Env {
-  static const appEnv = String.fromEnvironment('APP_ENV', defaultValue: 'dev');
-  static const clerkPublishableKey = String.fromEnvironment('CLERK_PUBLISHABLE_KEY');
-  static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-  static const supabasePublishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
-  static const teacherDashboardUrl = String.fromEnvironment('TEACHER_DASHBOARD_URL');
-  static const coopRegionHint = String.fromEnvironment('COOP_REGION_HINT', defaultValue: 'eu-central-1');
+  static String appEnv = const String.fromEnvironment('APP_ENV', defaultValue: 'dev');
+  static String supabaseUrl = const String.fromEnvironment('SUPABASE_URL');
+  static String supabasePublishableKey = const String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+  static String teacherDashboardUrl = const String.fromEnvironment('TEACHER_DASHBOARD_URL');
 
-  /// Sign-in, cloud progress, classes and online co-op are available.
-  static bool get cloudConfigured =>
-      clerkPublishableKey.startsWith('pk_') && supabaseUrl.startsWith('https://') && supabasePublishableKey.isNotEmpty;
+  /// Sign-in, cloud progress and classes are available.
+  static bool get cloudConfigured => supabaseUrl.startsWith('https://') && supabasePublishableKey.isNotEmpty;
 
-  /// Online co-op only needs Supabase (guests can play without signing in).
-  static bool get realtimeConfigured => supabaseUrl.startsWith('https://') && supabasePublishableKey.isNotEmpty;
+  /// Live lesson Realtime needs Supabase.
+  static bool get realtimeConfigured => cloudConfigured;
+
+  /// Fill any missing keys from the bundled env file. Safe to call once at startup.
+  static Future<void> load() async {
+    if (cloudConfigured) {
+      debugPrint('Env: cloud keys from dart-define');
+      return;
+    }
+    for (final path in const ['env/dev.json', 'assets/env/dev.json']) {
+      try {
+        final raw = await rootBundle.loadString(path);
+        final map = jsonDecode(raw.replaceFirst(RegExp(r'^\uFEFF'), '')) as Map<String, dynamic>;
+        _apply(map);
+        if (cloudConfigured) {
+          debugPrint('Env: cloud keys loaded from $path');
+          return;
+        }
+      } catch (e) {
+        debugPrint('Env: could not read $path ($e)');
+      }
+    }
+    debugPrint('Env: cloud not configured — sign-in stays offline');
+  }
+
+  static void _apply(Map<String, dynamic> map) {
+    String read(String key) => '${map[key] ?? ''}'.trim();
+    if (appEnv.isEmpty || appEnv == 'dev') {
+      final v = read('APP_ENV');
+      if (v.isNotEmpty) appEnv = v;
+    }
+    if (supabaseUrl.isEmpty) supabaseUrl = read('SUPABASE_URL');
+    if (supabasePublishableKey.isEmpty) supabasePublishableKey = read('SUPABASE_PUBLISHABLE_KEY');
+    if (teacherDashboardUrl.isEmpty) teacherDashboardUrl = read('TEACHER_DASHBOARD_URL');
+  }
 }

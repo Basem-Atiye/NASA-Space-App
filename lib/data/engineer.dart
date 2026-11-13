@@ -59,9 +59,9 @@ final engineerTasks = <StoryTask>[
         timer: 15,
         question: 'T−4 min: a helium pressurant reading drifts 3% low. The next window is in 6.6 days. What do you do?',
         options: [
-          const StoryOption(id: 'hold', label: 'Hold the count and check the sensor', detail: 'Window has 12 min of margin', result: [const Line(_j, 'Sensor connector was loose. Reading normal. Resume count.')]),
-          const StoryOption(id: 'go', label: 'Launch: 3% is within tolerance', mistake: true, effect: const Effect(health: -10), result: [const Line(_c, 'You launched on an unexplained reading. It was the sensor this time, but that is how accidents start.', Mood.worried)]),
-          const StoryOption(id: 'scrub', label: 'Scrub for 6.6 days', mistake: true, retry: true, result: [const Line(_n, 'We have 12 minutes of margin. A short hold costs nothing; a scrub costs a week.')]),
+          StoryOption(id: 'hold', label: 'Hold the count and check the sensor', detail: 'Window has 12 min of margin', result: [Line(_j, 'Sensor connector was loose. Reading normal. Resume count.')]),
+          StoryOption(id: 'go', label: 'Launch: 3% is within tolerance', mistake: true, effect: Effect(health: -10), result: [Line(_c, 'You launched on an unexplained reading. It was the sensor this time, but that is how accidents start.', Mood.worried)]),
+          StoryOption(id: 'scrub', label: 'Scrub for 6.6 days', mistake: true, retry: true, result: [Line(_n, 'We have 12 minutes of margin. A short hold costs nothing; a scrub costs a week.')]),
         ],
       ),
       const StoryStep(
@@ -70,7 +70,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Go/No-Go poll',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.checklist,
           title: 'GO / NO-GO POLL',
           instructions: 'Poll every station. Resolve any NO-GO before launch.',
@@ -81,7 +81,7 @@ final engineerTasks = <StoryTask>[
           hint: 'Comms margin of 2 dB is too thin for docking. Switch to the high-gain antenna.',
         ),
       ),
-      const StoryStep(id: 'e1_launch', kind: StepKind.talk, objective: 'Lift-off', eva: false, launch: true, intro: [const Line(_c, 'All stations GO. Lift-off. Phase error 0.4°.'), const Line(_n, 'Textbook. On to the base build.', Mood.happy)]),
+      const StoryStep(id: 'e1_launch', kind: StepKind.talk, objective: 'Lift-off', eva: false, launch: true, intro: [Line(_c, 'All stations GO. Lift-off. Phase error 0.4°.'), Line(_n, 'Textbook. On to the base build.', Mood.happy)]),
     ],
   ),
   // ------------------------------------------------------------------ 2
@@ -96,13 +96,13 @@ final engineerTasks = <StoryTask>[
     scene: const SceneSpec(props: {..._camp, 'crate'}, showWhen: {'panels': 'panelsUp'}, hideWhen: {'crate': 'panelsUp'}, startX: 84),
     steps: [
       _talk('e2_brief', 'Brief', [const Line(_c, 'Base load is 4 to 6 kW. The longest dark period at your site: about 100 hours.'), const Line(_n, 'So the battery must carry the base through 4 days with no Sun.')]),
-      const StoryStep(id: 'e2_crate', kind: StepKind.goTo, objective: 'Deploy the new solar array', target: 'crate', useLabel: 'DEPLOY', effect: const Effect(flags: {'panelsUp'})),
+      const StoryStep(id: 'e2_crate', kind: StepKind.goTo, objective: 'Deploy the new solar array', target: 'crate', useLabel: 'DEPLOY', effect: Effect(flags: {'panelsUp'})),
       const StoryStep(
         id: 'e2_aim',
         kind: StepKind.game,
         objective: 'Track the low Sun',
         skill: Skill.systems,
-        game: const GameSpec(kind: GameKind.tune, title: 'ARRAY POINTING', instructions: 'At the pole the Sun is 1.5° above the horizon. Find the heading for maximum power.', best: 22, hint: 'Output = cos(error). 10° off costs only 1.5%; 30° costs 13%.'),
+        game: GameSpec(kind: GameKind.tune, title: 'ARRAY POINTING', instructions: 'At the pole the Sun is 1.5° above the horizon. Find the heading for maximum power.', best: 22, hint: 'Output = cos(error). 10° off costs only 1.5%; 30° costs 13%.'),
       ),
       _sim('e2_budget', 'Size the power system', 'POWER BUDGET', 'Choose panel area, battery size and the base load you will allow.', 'power_budget',
           'Battery ≥ load × 100 h × 1.2. At 4 kW that is 480 kWh minimum.', skill: Skill.resourceMath),
@@ -112,7 +112,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Load shedding order',
         eva: false,
         skill: Skill.prioritise,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.order,
           title: 'LOAD SHEDDING',
           instructions: 'If power runs short, which loads switch off first? Order from first-off to last-off.',
@@ -122,7 +122,7 @@ final engineerTasks = <StoryTask>[
           answer: [0, 2, 1, 3, 4],
           hint: 'Life support is last. Heaters keep people and water from freezing. Plants survive a few hours of dark; the rover can charge later.',
         ),
-        outro: [const Line(_j, 'Shedding table loaded into the controller.')],
+        outro: [Line(_j, 'Shedding table loaded into the controller.')],
       ),
     ],
   ),
@@ -146,7 +146,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Find the drifting sensor',
         eva: false,
         skill: Skill.rootCause,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.probe,
           title: 'SENSOR CROSS-CHECK',
           instructions: 'Three ppO₂ sensors should agree. Compare each with the reference and mark the bad one.',
@@ -166,8 +166,8 @@ final engineerTasks = <StoryTask>[
         timer: 15,
         question: 'The controller averages all three sensors. With C reading low, what does the controller do?',
         options: [
-          const StoryOption(id: 'median', label: 'Switch to median voting', detail: 'Ignore the odd sensor out', result: [const Line(_j, 'Median of 21.2, 21.1, 18.4 is 21.1. One bad sensor can no longer fool it.')]),
-          const StoryOption(id: 'avg', label: 'Keep averaging', mistake: true, effect: const Effect(o2Kg: -0.8), result: [const Line(_a, 'Average 20.2 kPa: controller adds O₂ it does not need. Oxygen wasted, fire risk up.')]),
+          StoryOption(id: 'median', label: 'Switch to median voting', detail: 'Ignore the odd sensor out', result: [Line(_j, 'Median of 21.2, 21.1, 18.4 is 21.1. One bad sensor can no longer fool it.')]),
+          StoryOption(id: 'avg', label: 'Keep averaging', mistake: true, effect: Effect(o2Kg: -0.8), result: [Line(_a, 'Average 20.2 kPa: controller adds O₂ it does not need. Oxygen wasted, fire risk up.')]),
         ],
       ),
     ],
@@ -195,8 +195,8 @@ final engineerTasks = <StoryTask>[
         timer: 15,
         question: 'DONKI alert: an X-class flare. Protons arrive in about 30 minutes. Two crew are 2 km away on EVA.',
         options: [
-          const StoryOption(id: 'recall', label: 'Recall them now, everyone into the shielded core', result: [const Line(_c, 'Crew inside with 8 minutes to spare. Dose for the event: 2 mSv instead of 40.')]),
-          const StoryOption(id: 'finish', label: 'Let them finish the sample run, 20 minutes', mistake: true, effect: const Effect(dose: 30, health: -10), result: [const Line(_l, 'They got caught by the leading edge of the event. 32 mSv each.', Mood.worried)]),
+          StoryOption(id: 'recall', label: 'Recall them now, everyone into the shielded core', result: [Line(_c, 'Crew inside with 8 minutes to spare. Dose for the event: 2 mSv instead of 40.')]),
+          StoryOption(id: 'finish', label: 'Let them finish the sample run, 20 minutes', mistake: true, effect: Effect(dose: 30, health: -10), result: [Line(_l, 'They got caught by the leading edge of the event. 32 mSv each.', Mood.worried)]),
         ],
       ),
       const StoryStep(
@@ -205,7 +205,7 @@ final engineerTasks = <StoryTask>[
         objective: 'What makes a good shield?',
         eva: false,
         skill: Skill.systems,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.sort,
           title: 'SHIELD MATERIALS',
           instructions: 'Hydrogen-rich materials stop protons best. Sort these.',
@@ -229,7 +229,7 @@ final engineerTasks = <StoryTask>[
     days: 3,
     scene: const SceneSpec(props: {..._camp, 'crater', 'drill'}, pickups: ['ice'], startX: 108),
     steps: [
-      const StoryStep(id: 'e5_core', kind: StepKind.collect, objective: 'Collect the ice core', items: ['ice'], intro: [const Line(_t, 'Core from the crater floor: 5.5% water by mass. Let\'s see what that buys us.')]),
+      const StoryStep(id: 'e5_core', kind: StepKind.collect, objective: 'Collect the ice core', items: ['ice'], intro: [Line(_t, 'Core from the crater floor: 5.5% water by mass. Let\'s see what that buys us.')]),
       _sim('e5_isru', 'Size the oxygen plant', 'ICE TO OXYGEN', 'Choose how much regolith to mine and how much power the electrolyser gets. Make enough O₂ for 4 within 240 kWh/day.', 'ice_oxygen',
           'O₂ = min(water, power × 24 / 50) × 8/9. About 900 kg/day at 9 kW works.', skill: Skill.resourceMath),
       const StoryStep(
@@ -238,7 +238,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Process steps',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.order,
           title: 'ISRU CHAIN',
           instructions: 'Put the oxygen production chain in order.',
@@ -258,8 +258,8 @@ final engineerTasks = <StoryTask>[
         timer: 15,
         question: 'Electrolysis also makes 1 kg of hydrogen for every 8 kg of O₂. What do you do with it?',
         options: [
-          const StoryOption(id: 'fuel', label: 'Store it: H₂ + O₂ is rocket propellant', result: [const Line(_j, 'That is how a Moon base becomes a fuel station for Mars.')]),
-          const StoryOption(id: 'vent', label: 'Vent it, we only need oxygen', mistake: true, result: [const Line(_n, 'We just threw away rocket fuel we mined ourselves.', Mood.worried)]),
+          StoryOption(id: 'fuel', label: 'Store it: H₂ + O₂ is rocket propellant', result: [Line(_j, 'That is how a Moon base becomes a fuel station for Mars.')]),
+          StoryOption(id: 'vent', label: 'Vent it, we only need oxygen', mistake: true, result: [Line(_n, 'We just threw away rocket fuel we mined ourselves.', Mood.worried)]),
         ],
       ),
     ],
@@ -284,7 +284,7 @@ final engineerTasks = <StoryTask>[
         kind: StepKind.game,
         objective: 'Drive the route',
         skill: Skill.prioritise,
-        game: const GameSpec(kind: GameKind.drive, title: 'SHACKLETON RIDGE', instructions: 'Hold your planned speed and steer around boulders.', count: 10, hint: 'Look two rocks ahead, not one.'),
+        game: GameSpec(kind: GameKind.drive, title: 'SHACKLETON RIDGE', instructions: 'Hold your planned speed and steer around boulders.', count: 10, hint: 'Look two rocks ahead, not one.'),
       ),
       const StoryStep(
         id: 'e6_dust',
@@ -295,8 +295,8 @@ final engineerTasks = <StoryTask>[
         timer: 15,
         question: 'The slope ahead is 22° with loose dust. The planned route goes over it. What do you do?',
         options: [
-          const StoryOption(id: 'around', label: 'Take the 1.5 km detour on firm ground', detail: '+1 kWh', result: [const Line(_t, 'Detour costs 1 kWh. Rolling the rover would cost everything.')]),
-          const StoryOption(id: 'climb', label: 'Climb it slowly', mistake: true, effect: const Effect(battery: -15, health: -5), result: [const Line(_j, 'Wheels dug in; we burned 15% battery getting out.', Mood.worried)]),
+          StoryOption(id: 'around', label: 'Take the 1.5 km detour on firm ground', detail: '+1 kWh', result: [Line(_t, 'Detour costs 1 kWh. Rolling the rover would cost everything.')]),
+          StoryOption(id: 'climb', label: 'Climb it slowly', mistake: true, effect: Effect(battery: -15, health: -5), result: [Line(_j, 'Wheels dug in; we burned 15% battery getting out.', Mood.worried)]),
         ],
       ),
     ],
@@ -320,7 +320,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Find the weak link',
         eva: false,
         skill: Skill.rootCause,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.probe,
           title: 'LINK CHAIN',
           instructions: 'Check each part of the signal chain. Mark the one losing the most signal.',
@@ -333,7 +333,7 @@ final engineerTasks = <StoryTask>[
       ),
       _sim('e7_budget', 'Size the dish', 'LINK BUDGET', 'Choose dish size and transmit power: at least 50 Mbps under 40 kg.', 'comms',
           'Rate ∝ D² × P. Doubling the dish gives 4× the rate; doubling power gives 2×.', skill: Skill.systems),
-      const StoryStep(id: 'e7_cam', kind: StepKind.collect, objective: 'Reconnect the camera', items: ['camera'], outro: [const Line(_c, 'Crystal clear, Shackleton. 68 Mbps.')]),
+      const StoryStep(id: 'e7_cam', kind: StepKind.collect, objective: 'Reconnect the camera', items: ['camera'], outro: [Line(_c, 'Crystal clear, Shackleton. 68 Mbps.')]),
     ],
   ),
   // ------------------------------------------------------------------ 8
@@ -354,7 +354,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Measure along the circuit',
         eva: false,
         skill: Skill.rootCause,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.probe,
           title: 'MULTIMETER',
           instructions: 'Measure voltage along the heater circuit. Mark where it disappears.',
@@ -371,7 +371,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Five whys',
         eva: false,
         skill: Skill.rootCause,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.order,
           title: 'FIVE WHYS',
           instructions: 'Order the chain from the symptom to the root cause.',
@@ -391,9 +391,9 @@ final engineerTasks = <StoryTask>[
         timer: 15,
         question: 'Which fix stops this from happening again?',
         options: [
-          const StoryOption(id: 'filter', label: 'Fit intake filters on every fan and add to the cleaning schedule', result: [const Line(_j, 'Fixes the root cause on all heaters, not just this one.')]),
-          const StoryOption(id: 'reset', label: 'Reset the breaker', mistake: true, retry: true, result: [const Line(_n, 'It will trip again tomorrow. That fixes the symptom only.')]),
-          const StoryOption(id: 'bigger', label: 'Fit a bigger breaker', mistake: true, retry: true, result: [const Line(_a, 'Warning: a bigger breaker lets the wire overheat. Fire risk.')]),
+          StoryOption(id: 'filter', label: 'Fit intake filters on every fan and add to the cleaning schedule', result: [Line(_j, 'Fixes the root cause on all heaters, not just this one.')]),
+          StoryOption(id: 'reset', label: 'Reset the breaker', mistake: true, retry: true, result: [Line(_n, 'It will trip again tomorrow. That fixes the symptom only.')]),
+          StoryOption(id: 'bigger', label: 'Fit a bigger breaker', mistake: true, retry: true, result: [Line(_a, 'Warning: a bigger breaker lets the wire overheat. Fire risk.')]),
         ],
       ),
     ],
@@ -418,7 +418,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Surface finishes',
         eva: false,
         skill: Skill.systems,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.sort,
           title: 'COATINGS',
           instructions: 'Some surfaces should shed heat, some should keep it. Sort the finishes.',
@@ -451,7 +451,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Pad readiness',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.checklist,
           title: 'PAD READINESS',
           instructions: 'Check the pad before the cargo lander arrives.',
@@ -472,8 +472,8 @@ final engineerTasks = <StoryTask>[
         timer: 15,
         question: 'Cargo lander at 300 m: it reports a 40 m drift toward the habitat. What do you send?',
         options: [
-          const StoryOption(id: 'wave', label: 'WAVE OFF: divert to the backup site', result: [const Line(_c, 'Lander diverted to site 2. Nobody hurt, cargo safe, one long walk.')]),
-          const StoryOption(id: 'land', label: 'Continue: it will correct itself', mistake: true, effect: const Effect(health: -15), result: [const Line(_a, 'Ejecta hit the habitat: three micrometeoroid-like impacts on the hull.', Mood.worried)]),
+          StoryOption(id: 'wave', label: 'WAVE OFF: divert to the backup site', result: [Line(_c, 'Lander diverted to site 2. Nobody hurt, cargo safe, one long walk.')]),
+          StoryOption(id: 'land', label: 'Continue: it will correct itself', mistake: true, effect: Effect(health: -15), result: [Line(_a, 'Ejecta hit the habitat: three micrometeoroid-like impacts on the hull.', Mood.worried)]),
         ],
       ),
     ],
@@ -499,7 +499,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Inspect after the aftershock',
         eva: false,
         skill: Skill.rootCause,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.probe,
           title: 'STRAIN GAUGES',
           instructions: 'Check each strain gauge after the aftershock. Mark the overloaded one.',
@@ -530,7 +530,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Where is the dust coming from?',
         eva: false,
         skill: Skill.rootCause,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.probe,
           title: 'PARTICLE COUNTER',
           instructions: 'Measure dust in each area. Mark the main source.',
@@ -547,7 +547,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Choose mitigations',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.sort,
           title: 'DUST PLAN',
           instructions: 'Which ideas really reduce dust?',
@@ -558,7 +558,7 @@ final engineerTasks = <StoryTask>[
           hint: 'Lunar dust is sharp and charged. Brooms just stir it up; vacuum outside is not fresh air!',
         ),
       ),
-      const StoryStep(id: 'e12_filter', kind: StepKind.collect, objective: 'Fit the HEPA filter', items: ['filter'], outro: [const Line(_a, 'Airlock dust down 85%.')]),
+      const StoryStep(id: 'e12_filter', kind: StepKind.collect, objective: 'Fit the HEPA filter', items: ['filter'], outro: [Line(_a, 'Airlock dust down 85%.')]),
     ],
   ),
   // ------------------------------------------------------------------ 13
@@ -580,7 +580,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Primary survey',
         eva: false,
         skill: Skill.prioritise,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.order,
           title: 'PRIMARY SURVEY',
           instructions: 'Order the checks like a medic: what kills fastest first.',
@@ -600,9 +600,9 @@ final engineerTasks = <StoryTask>[
         timer: 15,
         question: 'The surgeon\'s answers arrive 2.6 s after each question. Tomas is confused. How do you work with the surgeon?',
         options: [
-          const StoryOption(id: 'brief', label: 'Send short, complete reports: vitals, what we did, one question', result: [const Line(_c, 'Copy all. Surgeon says: monitor every 15 minutes, no sleeping pills, ice on the arm.')]),
-          const StoryOption(id: 'wait', label: 'Wait for the surgeon before doing anything', mistake: true, retry: true, result: [const Line(_l, 'We can\'t wait on every step. Act on what we know, and report.')]),
-          const StoryOption(id: 'chat', label: 'Keep the channel open and talk normally', mistake: true, retry: true, result: [const Line(_c, 'With the delay you keep talking over each other. Make each message complete.')]),
+          StoryOption(id: 'brief', label: 'Send short, complete reports: vitals, what we did, one question', result: [Line(_c, 'Copy all. Surgeon says: monitor every 15 minutes, no sleeping pills, ice on the arm.')]),
+          StoryOption(id: 'wait', label: 'Wait for the surgeon before doing anything', mistake: true, retry: true, result: [Line(_l, 'We can\'t wait on every step. Act on what we know, and report.')]),
+          StoryOption(id: 'chat', label: 'Keep the channel open and talk normally', mistake: true, retry: true, result: [Line(_c, 'With the delay you keep talking over each other. Make each message complete.')]),
         ],
       ),
       const StoryStep(
@@ -614,8 +614,8 @@ final engineerTasks = <StoryTask>[
         timer: 15,
         question: 'Tomas is stable but has a concussion. Going home takes 4 days. What do you decide?',
         options: [
-          const StoryOption(id: 'stay', label: 'Treat here, rest him, watch for warning signs', result: [const Line(_l, 'His pupils are equal and he\'s more alert every hour. Good call.', Mood.happy)]),
-          const StoryOption(id: 'go', label: 'Launch an emergency return today', mistake: true, effect: const Effect(health: -5), result: [const Line(_c, 'A 4-day trip with launch g-forces is riskier for a stable patient than resting.')]),
+          StoryOption(id: 'stay', label: 'Treat here, rest him, watch for warning signs', result: [Line(_l, 'His pupils are equal and he\'s more alert every hour. Good call.', Mood.happy)]),
+          StoryOption(id: 'go', label: 'Launch an emergency return today', mistake: true, effect: Effect(health: -5), result: [Line(_c, 'A 4-day trip with launch g-forces is riskier for a stable patient than resting.')]),
         ],
       ),
     ],
@@ -640,7 +640,7 @@ final engineerTasks = <StoryTask>[
         objective: 'Design review',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.checklist,
           title: 'DESIGN REVIEW',
           instructions: 'The review board checks each requirement. Fix any that fail.',
@@ -661,9 +661,9 @@ final engineerTasks = <StoryTask>[
         timer: 15,
         question: 'The budget drops: one cargo lander is cancelled (−20 t). What do you cut?',
         options: [
-          const StoryOption(id: 'phase', label: 'Phase it: launch habitat and power first, greenhouse later', result: [const Line(_j, 'The crew can live without the greenhouse for a year. Not without power.')]),
-          const StoryOption(id: 'shield', label: 'Cut the shielding', mistake: true, result: [const Line(_l, 'Then every crew member gets twice the dose. That is not a saving.', Mood.worried)]),
-          const StoryOption(id: 'spares', label: 'Cut the spares', mistake: true, result: [const Line(_t, 'The first broken pump would end the mission.')]),
+          StoryOption(id: 'phase', label: 'Phase it: launch habitat and power first, greenhouse later', result: [Line(_j, 'The crew can live without the greenhouse for a year. Not without power.')]),
+          StoryOption(id: 'shield', label: 'Cut the shielding', mistake: true, result: [Line(_l, 'Then every crew member gets twice the dose. That is not a saving.', Mood.worried)]),
+          StoryOption(id: 'spares', label: 'Cut the spares', mistake: true, result: [Line(_t, 'The first broken pump would end the mission.')]),
         ],
       ),
     ],
@@ -688,7 +688,7 @@ final engineerTasks = <StoryTask>[
         objective: 'What can the crew do alone?',
         eva: false,
         skill: Skill.teamwork,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.sort,
           title: 'AUTONOMY',
           instructions: 'With a 25-minute round trip, who decides each thing?',
@@ -707,8 +707,8 @@ final engineerTasks = <StoryTask>[
         skill: Skill.teamwork,
         question: 'If you could send the Mars crew one lesson from Shackleton, which would it be?',
         options: [
-          const StoryOption(id: 'team', label: 'Train as a team to decide alone, and test everything here first', result: [const Line(_n, 'That is the whole point of the Moon. Well done, Engineer.', Mood.happy)]),
-          const StoryOption(id: 'more', label: 'Bring more of everything', mistake: true, retry: true, result: [const Line(_j, 'Mass is the one thing Mars won\'t give us. Skills weigh nothing.')]),
+          StoryOption(id: 'team', label: 'Train as a team to decide alone, and test everything here first', result: [Line(_n, 'That is the whole point of the Moon. Well done, Engineer.', Mood.happy)]),
+          StoryOption(id: 'more', label: 'Bring more of everything', mistake: true, retry: true, result: [Line(_j, 'Mass is the one thing Mars won\'t give us. Skills weigh nothing.')]),
         ],
       ),
       _talk('e15_end', 'Artemis Base Camp', [

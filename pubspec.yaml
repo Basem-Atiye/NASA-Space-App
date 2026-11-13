@@ -14,12 +14,10 @@ dependencies:
   audioplayers: ^6.1.0
   url_launcher: ^6.3.1
   flutter_tts: ^4.2.0
-  # Sign-in (Clerk, pure Dart) and cloud data (Supabase)
-  clerk_auth: 0.0.18-beta
+  # In-app auth + cloud data (Supabase)
   supabase_flutter: ^2.13.0
   # Tilt steering (Rover Ride) and the fitness level
   sensors_plus: ^6.1.1
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -31,7 +29,7 @@ flutter_launcher_icons:
   ios: true
   image_path: assets/images/icon.png
   remove_alpha_ios: true
-  adaptive_icon_background: '#04120A'
+  adaptive_icon_background: '#0A1331'
   adaptive_icon_foreground: assets/images/icon.png
 
 flutter:
@@ -39,7 +37,29 @@ flutter:
   assets:
     - assets/sounds/
     - assets/images/
+    - env/dev.json
   fonts:
+    # Figma design: Fredoka for titles, numbers and buttons; Nunito for text
+    - family: Fredoka
+      fonts:
+        - asset: assets/fonts/Fredoka-500.ttf
+          weight: 500
+        - asset: assets/fonts/Fredoka-600.ttf
+          weight: 600
+        - asset: assets/fonts/Fredoka-700.ttf
+          weight: 700
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-500.ttf
+          weight: 500
+        - asset: assets/fonts/Nunito-600.ttf
+          weight: 600
+        - asset: assets/fonts/Nunito-700.ttf
+          weight: 700
+        - asset: assets/fonts/Nunito-800.ttf
+          weight: 800
+        - asset: assets/fonts/Nunito-900.ttf
+          weight: 900
     - family: Fraunces
       fonts:
         - asset: assets/fonts/Fraunces-600.ttf

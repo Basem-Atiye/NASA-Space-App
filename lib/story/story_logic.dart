@@ -18,14 +18,22 @@ HoldVerdict holdVerdict(double value, double low, double high) {
 // ---------------------------------------------------------------- tune
 
 /// Solar panel output (0..1) for a dial angle, peaking at [best].
-/// Output follows the cosine of the angle between panel and Sun.
+/// Output follows the cosine of the shortest angle between panel and Sun.
 double panelOutput(double angle, double best) {
-  final d = (angle - best) * math.pi / 180;
-  return math.max(0, math.cos(d));
+  var d = (angle - best) % 360;
+  if (d < 0) d += 360;
+  if (d > 180) d = 360 - d;
+  return math.max(0, math.cos(d * math.pi / 180));
 }
 
 /// The dial is "aimed" within 8 degrees: cos(8°) = 99% of peak power.
-bool panelAimed(double angle, double best) => (angle - best).abs() <= 8;
+/// Uses circular distance so 359° vs 1° is 2°, not 358°.
+bool panelAimed(double angle, double best) {
+  var d = (angle - best) % 360;
+  if (d < 0) d += 360;
+  if (d > 180) d = 360 - d;
+  return d <= 8;
+}
 
 // ---------------------------------------------------------------- probe
 

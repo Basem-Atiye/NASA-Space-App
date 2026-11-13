@@ -189,6 +189,38 @@ SELECT pg_temp.ok((SELECT count(*) FROM coop_results) = 1, 'every listed player 
 SELECT pg_temp.act_as('user_t1');
 SELECT pg_temp.ok((SELECT count(*) FROM coop_results) = 1, 'their teacher sees it too');
 
+-- ── Base Commander: finished missions, badges and Supply Runs ──
+SELECT pg_temp.act_as('user_s1');
+INSERT INTO base_runs (client_id, mission, level, won, stars, day_reached, days, crew_health, research, ratings, main_problem, best_decision, decisions)
+VALUES ('7a1c4f0e-0000-4000-8000-000000000001', 2, 'explorer', true, 2, 30, 30, 91, 64, '{"Power":4,"Crew":5}', 'The greenhouse used too much water between Days 12 and 18.',
+        'You swapped the water filter', '[{"day":12,"title":"You swapped the water filter","score":3}]');
+INSERT INTO base_runs (client_id, mission, level, won, stars, day_reached, days, crew_health, lost_cause)
+VALUES ('7a1c4f0e-0000-4000-8000-000000000002', 4, 'explorer', false, 0, 21, 30, 18, 'power');
+INSERT INTO base_runs (client_id, mission, level, won, stars, day_reached, days, crew_health)
+VALUES ('7a1c4f0e-0000-4000-8000-000000000001', 2, 'explorer', true, 2, 30, 30, 91) ON CONFLICT (client_id) DO NOTHING;
+SELECT pg_temp.ok((SELECT count(*) FROM base_runs) = 2, 'base runs: offline re-sync of the same run is ignored');
+SELECT pg_temp.ok(pg_temp.fails($$INSERT INTO base_runs (mission, level, won, stars, day_reached, days, crew_health) VALUES (2, 'explorer', false, 3, 10, 30, 50)$$),
+                  'base runs: a lost mission cannot have stars');
+SELECT pg_temp.ok(pg_temp.fails($$INSERT INTO base_runs (mission, level, won, day_reached, days, crew_health) VALUES (11, 'explorer', true, 30, 30, 90)$$),
+                  'base runs: only missions 1 to 10 exist');
+SELECT pg_temp.ok(pg_temp.fails($$INSERT INTO base_runs (user_id, mission, level, won, day_reached, days, crew_health) VALUES ('user_x', 1, 'explorer', true, 12, 12, 90)$$),
+                  'base runs: cannot record a run for someone else');
+SELECT pg_temp.ok(pg_temp.fails($$UPDATE base_runs SET stars = 3$$), 'base runs: history cannot be rewritten');
+INSERT INTO badges_earned (badge_id) VALUES ('first_mission'), ('water_saver');
+SELECT pg_temp.ok(pg_temp.fails($$INSERT INTO badges_earned (badge_id) VALUES ('made_up')$$), 'badges: only the 12 real badges');
+INSERT INTO supply_runs (client_id, stars, pods, fuel_left, hits) VALUES (gen_random_uuid(), 3, 9, 31, 1);
+SELECT pg_temp.ok(pg_temp.fails($$INSERT INTO supply_runs (stars, pods, fuel_left) VALUES (3, 14, 30)$$), 'supply runs: a rocket holds 10 pods');
+
+SELECT pg_temp.act_as('user_x');
+SELECT pg_temp.ok((SELECT count(*) FROM base_runs) = 0 AND (SELECT count(*) FROM badges_earned) = 0 AND (SELECT count(*) FROM supply_runs) = 0,
+                  'base runs, badges and supply runs are private to the player');
+SELECT pg_temp.ok((SELECT count(*) FROM class_base_summary((SELECT cid FROM fx))) = 0, 'class summary is empty for someone who does not teach the class');
+
+SELECT pg_temp.act_as('user_t1');
+SELECT pg_temp.ok((SELECT count(*) FROM base_runs) = 2 AND (SELECT count(*) FROM badges_earned) = 2, 'the teacher reads their students'' base runs and badges');
+SELECT pg_temp.ok((SELECT wins = 1 AND best_stars = 2 FROM class_base_summary((SELECT cid FROM fx)) WHERE mission = 2), 'class summary: best stars and wins per mission');
+SELECT pg_temp.ok((SELECT top_cause = 'power' AND wins = 0 FROM class_base_summary((SELECT cid FROM fx)) WHERE mission = 4), 'class summary: why the class loses a mission');
+
 -- ── Account deletion (clerk-webhook, service role) removes everything ──
 RESET ROLE;
 DELETE FROM profiles WHERE id = 'user_s2';
@@ -196,5 +228,8 @@ SELECT pg_temp.ok((SELECT count(*) FROM attempts WHERE user_id = 'user_s2') = 0
               AND (SELECT count(*) FROM skill_events WHERE user_id = 'user_s2') = 0
               AND (SELECT count(*) FROM class_members WHERE student_id = 'user_s2') = 0
               AND (SELECT count(*) FROM nudges WHERE student_id = 'user_s2') = 0, 'deleting an account removes all of its data');
+DELETE FROM profiles WHERE id = 'user_s1';
+SELECT pg_temp.ok((SELECT count(*) FROM base_runs) = 0 AND (SELECT count(*) FROM badges_earned) = 0 AND (SELECT count(*) FROM supply_runs) = 0,
+                  'deleting an account removes its base runs, badges and supply runs');
 
 \echo ALL RLS TESTS PASSED

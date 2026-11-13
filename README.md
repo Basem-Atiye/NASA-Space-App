@@ -37,6 +37,51 @@ skills. Teachers get a phone dashboard that shows who needs help, what the class
   night lighting, moonquake shaking, an edge arrow with the distance to the goal, a floatier
   low-gravity lope with backpack follow-through.
 
+## v5: the Figma design (Mission Trainer)
+
+### v5.1: welcome screen, new map, teacher theme
+
+- **Welcome screen** (first screen): Nova flies in, waves and talks; tap her for a zero-gravity somersault. Stars drift, shooting stars, a satellite orbits the Moon.
+- **Map**: a purple Moon surface that scrolls with the levels. The Sun circles low on the horizon (as it really does at the south pole), so crater shadows sweep around; some craters stay dark for ever with ice glinting inside. Glowing travelled path, 3D level buttons, landing site and Shackleton crater rim.
+- **Teacher mode** in the Figma theme: night-sky header, Figma tab bar, borderless cards, cyan buttons, rounded inputs, sheets and dialogs.
+- **Alignment**: every page uses the 24 px Figma gutter; back buttons line up with the content below them.
+
+
+The app now follows the Figma file "Junior Astronaut Mission Trainer": deep navy sky, Twilight
+Indigo cards, chunky Strong Cyan buttons with a 3D edge, Fredoka titles and Nunito text, line
+icons, and the round-helmet astronaut with orange gloves and boots.
+
+**New: Base Commander** (`lib/base/`), the game the Figma screens show:
+
+| Figma | Screen | File |
+|---|---|---|
+| 01 Splash | first screen, waving astronaut | `base/ui/base_screens.dart` |
+| 02 Missions | Moon / Mars, 5 missions each, bonus round, story missions, more | `base/ui/base_screens.dart` |
+| 03 Briefing | goal, starting supplies, the new idea | `base/ui/base_screens.dart` |
+| 04 Mission Control | day, Next Day (hold to fast-forward), warning, tappable base, 6 tiles | `base/ui/mission_control.dart` |
+| 05 Module panel | slider, "what changes over 10 days", engineer tip, melt ice, fix seal | `base/ui/mission_control.dart` |
+| 06, 20 Events | 13 emergencies (storm, leak, dust, quake, night, filter, leaves...) with real science | `base/base_content.dart` |
+| 07 / 08 | complete (ratings, best decision, main problem) / failed (what happened, lesson) | `base/ui/base_results.dart` |
+| 09–12 Supply Run | rocket game: steer, pods, asteroids, fuel vs weight, cargo swap | `supply/` |
+| 13 How to Play, 17 Pause, 18 Settings, 19 Badges | | `base/ui/`, `screens/settings_screen.dart` |
+| 14 Power, 15 Crew, 16 Log | tabs of Mission Control | `base/ui/mission_control.dart` |
+
+- **A real simulation** (`base/base_engine.dart`, pure Dart, tested): panels make power (less with
+  dust, shadow and night), five systems share 100 kW, the battery covers the rest, Life Support
+  gets power first when it is empty; air, water, food and crew health are linked; the greenhouse
+  makes food and air but drinks water; storms hurt the crew unless the shield is up.
+- **5 Moon missions** (one new idea each: power + air, water, food, radiation, repair parts) and
+  **5 Mars missions** (weaker sunlight, dust storms, ice, winter) that unlock after the Moon.
+- **12 badges** with real rules, Supply Run bonuses carried into the next mission, games saved
+  mid-mission, three difficulty levels from the age group (Little Explorer, Explorer, Engineer).
+- **Backend**: migration `0004_base_commander` adds `base_runs`, `badges_earned`, `supply_runs`
+  (row-level security, checks, offline re-sync safe) and `class_base_summary()` for the
+  teacher's new "Base Commander missions" card. `backend/test/rls_test.sql` now has 86 checks.
+
+Everything that was there before is kept: the 2D story campaigns (reached from Missions →
+Story missions), co-op, survival missions, encyclopedia, skills, readiness checks, the teacher
+app and your Supabase sign-in.
+
 ## v4: a living game
 
 - **Living home screen** (`lib/screens/home_scene.dart`): Nova walks around the base with the
@@ -164,7 +209,7 @@ prisma/migrations/0002_security      check constraints, RLS on every table, trig
 prisma/migrations/0003_catalogue     the 70 levels, generated from lib/data/catalogue.dart
                                      (python3 tools/gen_catalogue_sql.py)
 supabase/functions/                  the four Edge Functions (Deno, TypeScript)
-test/rls_test.sql                    73 security and behaviour checks
+test/rls_test.sql                    86 security and behaviour checks
 test/run.mjs                         cross-platform runner: applies migrations and runs SQL tests
 ```
 

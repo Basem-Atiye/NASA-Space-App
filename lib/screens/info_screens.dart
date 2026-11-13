@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/content.dart';
-import '../data/levels.dart';
 import '../data/missions.dart';
-import '../data/story.dart' show storyTask;
+import '../story/campaign.dart';
 import '../story/story_model.dart' show AgeModeInfo;
 import '../engine/constants.dart';
 import '../main.dart';
 import '../ui/theme.dart';
+import '../ui/kit.dart';
 import '../ui/widgets/common.dart';
 
 /// The frame of the information screens: back button, big title, scrolling body.
@@ -27,22 +27,19 @@ class InfoFrame extends StatelessWidget {
         bottom: false,
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
             child: Row(children: [
-              IconButton(
-                onPressed: () {
+              RoundButton(onTap: () {
                   sv.audio.tap();
                   sv.nav.back();
-                },
-                icon: const Icon(Icons.arrow_back_rounded, color: C.frozen),
-              ),
+                }),
             ]),
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 24 + MediaQuery.of(context).padding.bottom),
+              padding: EdgeInsets.fromLTRB(24, 0, 24, 24 + MediaQuery.of(context).padding.bottom),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(_titleCase(title), style: T.hero.copyWith(fontSize: 34)),
+                Text(_titleCase(title), style: T.h1),
                 const SizedBox(height: 6),
                 Text(subtitle, style: T.body.copyWith(color: C.muted)),
                 const SizedBox(height: 18),
@@ -81,11 +78,11 @@ class MissionDataScreen extends StatelessWidget {
             if (wide)
               const Padding(
                 padding: EdgeInsets.only(bottom: 6),
-                child: const Row(children: [
-                  const Expanded(flex: 3, child: const Text('QUANTITY', style: T.label)),
-                  const Expanded(flex: 4, child: const Text('REAL VALUE', style: T.label)),
-                  const Expanded(flex: 4, child: const Text('IN THE GAME', style: T.label)),
-                  const Expanded(flex: 4, child: const Text('SOURCE', style: T.label)),
+                child: Row(children: [
+                  Expanded(flex: 3, child: Text('QUANTITY', style: T.label)),
+                  Expanded(flex: 4, child: Text('REAL VALUE', style: T.label)),
+                  Expanded(flex: 4, child: Text('IN THE GAME', style: T.label)),
+                  Expanded(flex: 4, child: Text('SOURCE', style: T.label)),
                 ]),
               ),
             for (final d in missionData)
@@ -177,9 +174,9 @@ class TeacherScreen extends StatelessWidget {
             const Icon(Icons.lock_open_rounded, color: C.cyan, size: 20),
             const SizedBox(width: 10),
             const Expanded(
-              child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('Unlock all missions', style: T.h3),
-                const Text('Lets a class jump straight to any chapter.', style: T.bodySmall),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Unlock all missions', style: T.h3),
+                Text('Lets a class jump straight to any chapter.', style: T.bodySmall),
               ]),
             ),
             Switch(value: sv.progress.unlockAll, onChanged: (v) => sv.progress.setSetting('unlock_all', v)),
@@ -198,19 +195,24 @@ class TeacherScreen extends StatelessWidget {
           const HudDivider(),
           const SectionLabel('Story levels: lessons and NASA links'),
           const SizedBox(height: 8),
-          for (final l in levelInfos)
-            Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(18), border: Border.all(color: C.line)),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('LEVEL ${l.n} · ${storyTask(l.n).title.toUpperCase()}', style: T.h3.copyWith(color: C.cyan)),
-                const SizedBox(height: 4),
-                _line('Moral lesson', l.moral),
-                _line('What NASA does', l.nasaDoes),
-                _line('The maths', l.howCalc),
-              ]),
-            ),
+          for (final camp in campaigns) ...[
+            Text(camp.title.toUpperCase(), style: T.label.copyWith(letterSpacing: 2, color: C.cyan)),
+            const SizedBox(height: 8),
+            for (final l in camp.infos)
+              Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(18)),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('LEVEL ${l.n} · ${camp.task(l.n).title.toUpperCase()}', style: T.h3.copyWith(color: C.cyan)),
+                  const SizedBox(height: 4),
+                  _line('Moral lesson', l.moral),
+                  _line('What NASA does', l.nasaDoes),
+                  _line('The maths', l.howCalc),
+                ]),
+              ),
+            const SizedBox(height: 8),
+          ],
           const HudDivider(),
           const SectionLabel('Survival chapters'),
           const SizedBox(height: 8),
@@ -232,7 +234,7 @@ class TeacherScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(18), border: Border.all(color: C.line)),
+      decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(18)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('CHAPTER ${t.chapter} · ${ch.title.toUpperCase()}', style: T.h3.copyWith(color: C.cyan)),
         Text(ms, style: T.bodySmall),
@@ -266,109 +268,3 @@ class TeacherScreen extends StatelessWidget {
 
 // ---------------------------------------------------------------- SETTINGS
 
-class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
-
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  bool _confirmReset = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final sv = Services.of(context);
-    final p = sv.progress;
-    return AnimatedBuilder(
-      animation: p,
-      builder: (context, _) => InfoFrame(
-        title: 'SETTINGS',
-        subtitle: 'Rank, sound, motion and text',
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          _toggle(Icons.volume_up_rounded, 'Sound effects', 'Beeps, alarms and ambience', p.sound, (v) async {
-            await p.setSetting('sound', v);
-            await sv.audio.refreshSettings();
-          }),
-          _toggle(Icons.music_note_rounded, 'Music', 'Menu music', p.music, (v) async {
-            await p.setSetting('music', v);
-            await sv.audio.refreshSettings();
-          }),
-          _toggle(Icons.vibration_rounded, 'Vibration', 'Haptic feedback on taps and alarms', p.haptics, (v) => p.setSetting('haptics', v)),
-          _toggle(Icons.record_voice_over_rounded, 'Read lines aloud', 'Always on for Cadets; uses the phone\'s voice', p.voiceOn, (v) => p.setSetting('voice', v)),
-          _toggle(Icons.animation_rounded, 'Reduced motion', 'Fades instead of zooms, no screen shake, no typing effect', p.reducedMotion, (v) => p.setSetting('reduced_motion', v)),
-          _toggle(Icons.keyboard_rounded, 'Typing sound', 'Soft clicks while messages appear', p.typingSound, (v) => p.setSetting('typing_sound', v)),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.military_tech_rounded, color: C.cyan),
-            title: Text('Rank: ${p.ageMode.title} (${p.ageMode.ages})', style: T.h3),
-            subtitle: Text(p.rankLocked ? 'Locked by your teacher' : 'Cadet, Explorer or Engineer', style: T.bodySmall),
-            trailing: const Icon(Icons.chevron_right_rounded, color: C.muted),
-            onTap: () {
-              sv.nav.afterRank = Screen.title;
-              sv.nav.go(Screen.rank);
-            },
-          ),
-          _toggle(Icons.school_rounded, 'Tutorial hints', 'Mission Control pauses the game to explain new things', p.tutorialHints, (v) => p.setSetting('hints', v)),
-          const SizedBox(height: 6),
-          Row(children: [
-            const Icon(Icons.text_fields_rounded, color: C.cyan, size: 20),
-            const SizedBox(width: 10),
-            const Text('Text speed', style: T.h3),
-            Expanded(
-              child: Slider(value: p.textSpeed, min: 0.5, max: 2.5, divisions: 8, onChanged: (v) => p.setSetting('text_speed', v)),
-            ),
-            SizedBox(width: 44, child: Text('${p.textSpeed.toStringAsFixed(1)}x', style: T.mono)),
-          ]),
-          const HudDivider(),
-          Row(children: [
-            const Expanded(child: const Text('Reset all progress: stars, badges and Nova\'s memories.', style: T.bodySmall)),
-            if (!_confirmReset)
-              HudButton(label: 'RESET', icon: Icons.restart_alt_rounded, compact: true, color: C.red, onTap: () => setState(() => _confirmReset = true))
-            else ...[
-              HudButton(label: 'CANCEL', compact: true, onTap: () => setState(() => _confirmReset = false)),
-              const SizedBox(width: 8),
-              HudButton(
-                label: 'YES, RESET',
-                compact: true,
-                color: C.red,
-                filled: true,
-                onTap: () {
-                  p.resetAll();
-                  setState(() => _confirmReset = false);
-                },
-              ),
-            ],
-          ]),
-          const HudDivider(),
-          const Text('Credits', style: T.h3),
-          const SizedBox(height: 4),
-          const Text(
-            'Made for the NASA Space Apps Challenge 2026: Build a Junior Astronaut Mission Trainer. '
-            'Life support values: NASA. Lunar radiation: Chang\'e 4 LND. Solar storms: NASA DONKI. '
-            'Moon maps: NASA Scientific Visualization Studio CGI Moon Kit (LRO). '
-            'Fonts: Chakra Petch, IBM Plex Sans, JetBrains Mono (SIL Open Font License). Sounds synthesized for this game.',
-            style: T.bodySmall,
-          ),
-        ]),
-      ),
-    );
-  }
-
-  Widget _toggle(IconData icon, String title, String sub, bool value, ValueChanged<bool> onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(children: [
-        Icon(icon, color: C.cyan, size: 20),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: T.h3),
-            Text(sub, style: T.bodySmall),
-          ]),
-        ),
-        Switch(value: value, onChanged: onChanged),
-      ]),
-    );
-  }
-}

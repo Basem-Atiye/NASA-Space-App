@@ -1,4 +1,4 @@
-/// Every playable level and co-op mission, with the ids the cloud uses.
+/// Every playable level, with the ids the cloud uses.
 ///
 /// This list is the single source for the `levels` table: the SQL in
 /// backend/prisma/migrations/0003_catalogue is generated from it by
@@ -30,7 +30,7 @@ extension SkillInfo on Skill {
 }
 
 /// The campaigns in the database (enum public.campaign).
-enum CampaignId { cadet, explorer, engineer, coop, survival }
+enum CampaignId { cadet, explorer, engineer, survival }
 
 class CatalogueEntry {
   final String id;
@@ -40,18 +40,15 @@ class CatalogueEntry {
   final List<Skill> skills;
   final int minutes;
 
-  /// For co-op missions: the age level it is written for (0 cadet, 1 explorer, 2 engineer).
-  final int? coopAge;
+  const CatalogueEntry(this.id, this.campaign, this.number, this.title, this.skills, {this.minutes = 10});
 
-  const CatalogueEntry(this.id, this.campaign, this.number, this.title, this.skills, {this.minutes = 10, this.coopAge});
-
-  bool get isCoop => campaign == CampaignId.coop;
+  bool get isSurvival => campaign == CampaignId.survival;
 }
 
 String levelId(CampaignId c, int n) => '${c.name}-${n.toString().padLeft(2, '0')}';
 
 const _p = Skill.prioritise, _s = Skill.systems, _r = Skill.rootCause, _m = Skill.resourceMath, _o = Skill.procedure, _t = Skill.teamwork;
-const _ca = CampaignId.cadet, _ex = CampaignId.explorer, _en = CampaignId.engineer, _co = CampaignId.coop, _su = CampaignId.survival;
+const _ca = CampaignId.cadet, _ex = CampaignId.explorer, _en = CampaignId.engineer, _su = CampaignId.survival;
 
 const catalogue = <CatalogueEntry>[
   // Cadet · ages 6–10 · "Moon Cadets"
@@ -101,26 +98,6 @@ const catalogue = <CatalogueEntry>[
   CatalogueEntry('engineer-13', _en, 13, 'Medical Emergency', [_p, _o], minutes: 12),
   CatalogueEntry('engineer-14', _en, 14, 'Design Your Base', [_s, _m], minutes: 16),
   CatalogueEntry('engineer-15', _en, 15, 'Mars Forward', [_t, _s], minutes: 14),
-
-  // Co-op missions · 2–4 players · 6 per age level
-  CatalogueEntry('coop-01', _co, 1, 'Suit Up Together', [_t, _o], minutes: 5, coopAge: 0),
-  CatalogueEntry('coop-02', _co, 2, 'Find Pip', [_t, _r], minutes: 5, coopAge: 0),
-  CatalogueEntry('coop-03', _co, 3, 'Colour Circuit', [_t, _s], minutes: 5, coopAge: 0),
-  CatalogueEntry('coop-04', _co, 4, 'Garden Rescue', [_t, _m], minutes: 6, coopAge: 0),
-  CatalogueEntry('coop-05', _co, 5, 'Rocket Countdown', [_t, _o], minutes: 5, coopAge: 0),
-  CatalogueEntry('coop-06', _co, 6, 'Rock Collectors', [_t, _r], minutes: 6, coopAge: 0),
-  CatalogueEntry('coop-07', _co, 7, 'Lander Doctor', [_t, _r], minutes: 8, coopAge: 1),
-  CatalogueEntry('coop-08', _co, 8, 'Airlock Leak', [_t, _p], minutes: 8, coopAge: 1),
-  CatalogueEntry('coop-09', _co, 9, 'Power Down', [_t, _m], minutes: 8, coopAge: 1),
-  CatalogueEntry('coop-10', _co, 10, 'Storm Shelter', [_t, _p], minutes: 8, coopAge: 1),
-  CatalogueEntry('coop-11', _co, 11, 'Rover Convoy', [_t, _m], minutes: 8, coopAge: 1),
-  CatalogueEntry('coop-12', _co, 12, 'Greenhouse Shift', [_t, _s], minutes: 8, coopAge: 1),
-  CatalogueEntry('coop-13', _co, 13, 'Go/No-Go Poll', [_t, _o], minutes: 10, coopAge: 2),
-  CatalogueEntry('coop-14', _co, 14, 'Rover Rescue', [_t, _p], minutes: 10, coopAge: 2),
-  CatalogueEntry('coop-15', _co, 15, 'Cascade Control', [_t, _s], minutes: 10, coopAge: 2),
-  CatalogueEntry('coop-16', _co, 16, 'Gateway Docking', [_t, _m], minutes: 10, coopAge: 2),
-  CatalogueEntry('coop-17', _co, 17, 'Moonquake Response', [_t, _r], minutes: 10, coopAge: 2),
-  CatalogueEntry('coop-18', _co, 18, 'Medical Evacuation', [_t, _p], minutes: 10, coopAge: 2),
 
   // Survival (Flight Director missions)
   CatalogueEntry('survival-01', _su, 1, 'Contact Light', [_m]),

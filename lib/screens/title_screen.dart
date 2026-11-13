@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../data/encyclopedia.dart';
+import '../base/base_badges.dart';
 import '../data/missions.dart';
 import '../main.dart';
 import '../story/story_model.dart';
+import '../ui/kit.dart';
+import '../ui/line_icons.dart';
 import '../ui/theme.dart';
 import '../ui/widgets/common.dart';
 import '../ui/widgets/space_art.dart';
@@ -17,26 +20,36 @@ class TitleScreen extends StatefulWidget {
   State<TitleScreen> createState() => _TitleScreenState();
 }
 
-class _TitleScreenState extends State<TitleScreen> {
+class _TitleScreenState extends State<TitleScreen> with SingleTickerProviderStateMixin {
   Color _accent = C.cyan;
   String _themeName = '';
   static bool _firstOpen = true;
   late final bool _playIntro = _firstOpen;
+  late final AnimationController _playGlow;
 
   @override
   void initState() {
     super.initState();
     _firstOpen = false;
+    _playGlow = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800));
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    Services.of(context).audio.ambient('music');
+    final sv = Services.of(context);
+    sv.audio.ambient('music');
+    final reduce = sv.progress.reducedMotion || MediaQuery.of(context).disableAnimations;
+    if (reduce) {
+      _playGlow.value = 1;
+    } else if (!_playGlow.isAnimating) {
+      _playGlow.repeat(reverse: true);
+    }
   }
 
   @override
   void dispose() {
+    _playGlow.dispose();
     super.dispose();
   }
 
@@ -67,134 +80,173 @@ class _TitleScreenState extends State<TitleScreen> {
     return AuroraBackground(
       child: SafeArea(
         child: LayoutBuilder(builder: (context, box) {
-          final artH = (box.maxHeight * 0.44).clamp(230.0, 380.0);
-          return SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: box.maxHeight),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  SizedBox(
-                    height: artH,
-                    child: Stack(clipBehavior: Clip.none, children: [
-                      Positioned(
-                        left: -20,
-                        right: -20,
-                        top: -40,
-                        bottom: 0,
-                        // a living Moon base: walk, jump, spin the Earth
-                        child: TweenAnimationBuilder<double>(
-                          tween: Tween(begin: _playIntro ? 0 : 1, end: 1),
-                          duration: Duration(milliseconds: introMs + 1),
-                          builder: (context, intro, child) => Opacity(opacity: intro, child: child),
-                          child: HomeScene(theme: theme, audio: sv.audio, reducedMotion: sv.progress.reducedMotion),
+          // One composition: the Moon scene runs under the title so there is no hard cut.
+          final artH = (box.maxHeight * 0.56).clamp(280.0, 440.0);
+          const titleInset = 64.0;
+          const topBarH = 64.0;
+          return Stack(children: [
+            // Art + page content: clipped under the top bar so the hero never covers the chips.
+            Positioned.fill(
+              child: ClipRect(
+                child: Stack(clipBehavior: Clip.hardEdge, children: [
+                  Positioned(
+                    left: -20,
+                    right: -20,
+                    top: -40,
+                    height: artH + 40,
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: _playIntro ? 0 : 1, end: 1),
+                      duration: Duration(milliseconds: introMs + 1),
+                      builder: (context, intro, child) => Opacity(opacity: intro, child: child),
+                      child: HomeScene(
+                        theme: theme,
+                        audio: sv.audio,
+                        reducedMotion: sv.progress.reducedMotion,
+                        blendTo: C.bg,
+                      ),
+                    ),
+                  ),
+                  // Long atmospheric veil (sky → page), not a hard band.
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: artH - titleInset - 110,
+                    height: titleInset + 150,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              theme.skyLow.withValues(alpha: 0.15),
+                              Color.lerp(theme.skyLow, C.bg, 0.45)!.withValues(alpha: 0.55),
+                              Color.lerp(theme.skyLow, C.bg, 0.85)!.withValues(alpha: 0.88),
+                              C.bg,
+                            ],
+                            stops: const [0.0, 0.22, 0.48, 0.74, 1.0],
+                          ),
                         ),
                       ),
-                      Positioned(
-                        top: 12,
-                        left: 0,
-                        child: _pill(
-                          Row(mainAxisSize: MainAxisSize.min, children: [
-                            TweenAnimationBuilder<double>(
-                              tween: Tween(begin: _playIntro ? 0 : 1, end: 1),
-                              duration: Duration(milliseconds: introMs + 1),
-                              builder: (context, v, _) => SizedBox(width: 18, height: 18, child: CustomPaint(painter: StarLogoPainter(v))),
-                            ),
-                            const SizedBox(width: 10),
-                            Text('SOUTH POLE', style: T.label.copyWith(color: C.frozen, fontSize: 12, letterSpacing: 3)),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: box.maxHeight),
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(24, artH - titleInset, 24, 12),
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      EnterAnim(
+                        delayMs: _playIntro ? 500 : 0,
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          const Text('Open', style: T.hero),
+                          Text('Bounds', style: T.hero.copyWith(color: _accent)),
+                          const SizedBox(height: 10),
+                          Text(camp.tagline, style: T.body.copyWith(color: C.muted, fontSize: 15)),
+                        ]),
+                      ),
+                      const SizedBox(height: 14),
+                      _quietAccountChip(),
+                      const SizedBox(height: 16),
+                      _liveBanner(),
+                      EnterAnim(delayMs: _playIntro ? 700 : 60, child: _continueCard(started, next, task.title)),
+                      const SizedBox(height: 16),
+                      EnterAnim(
+                        delayMs: _playIntro ? 820 : 120,
+                        child: _tileRow(
+                          _tile(icon: Ln.star, color: C.yellow, title: 'My skills', sub: 'Readiness and skills map', onTap: () => sv.nav.go(Screen.skills)),
+                          _tile(icon: Ln.map, color: C.water, title: 'Survival', sub: '${missions.length} Flight Director missions', onTap: () => sv.nav.go(Screen.missions)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      EnterAnim(
+                        delayMs: _playIntro ? 900 : 160,
+                        child: _tileRow(
+                          _tile(icon: Ln.book, color: C.green, title: 'Moon Encyclopedia', sub: '${p.facts.length} of ${encyclopedia.length} facts', onTap: () => sv.nav.go(Screen.encyclopedia)),
+                          _tile(icon: Ln.rocket, color: C.orange, title: 'Base Commander', sub: 'Bonus · run a base on the Moon and Mars', onTap: () => sv.nav.go(Screen.missionSelect)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      EnterAnim(
+                        delayMs: _playIntro ? 980 : 200,
+                        child: _tile(icon: Ln.award, color: C.violet, title: 'Badges', sub: '${sv.base.earned.length} of ${badges.length} earned', onTap: () => sv.nav.go(Screen.badges)),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(children: [
+                        Expanded(child: _link('Mission data', () => sv.nav.go(Screen.data))),
+                        Expanded(child: _link('How to play', () => sv.nav.go(Screen.howToPlay))),
+                        Expanded(child: _link('Settings', () => sv.nav.go(Screen.settings))),
+                      ]),
+                      const SizedBox(height: 4),
                           ]),
                         ),
                       ),
-                      Positioned(
-                        top: 12,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: () {
-                            sv.nav.afterRank = Screen.title;
-                            sv.nav.go(Screen.rank);
-                          },
-                          child: _pill(Row(mainAxisSize: MainAxisSize.min, children: [
-                            const SparkleStar(size: 16),
-                            const SizedBox(width: 8),
-                            Text('${p.storyTotalStars()}', style: T.h3.copyWith(fontSize: 14)),
-                            Text(' · ${p.rankChosen ? p.ageMode.title : 'Choose rank'}', style: T.body.copyWith(fontSize: 13.5, color: C.muted)),
-                          ])),
-                        ),
-                      ),
-                    ]),
+                    ),
                   ),
-                  EnterAnim(
-                    delayMs: _playIntro ? 500 : 0,
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      const Text('Shackleton', style: T.hero),
-                      Text('Station', style: T.hero.copyWith(color: _accent)),
-                      const SizedBox(height: 12),
-                      Text(camp.tagline, style: T.body.copyWith(color: C.muted, fontSize: 15)),
-                    ]),
-                  ),
-                  const SizedBox(height: 20),
-                  _liveBanner(),
-                  EnterAnim(delayMs: _playIntro ? 700 : 60, child: _continueCard(started, next, task.title)),
-                  const SizedBox(height: 12),
-                  EnterAnim(
-                    delayMs: _playIntro ? 820 : 120,
-                    child: Row(children: [
-                      Expanded(
-                        child: _tile(
-                          icon: Icons.groups_rounded,
-                          title: 'Co-op missions',
-                          sub: '2–4 players · 18 missions',
-                          green: true,
-                          onTap: () => sv.nav.go(Screen.coop),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _tile(
-                          icon: Icons.radar_rounded,
-                          title: 'My skills',
-                          sub: 'Readiness and skills map',
-                          onTap: () => sv.nav.go(Screen.skills),
-                        ),
-                      ),
-                    ]),
-                  ),
-                  const SizedBox(height: 12),
-                  EnterAnim(
-                    delayMs: _playIntro ? 900 : 160,
-                    child: Row(children: [
-                      Expanded(
-                        child: _tile(
-                          icon: Icons.public_rounded,
-                          title: 'Survival',
-                          sub: '${missions.length} Flight Director missions',
-                          onTap: () => sv.nav.go(Screen.missions),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _tile(
-                          icon: Icons.menu_book_rounded,
-                          title: 'Moon Encyclopedia',
-                          sub: '${p.facts.length} of ${encyclopedia.length} facts',
-                          onTap: () => sv.nav.go(Screen.encyclopedia),
-                        ),
-                      ),
-                    ]),
-                  ),
-                  const SizedBox(height: 12),
-                  _accountRow(),
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                    _link('Mission data', () => sv.nav.go(Screen.data)),
-                    _link('For teachers', () => sv.nav.openTeacher(sv)),
-                    _link('Settings', () => sv.nav.go(Screen.settings)),
-                  ]),
-                  const SizedBox(height: 8),
                 ]),
               ),
             ),
-          );
+            // Sticky top bar: soft sky veil so scrolled hero text fades under the chips.
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: topBarH,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        C.bg.withValues(alpha: 0.92),
+                        C.bg.withValues(alpha: 0.72),
+                        C.bg.withValues(alpha: 0),
+                      ],
+                      stops: const [0.0, 0.55, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 12,
+              left: 24,
+              right: 24,
+              child: Row(children: [
+                _pill(Row(mainAxisSize: MainAxisSize.min, children: [
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: _playIntro ? 0 : 1, end: 1),
+                    duration: Duration(milliseconds: introMs + 1),
+                    builder: (context, v, _) => SizedBox(width: 18, height: 18, child: CustomPaint(painter: StarLogoPainter(v))),
+                  ),
+                  const SizedBox(width: 8),
+                  Text('SOUTH POLE', style: T.label.copyWith(color: C.frozen, fontSize: 11.5, letterSpacing: 2.4)),
+                ])),
+                const Spacer(),
+                Flexible(
+                  child: TapScale(
+                    onTap: () {
+                      sv.nav.afterRank = Screen.title;
+                      sv.nav.go(Screen.rank);
+                    },
+                    child: _pill(Row(mainAxisSize: MainAxisSize.min, children: [
+                      const LineIcon(Ln.star, size: 18, color: C.yellow),
+                      const SizedBox(width: 6),
+                      Text('${p.storyTotalStars()}', style: T.h3.copyWith(fontSize: 15)),
+                      const SizedBox(width: 8),
+                      Container(width: 1, height: 16, color: C.line),
+                      const SizedBox(width: 8),
+                      Flexible(child: Text(p.rankChosen ? p.ageMode.title : 'Age group', style: T.body.copyWith(fontSize: 13.5, color: C.muted), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                    ])),
+                  ),
+                ),
+              ]),
+            ),
+          ]);
         }),
       ),
     );
@@ -203,7 +255,8 @@ class _TitleScreenState extends State<TitleScreen> {
   Widget _pill(Widget child) => Container(
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(color: C.bg.withValues(alpha: 0.55), borderRadius: BorderRadius.circular(20), border: Border.all(color: C.line)),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(color: C.raised.withValues(alpha: 0.92), borderRadius: BorderRadius.circular(20)),
         child: child,
       );
 
@@ -211,37 +264,46 @@ class _TitleScreenState extends State<TitleScreen> {
     final sv = Services.of(context);
     final p = sv.progress;
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
       decoration: BoxDecoration(
         color: C.panel,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _accent.withValues(alpha: 0.4)),
-        boxShadow: [BoxShadow(color: _accent.withValues(alpha: 0.2), blurRadius: 40, offset: const Offset(0, 12))],
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: _accent.withValues(alpha: 0.55), width: 2),
+        boxShadow: [BoxShadow(color: _accent.withValues(alpha: 0.18), blurRadius: 36, offset: const Offset(0, 12))],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(color: C.ink, borderRadius: BorderRadius.circular(12)),
+            child: Text(started ? 'CONTINUE' : 'START', style: T.label.copyWith(fontSize: 11, letterSpacing: 2)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: Text(p.campaign.title.toUpperCase(), style: T.label.copyWith(fontSize: 10.5, color: C.muted, letterSpacing: 1.4), maxLines: 1, overflow: TextOverflow.ellipsis)),
+        ]),
+        const SizedBox(height: 12),
+        Text('Level $next · $title', style: T.h1.copyWith(fontSize: 24, height: 1.15)),
+        const SizedBox(height: 6),
         Row(children: [
-          Text(started ? 'CONTINUE' : 'START', style: T.label.copyWith(fontSize: 12, letterSpacing: 3)),
-          const SizedBox(width: 8),
-          Expanded(child: Text(p.campaign.title.toUpperCase(), style: T.label.copyWith(fontSize: 10, color: C.muted, letterSpacing: 1.5), overflow: TextOverflow.ellipsis)),
-          Flexible(child: Text(p.campaign.dayLabel(next), style: T.body.copyWith(color: C.muted, fontSize: 13.5), overflow: TextOverflow.ellipsis)),
+          const LineIcon(Ln.calendar, size: 15, color: C.muted),
+          const SizedBox(width: 6),
+          Expanded(child: Text(p.campaign.dayLabel(next), style: T.body.copyWith(color: C.muted, fontSize: 13.5), maxLines: 1, overflow: TextOverflow.ellipsis)),
         ]),
         const SizedBox(height: 8),
-        Text('Level $next · $title', style: T.h1.copyWith(fontSize: 24)),
-        const SizedBox(height: 6),
         Row(children: [
           Container(width: 8, height: 8, decoration: BoxDecoration(color: _accent, shape: BoxShape.circle, boxShadow: [BoxShadow(color: _accent, blurRadius: 8)])),
           const SizedBox(width: 8),
-          Text('NEXT MISSION: $_themeName', style: T.label.copyWith(color: _accent, fontSize: 10.5, letterSpacing: 2)),
+          Expanded(child: Text('NEXT MISSION: $_themeName', style: T.label.copyWith(color: _accent, fontSize: 10.5, letterSpacing: 1.8), maxLines: 1, overflow: TextOverflow.ellipsis)),
         ]),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         Row(children: [
           for (var i = 1; i <= p.campaign.length; i++) ...[
             Expanded(
               child: AnimatedContainer(
                 duration: Motion.slow,
-                height: 5,
+                height: 6,
                 decoration: BoxDecoration(
-                  color: p.storyStars(i) > 0 ? _accent : (i == next ? C.sapphire : C.lineSoft),
+                  color: p.storyStars(i) > 0 ? _accent : (i == next ? C.progress : C.ink),
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
@@ -249,8 +311,21 @@ class _TitleScreenState extends State<TitleScreen> {
             if (i < p.campaign.length) const SizedBox(width: 3),
           ],
         ]),
-        const SizedBox(height: 16),
-        PrimaryButton(label: 'Play', icon: Icons.play_arrow_rounded, onTap: _play, height: 58),
+        const SizedBox(height: 18),
+        AnimatedBuilder(
+          animation: _playGlow,
+          builder: (context, child) {
+            final v = Curves.easeInOut.transform(_playGlow.value);
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [BoxShadow(color: C.cyan.withValues(alpha: 0.12 + 0.22 * v), blurRadius: 14 + 12 * v, offset: const Offset(0, 6))],
+              ),
+              child: child,
+            );
+          },
+          child: KitButton('Play', icon: Ln.play, onTap: _play),
+        ),
       ]),
     );
   }
@@ -292,52 +367,61 @@ class _TitleScreenState extends State<TitleScreen> {
     );
   }
 
-  /// Who is signed in (or how to sign in), and the class the student is in.
-  Widget _accountRow() {
+  /// Quiet account chip — never competes with Play.
+  Widget _quietAccountChip() {
     final sv = Services.of(context);
     final p = sv.progress;
-    final session = sv.session;
     return AnimatedBuilder(
-      animation: session,
+      animation: sv.session,
       builder: (context, _) {
-        final signedIn = session.signedIn;
+        final s = sv.session;
+        final signedIn = s.signedIn;
         final label = signedIn
-            ? (session.isTeacher ? 'Teacher · ${session.name}' : '${session.name}${p.className == null ? '' : ' · ${p.className}'}')
-            : (session.cloudAvailable ? 'Playing as a guest · progress stays on this phone' : 'Offline · progress stays on this phone');
-        return Pressable(
-          onTap: () => sv.nav.go(Screen.account),
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(color: C.bg.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(16), border: Border.all(color: C.line)),
-            child: Row(children: [
-              Icon(signedIn ? Icons.verified_user_rounded : Icons.person_outline_rounded, color: signedIn ? C.cyan : C.muted, size: 20),
-              const SizedBox(width: 10),
-              Expanded(child: Text(label, style: T.body.copyWith(fontSize: 13.5), maxLines: 1, overflow: TextOverflow.ellipsis)),
-              if (session.pending > 0) Text('${session.pending} to sync  ', style: T.monoSmall),
-              Text(signedIn ? 'ACCOUNT' : (session.cloudAvailable ? 'SIGN IN' : ''), style: T.label.copyWith(fontSize: 10)),
-            ]),
+            ? (s.isTeacher ? 'Teacher · ${s.name}' : '${s.name}${p.className == null ? '' : ' · ${p.className}'}')
+            : 'Guest · Sign in';
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Pressable(
+            onTap: () => sv.nav.go(Screen.account),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: C.panelDeep.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: C.line),
+              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(signedIn ? Icons.verified_user_rounded : Icons.person_outline_rounded, color: C.cyan, size: 18),
+                const SizedBox(width: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 220),
+                  child: Text(label, style: T.bodySmall.copyWith(fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+                ),
+              ]),
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _tile({required IconData icon, required String title, required String sub, required VoidCallback onTap, bool green = false}) {
-    return Pressable(
+  /// Two tiles side by side with the same height.
+  Widget _tileRow(Widget a, Widget b) => Row(children: [Expanded(child: a), const SizedBox(width: 12), Expanded(child: b)]);
+
+  Widget _tile({required LineIconData icon, required Color color, required String title, required String sub, required VoidCallback onTap}) {
+    return TapScale(
       onTap: onTap,
+      scale: 0.97,
       child: Container(
-        height: 104,
-        padding: const EdgeInsets.fromLTRB(14, 10, 12, 10),
-        decoration: BoxDecoration(
-          color: green ? C.evergreen.withValues(alpha: 0.85) : C.panelDeep.withValues(alpha: 0.85),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: green ? C.cyan.withValues(alpha: 0.45) : C.line),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Icon(icon, color: _accent, size: 20),
-          Text(title, style: T.h3.copyWith(fontSize: 15, height: 1.05), maxLines: 1, overflow: TextOverflow.ellipsis),
-          Text(sub, style: T.bodySmall.copyWith(fontSize: 12, height: 1.15), maxLines: 2, overflow: TextOverflow.ellipsis),
+        height: 120,
+        padding: const EdgeInsets.fromLTRB(14, 14, 12, 12),
+        decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(22)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          IconBox(icon, color: color, size: 38),
+          const Spacer(),
+          Text(title, style: T.h3.copyWith(fontSize: 15.5, height: 1.1), maxLines: 1, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 3),
+          Text(sub, style: T.bodySmall.copyWith(fontSize: 12, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
         ]),
       ),
     );
@@ -345,8 +429,8 @@ class _TitleScreenState extends State<TitleScreen> {
 
   Widget _link(String label, VoidCallback onTap) => TextButton(
         onPressed: onTap,
-        style: TextButton.styleFrom(foregroundColor: C.muted, minimumSize: const Size(44, 44)),
-        child: Text(label, style: T.h3.copyWith(fontSize: 13.5, color: C.muted)),
+        style: TextButton.styleFrom(foregroundColor: C.muted, minimumSize: const Size(44, 48)),
+        child: Text(label, style: T.h3.copyWith(fontSize: 13.5, color: C.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
       );
 }
 

@@ -88,6 +88,6 @@ List<Insight> classInsights(ClassOverview o, List<StudentRow> students, List<Ski
   if (inactive > 0) {
     out.add(Insight('$inactive not played this week', 'A reminder from their row often brings them back.', Icons.bedtime_rounded, TC.indigo));
   }
-  if (out.isEmpty) out.add(const Insight('All on track', 'No warnings today. Try a co-op mission as a class reward.', Icons.celebration_rounded, TC.good));
+  if (out.isEmpty) out.add(const Insight('All on track', 'No warnings today. Try a Base Commander mission as a class reward.', Icons.celebration_rounded, TC.good));
   return out.take(4).toList();
 }

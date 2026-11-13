@@ -6,6 +6,7 @@ import '../game/game_controller.dart';
 import '../main.dart';
 import '../services/audio.dart';
 import '../ui/theme.dart';
+import '../ui/kit.dart';
 import '../ui/widgets/avatar.dart';
 import '../ui/widgets/common.dart';
 import '../data/messages.dart';
@@ -44,28 +45,24 @@ class _BriefingScreenState extends State<BriefingScreen> {
         bottom: false,
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
             child: Row(children: [
-              IconButton(
-                onPressed: () {
+              RoundButton(onTap: () {
                   sv.audio.tap();
                   sv.nav.back();
-                },
-                icon: const Icon(Icons.arrow_back_rounded, color: C.frozen),
-              ),
+                }),
             ]),
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+              padding: const EdgeInsets.fromLTRB(24, 4, 24, 20),
               child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('CHAPTER ${ch.number} · ${ch.title.toUpperCase()}  ·  MISSION ${m.id}${m.isBoss ? '  ·  BOSS' : ''}',
                           style: T.label.copyWith(color: m.isBoss ? C.amber : C.cyan)),
-                      const SizedBox(height: 6),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 10),
                       Text(m.title, style: T.hero.copyWith(fontSize: 32)),
                       Text(m.subtitle, style: T.bodySmall.copyWith(fontSize: 13)),
                       const HudDivider(),
@@ -110,7 +107,7 @@ class _BriefingScreenState extends State<BriefingScreen> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 16 + bottom),
+            padding: EdgeInsets.fromLTRB(24, 8, 24, 16 + bottom),
             child: PrimaryButton(
               label: 'Begin mission',
               icon: Icons.play_arrow_rounded,

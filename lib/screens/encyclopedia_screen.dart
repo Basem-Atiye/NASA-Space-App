@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/encyclopedia.dart';
 import '../main.dart';
 import '../ui/theme.dart';
+import '../ui/kit.dart';
 import '../ui/widgets/common.dart';
 import '../world/characters.dart';
 
@@ -22,9 +23,9 @@ class EncyclopediaScreen extends StatelessWidget {
         child: CustomScrollView(slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 20, 4),
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
               child: Row(children: [
-                IconButton(onPressed: sv.nav.back, icon: const Icon(Icons.arrow_back_rounded, color: C.frozen)),
+                RoundButton(onTap: sv.nav.back),
                 const Spacer(),
                 const PipFigure(size: 44, eye: PipEye.happy),
               ]),
@@ -32,7 +33,7 @@ class EncyclopediaScreen extends StatelessWidget {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('PIP\'S SCANNER', style: T.label.copyWith(letterSpacing: 3)),
                 const SizedBox(height: 6),
@@ -50,12 +51,12 @@ class EncyclopediaScreen extends StatelessWidget {
           for (final topic in topics) ...[
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                padding: const EdgeInsets.fromLTRB(24, 18, 24, 8),
                 child: SectionLabel(topic),
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               sliver: SliverList.list(children: [
                 for (final f in encyclopedia.where((f) => f.topic == topic)) _card(f, found.contains(f.id)),
               ]),

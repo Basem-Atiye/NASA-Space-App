@@ -109,6 +109,6 @@ void main() {
   test('stars follow the star rules', () {
     final s = play(1, careful);
     expect(s.starsEarned(), greaterThanOrEqualTo(2));
-    expect(StarRule(StarType.doseAtMost, 3).label, contains('3 mSv'));
+    expect(const StarRule(StarType.doseAtMost, 3).label, contains('3 mSv'));
   });
 }

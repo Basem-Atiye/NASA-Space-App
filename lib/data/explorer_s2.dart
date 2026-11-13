@@ -28,22 +28,22 @@ final explorerS2Tasks = <StoryTask>[
     days: 3,
     scene: SceneSpec(props: {..._station, 'crater', 'drill'}, pickups: ['ice'], startX: 96),
     steps: [
-      const StoryStep(
+      StoryStep(
         id: 's11_brief',
         kind: StepKind.talk,
         objective: 'Back at Shackleton',
         intro: [
-          const Line(_n, 'Six months later, we are back. This time with a full crew.', Mood.happy),
-          const Line(_l, 'Our first job: find water. A station needs a lot more than the camp did.'),
-          const Line(_c, 'Orbiter data shows hydrogen in three shadowed spots. Check them with the neutron scanner.'),
+          Line(_n, 'Six months later, we are back. This time with a full crew.', Mood.happy),
+          Line(_l, 'Our first job: find water. A station needs a lot more than the camp did.'),
+          Line(_c, 'Orbiter data shows hydrogen in three shadowed spots. Check them with the neutron scanner.'),
         ],
       ),
-      const StoryStep(
+      StoryStep(
         id: 's11_scan',
         kind: StepKind.game,
         objective: 'Scan three spots for hydrogen',
         skill: Skill.rootCause,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.probe,
           title: 'NEUTRON SCANNER',
           instructions: 'Hydrogen slows neutrons down, so fewer fast neutrons come back. Find the spot with the fewest.',
@@ -54,27 +54,27 @@ final explorerS2Tasks = <StoryTask>[
           hint: 'A big dip in fast neutrons means hydrogen, and hydrogen in a cold trap means water ice.',
         ),
       ),
-      const StoryStep(
+      StoryStep(
         id: 's11_drill',
         kind: StepKind.goTo,
         objective: 'Set up the drill in the crater',
         target: 'drill',
         useLabel: 'START DRILL',
-        intro: [const Line(_j, 'It\'s −190 °C down there. Suit heaters on full, and don\'t stay long.')],
+        intro: [Line(_j, 'It\'s −190 °C down there. Suit heaters on full, and don\'t stay long.')],
       ),
-      const StoryStep(
+      StoryStep(
         id: 's11_core',
         kind: StepKind.collect,
         objective: 'Collect the ice core',
         items: ['ice'],
       ),
-      const StoryStep(
+      StoryStep(
         id: 's11_yield',
         kind: StepKind.game,
         objective: 'How much water can we mine?',
         eva: false,
         skill: Skill.resourceMath,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.sim,
           title: 'WATER ESTIMATE',
           instructions: 'Choose how much ground to dig. We need 2 tonnes of water for six months, without digging for more than 20 days.',
@@ -82,7 +82,7 @@ final explorerS2Tasks = <StoryTask>[
           hint: 'Water = area × depth × 1 600 kg/m³ × 5.5%. Try about 60 m² and half a metre deep.',
         ),
       ),
-      const StoryStep(
+      StoryStep(
         id: 's11_choice',
         kind: StepKind.choice,
         objective: 'Who controls the drill?',
@@ -91,10 +91,10 @@ final explorerS2Tasks = <StoryTask>[
         timer: 30,
         question: 'The drill motor is overheating in the cold. What do you do?',
         options: [
-          const StoryOption(id: 'pause', label: 'Pause and let it warm up', detail: 'Lose an hour', result: [const Line(_t, 'Good call. A cracked drill would end the whole ice survey.')]),
-          const StoryOption(id: 'push', label: 'Keep drilling to finish today', mistake: true, effect: const Effect(spares: -1), result: [const Line(_t, 'The bit cracked. We used our only spare.', Mood.worried)]),
+          StoryOption(id: 'pause', label: 'Pause and let it warm up', detail: 'Lose an hour', result: [Line(_t, 'Good call. A cracked drill would end the whole ice survey.')]),
+          StoryOption(id: 'push', label: 'Keep drilling to finish today', mistake: true, effect: Effect(spares: -1), result: [Line(_t, 'The bit cracked. We used our only spare.', Mood.worried)]),
         ],
-        outro: [const Line(_l, 'The core is 6% water. Shackleton Station will have its own water supply!', Mood.happy)],
+        outro: [Line(_l, 'The core is 6% water. Shackleton Station will have its own water supply!', Mood.happy)],
       ),
     ],
   ),
@@ -108,28 +108,28 @@ final explorerS2Tasks = <StoryTask>[
     days: 2,
     scene: SceneSpec(props: {..._station, 'rover', 'rim'}, pickups: ['battpack', 'camera'], startX: 92),
     steps: [
-      const StoryStep(
+      StoryStep(
         id: 's12_brief',
         kind: StepKind.talk,
         objective: 'A trip to Malapert ridge',
         intro: [
-          const Line(_c, 'Science wants samples from the ridge. Rover battery: 18 kWh. Use about 1.1 kWh per km.'),
-          const Line(_n, 'Jun and I will drive. Tomas, you are our CAPCOM from the base.'),
+          Line(_c, 'Science wants samples from the ridge. Rover battery: 18 kWh. Use about 1.1 kWh per km.'),
+          Line(_n, 'Jun and I will drive. Tomas, you are our CAPCOM from the base.'),
         ],
       ),
-      const StoryStep(
+      StoryStep(
         id: 's12_gear',
         kind: StepKind.collect,
         objective: 'Pack a spare battery and the camera',
         items: ['battpack', 'camera'],
       ),
-      const StoryStep(
+      StoryStep(
         id: 's12_plan',
         kind: StepKind.game,
         objective: 'Plan the energy for the trip',
         eva: false,
         skill: Skill.resourceMath,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.sim,
           title: 'TRIP PLANNER',
           instructions: 'Choose how far to go and how many spare packs to take. Come back with at least 20% left.',
@@ -137,19 +137,19 @@ final explorerS2Tasks = <StoryTask>[
           hint: 'Out and back doubles the distance. 7 km out with one spare pack works.',
         ),
       ),
-      const StoryStep(
+      StoryStep(
         id: 's12_board',
         kind: StepKind.goTo,
         objective: 'Board the rover',
         target: 'rover',
         useLabel: 'DRIVE',
       ),
-      const StoryStep(
+      StoryStep(
         id: 's12_drive',
         kind: StepKind.game,
         objective: 'Drive through the boulder field',
         skill: Skill.prioritise,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.drive,
           title: 'BOULDER FIELD',
           instructions: 'Steer around the boulders. Every bump costs battery.',
@@ -157,7 +157,7 @@ final explorerS2Tasks = <StoryTask>[
           hint: 'Change lanes early: the rover is heavy and turns slowly.',
         ),
       ),
-      const StoryStep(
+      StoryStep(
         id: 's12_turn',
         kind: StepKind.choice,
         objective: 'Go further or turn back?',
@@ -166,10 +166,10 @@ final explorerS2Tasks = <StoryTask>[
         timer: 30,
         question: 'You reached the ridge with 55% battery. A beautiful crater is 3 km further. What do you do?',
         options: [
-          const StoryOption(id: 'back', label: 'Take samples here, then head home', detail: 'Arrive with 25%', result: [const Line(_j, 'Plenty of reserve. Great samples too.', Mood.happy)]),
-          const StoryOption(id: 'more', label: 'Go to the crater', detail: '+6.6 kWh round trip', mistake: true, effect: const Effect(battery: -20), result: [const Line(_t, 'Base to rover: you will arrive with 4%. That breaks the 20% rule!', Mood.worried)]),
+          StoryOption(id: 'back', label: 'Take samples here, then head home', detail: 'Arrive with 25%', result: [Line(_j, 'Plenty of reserve. Great samples too.', Mood.happy)]),
+          StoryOption(id: 'more', label: 'Go to the crater', detail: '+6.6 kWh round trip', mistake: true, effect: Effect(battery: -20), result: [Line(_t, 'Base to rover: you will arrive with 4%. That breaks the 20% rule!', Mood.worried)]),
         ],
-        outro: [const Line(_n, 'Twenty kilos of rock from the ridge, and home safe.', Mood.happy)],
+        outro: [Line(_n, 'Twenty kilos of rock from the ridge, and home safe.', Mood.happy)],
       ),
     ],
   ),
@@ -183,29 +183,29 @@ final explorerS2Tasks = <StoryTask>[
     days: 2,
     scene: SceneSpec(props: {..._station, 'greenhouse'}, pickups: ['sensor'], startX: 102),
     steps: [
-      const StoryStep(
+      StoryStep(
         id: 's13_alarm',
         kind: StepKind.talk,
         objective: 'Bad news from the greenhouse',
         intro: [
-          const Line(_l, 'Nova! Half the lettuce is wilting and the leaves have brown spots.', Mood.worried),
-          const Line(_a, 'Greenhouse alarm: plant health 54%.'),
+          Line(_l, 'Nova! Half the lettuce is wilting and the leaves have brown spots.', Mood.worried),
+          Line(_a, 'Greenhouse alarm: plant health 54%.'),
         ],
       ),
-      const StoryStep(
+      StoryStep(
         id: 's13_walk',
         kind: StepKind.goTo,
         objective: 'Walk to the greenhouse',
         target: 'greenhouse',
         useLabel: 'INSPECT',
       ),
-      const StoryStep(
+      StoryStep(
         id: 's13_sensors',
         kind: StepKind.game,
         objective: 'Read every sensor',
         eva: false,
         skill: Skill.rootCause,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.probe,
           title: 'GREENHOUSE SENSORS',
           instructions: 'Read each sensor and mark the one that is out of the healthy range.',
@@ -216,7 +216,7 @@ final explorerS2Tasks = <StoryTask>[
           hint: 'Brown spots and wilting with wet air: the problem is water in the air, not in the roots.',
         ),
       ),
-      const StoryStep(
+      StoryStep(
         id: 's13_cause',
         kind: StepKind.choice,
         objective: 'What is the real cause?',
@@ -224,18 +224,18 @@ final explorerS2Tasks = <StoryTask>[
         skill: Skill.systems,
         question: 'Humidity is 96%. Why would the air in the greenhouse get so wet?',
         options: [
-          const StoryOption(id: 'fan', label: 'The air fan stopped, so wet air is not moving', result: [const Line(_j, 'The fan breaker tripped two days ago. Still air plus wet leaves: mould.')]),
-          const StoryOption(id: 'water', label: 'We watered too much', mistake: true, retry: true, result: [const Line(_l, 'The roots are fine, the sensor said so. Look at what moves air.')]),
-          const StoryOption(id: 'light', label: 'The lights are too bright', mistake: true, retry: true, result: [const Line(_l, 'Light is normal. What would make air stop drying?')]),
+          StoryOption(id: 'fan', label: 'The air fan stopped, so wet air is not moving', result: [Line(_j, 'The fan breaker tripped two days ago. Still air plus wet leaves: mould.')]),
+          StoryOption(id: 'water', label: 'We watered too much', mistake: true, retry: true, result: [Line(_l, 'The roots are fine, the sensor said so. Look at what moves air.')]),
+          StoryOption(id: 'light', label: 'The lights are too bright', mistake: true, retry: true, result: [Line(_l, 'Light is normal. What would make air stop drying?')]),
         ],
       ),
-      const StoryStep(
+      StoryStep(
         id: 's13_fix',
         kind: StepKind.game,
         objective: 'Reconnect the fan',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.wire,
           title: 'FAN CIRCUIT',
           instructions: 'Reconnect the fan to the right breaker and controller.',
@@ -244,15 +244,15 @@ final explorerS2Tasks = <StoryTask>[
           answer: [1, 2, 0],
           hint: 'Power goes to a breaker, a command comes from a controller output, and a sensor goes to an input.',
         ),
-        effect: const Effect(flags: {'fanFixed'}),
-        outro: [const Line(_l, 'Humidity falling: 70%... 65%. The plants are already perking up.', Mood.happy)],
+        effect: Effect(flags: {'fanFixed'}),
+        outro: [Line(_l, 'Humidity falling: 70%... 65%. The plants are already perking up.', Mood.happy)],
       ),
-      const StoryStep(
+      StoryStep(
         id: 's13_sensor',
         kind: StepKind.collect,
         objective: 'Fit a backup humidity sensor',
         items: ['sensor'],
-        outro: [const Line(_n, 'Next time, an alarm on the fan itself. Lesson learned.')],
+        outro: [Line(_n, 'Next time, an alarm on the fan itself. Lesson learned.')],
       ),
     ],
   ),
@@ -266,23 +266,23 @@ final explorerS2Tasks = <StoryTask>[
     days: 1,
     scene: SceneSpec(props: {..._station, 'greenhouse'}, startX: 70),
     steps: [
-      const StoryStep(
+      StoryStep(
         id: 's14_quake',
         kind: StepKind.talk,
         objective: 'Moonquake!',
         eva: false,
         intro: [
-          const Line(_a, 'Warning: seismic event, magnitude 4.6. Duration: still going.'),
-          const Line(_n, 'Everyone hold on to something! Stay away from the shelves!', Mood.scared),
+          Line(_a, 'Warning: seismic event, magnitude 4.6. Duration: still going.'),
+          Line(_n, 'Everyone hold on to something! Stay away from the shelves!', Mood.scared),
         ],
       ),
-      const StoryStep(
+      StoryStep(
         id: 's14_triage',
         kind: StepKind.game,
         objective: 'What first, after the shaking?',
         eva: false,
         skill: Skill.prioritise,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.order,
           title: 'AFTER THE QUAKE',
           instructions: 'The shaking stopped. Put the jobs in order.',
@@ -292,13 +292,13 @@ final explorerS2Tasks = <StoryTask>[
           hint: 'People first, then air, then power. Plants and reports can wait a few minutes.',
         ),
       ),
-      const StoryStep(
+      StoryStep(
         id: 's14_seams',
         kind: StepKind.game,
         objective: 'Find damage in the habitat',
         eva: false,
         skill: Skill.rootCause,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.probe,
           title: 'STRUCTURE CHECK',
           instructions: 'Check each joint for cracks. Mark the one that moved.',
@@ -309,13 +309,13 @@ final explorerS2Tasks = <StoryTask>[
           hint: 'A gap of a few millimetres is a lot for an airtight joint.',
         ),
       ),
-      const StoryStep(
+      StoryStep(
         id: 's14_check',
         kind: StepKind.game,
         objective: 'Make the station safe',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.checklist,
           title: 'SAFE TO STAY?',
           instructions: 'Check every item. Fix any NO-GO before saying the station is safe.',
@@ -326,7 +326,7 @@ final explorerS2Tasks = <StoryTask>[
           right: ['', '', 'Clamped and sealed · GO', '', ''],
           hint: 'Clamp and seal the joint before the next aftershock.',
         ),
-        outro: [const Line(_c, 'Shackleton, we copy all GO. Nice work, crew.'), const Line(_t, 'Next station: flexible joints and deeper anchors.')],
+        outro: [Line(_c, 'Shackleton, we copy all GO. Nice work, crew.'), Line(_t, 'Next station: flexible joints and deeper anchors.')],
       ),
     ],
   ),
@@ -340,22 +340,22 @@ final explorerS2Tasks = <StoryTask>[
     days: 5,
     scene: SceneSpec(props: {..._station, 'greenhouse', 'pad', 'rocket', 'rover'}, startX: 120),
     steps: [
-      const StoryStep(
+      StoryStep(
         id: 's15_landed',
         kind: StepKind.talk,
         objective: 'The supply rocket has landed',
         intro: [
-          const Line(_c, 'Cargo lander is down on the pad. Two more crew arrive next month.'),
-          const Line(_n, 'Then Shackleton becomes a real station. Let\'s plan it properly.', Mood.happy),
+          Line(_c, 'Cargo lander is down on the pad. Two more crew arrive next month.'),
+          Line(_n, 'Then Shackleton becomes a real station. Let\'s plan it properly.', Mood.happy),
         ],
       ),
-      const StoryStep(
+      StoryStep(
         id: 's15_roles',
         kind: StepKind.game,
         objective: 'Who does what?',
         eva: false,
         skill: Skill.teamwork,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.sort,
           title: 'CREW ROLES',
           instructions: 'Give each job to the right crew member.',
@@ -366,20 +366,20 @@ final explorerS2Tasks = <StoryTask>[
           hint: 'Engineers fix machines; the biologist looks after living things, including people.',
         ),
       ),
-      const StoryStep(
+      StoryStep(
         id: 's15_unload',
         kind: StepKind.goTo,
         objective: 'Unload the cargo lander',
         target: 'pad',
         useLabel: 'UNLOAD',
       ),
-      const StoryStep(
+      StoryStep(
         id: 's15_supplies',
         kind: StepKind.game,
         objective: 'Supplies for the bigger crew',
         eva: false,
         skill: Skill.resourceMath,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.sim,
           title: 'SUPPLY PLAN',
           instructions: 'Make the food last until the next rocket, with a 10% reserve.',
@@ -387,7 +387,7 @@ final explorerS2Tasks = <StoryTask>[
           hint: '4 people × 30 days × 0.62 kg = 74.4 kg. Add 10%: about 82 kg.',
         ),
       ),
-      const StoryStep(
+      StoryStep(
         id: 's15_vote',
         kind: StepKind.choice,
         objective: 'A team decision',
@@ -395,19 +395,19 @@ final explorerS2Tasks = <StoryTask>[
         skill: Skill.teamwork,
         question: 'Jun thinks the drill should be fixed first. Lina wants the greenhouse expanded. Only one can be done this week. How do you decide?',
         options: [
-          const StoryOption(id: 'listen', label: 'Hear both, check the data, then decide and explain why', result: [const Line(_l, 'The water numbers say drill first. Fair enough, and thanks for listening.', Mood.happy)]),
-          const StoryOption(id: 'boss', label: 'I\'m the commander: drill, no discussion', mistake: true, retry: true, result: [const Line(_l, 'Maybe you are right, but now I don\'t know why. That hurts the team.', Mood.worried)]),
-          const StoryOption(id: 'coin', label: 'Flip a coin', mistake: true, retry: true, result: [const Line(_j, 'We have data for this! Let\'s use it.')]),
+          StoryOption(id: 'listen', label: 'Hear both, check the data, then decide and explain why', result: [Line(_l, 'The water numbers say drill first. Fair enough, and thanks for listening.', Mood.happy)]),
+          StoryOption(id: 'boss', label: 'I\'m the commander: drill, no discussion', mistake: true, retry: true, result: [Line(_l, 'Maybe you are right, but now I don\'t know why. That hurts the team.', Mood.worried)]),
+          StoryOption(id: 'coin', label: 'Flip a coin', mistake: true, retry: true, result: [Line(_j, 'We have data for this! Let\'s use it.')]),
         ],
       ),
-      const StoryStep(
+      StoryStep(
         id: 's15_end',
         kind: StepKind.talk,
         objective: 'Shackleton Station',
         eva: false,
         intro: [
-          const Line(_c, 'Shackleton Station, Houston. The whole world is watching tonight. Congratulations.'),
-          const Line(_n, 'A year ago I crashed here alone. Now there is a station, a garden and a crew. Thank you, team.', Mood.happy),
+          Line(_c, 'Shackleton Station, Houston. The whole world is watching tonight. Congratulations.'),
+          Line(_n, 'A year ago I crashed here alone. Now there is a station, a garden and a crew. Thank you, team.', Mood.happy),
         ],
       ),
     ],

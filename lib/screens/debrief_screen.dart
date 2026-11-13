@@ -103,7 +103,7 @@ class _DebriefScreenState extends State<DebriefScreen> {
       intensity: 0.8,
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
           child: ListView(children: [
             // left: result and stats
             EnterAnim(

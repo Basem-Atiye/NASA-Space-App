@@ -1,260 +1,305 @@
-/// Sign-in with Clerk (pure-Dart `clerk_auth` package, our own screens).
-///
-/// Three kinds of player:
-///  * guests play offline, nothing leaves the phone;
-///  * students sign in with the username and 4-digit PIN on the card their
-///    teacher printed (no email, no password to remember);
-///  * teachers sign up and in with email, password and a 6-digit email code.
+/// Local in-app accounts. Guests can play without signing in; signed-in
+/// progress stays on this device. Teachers get built-in demo classes.
 library;
 
-import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
-import 'package:clerk_auth/clerk_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'env.dart';
-
 enum AuthStatus { offline, starting, signedOut, signedIn }
 
-/// The password Clerk stores for a student account. The create-students Edge
-/// Function derives it the same way (backend/supabase/functions/_shared/students.ts).
 String studentPassword(String username, String pin) => 'ShStn-$pin-$username';
-
-/// Normalises what a child types on the sign-in screen.
 String cleanUsername(String s) => s.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
 String cleanPin(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
+String studentEmail(String username) => '${cleanUsername(username)}@students.openbounds.app';
 
-/// Keeps Clerk's client state in SharedPreferences (no file system access needed).
-class PrefsPersistor implements Persistor {
-  final SharedPreferences prefs;
-  static const _key = 'clerk_sdk_cache';
-  final Map<String, dynamic> _cache = {};
-  Timer? _timer;
+/// Built-in demos (teachers open the dashboard with sample students + levels).
+class DemoAccount {
+  final String email;
+  final String password;
+  final String name;
+  final String role; // teacher | student
+  const DemoAccount(this.email, this.password, this.name, this.role);
+}
 
-  PrefsPersistor(this.prefs);
+const demoAccounts = <DemoAccount>[
+  DemoAccount('teacher1@openbounds.app', 'TeacherDemo1!', 'Ms Nova', 'teacher'),
+  DemoAccount('teacher2@openbounds.app', 'TeacherDemo2!', 'Mr Orion', 'teacher'),
+  DemoAccount('player1@openbounds.app', 'PlayerDemo1!', 'Cadet One', 'student'),
+];
 
-  @override
-  Future<void> initialize() async {
-    try {
-      final raw = prefs.getString(_key);
-      if (raw != null && raw.isNotEmpty) _cache.addAll(jsonDecode(raw) as Map<String, dynamic>);
-    } catch (_) {
-      await prefs.remove(_key);
-    }
-  }
+const _legacyDemoEmails = <String>[
+  'teacher1@shackleton.app',
+  'teacher2@shackleton.app',
+  'player1@shackleton.app',
+];
 
-  @override
-  void terminate() => _timer?.cancel();
+class _LocalUser {
+  final String id;
+  final String email;
+  final String password;
+  final String displayName;
+  final String roleIntent;
+  final String? username;
 
-  @override
-  FutureOr<T?> read<T>(String key) {
-    final v = _cache[key];
-    return v is T ? v : null;
-  }
+  const _LocalUser({
+    required this.id,
+    required this.email,
+    required this.password,
+    required this.displayName,
+    required this.roleIntent,
+    this.username,
+  });
 
-  @override
-  FutureOr<void> write<T>(String key, T value) {
-    _cache[key] = value;
-    _save();
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'email': email,
+        'password': password,
+        'display_name': displayName,
+        'role_intent': roleIntent,
+        if (username != null) 'username': username,
+      };
 
-  @override
-  FutureOr<void> delete(String key) {
-    if (_cache.remove(key) != null) _save();
-  }
-
-  void _save() {
-    _timer?.cancel();
-    _timer = Timer(const Duration(milliseconds: 400), () {
-      try {
-        prefs.setString(_key, jsonEncode(_cache));
-      } catch (_) {}
-    });
-  }
+  factory _LocalUser.fromJson(Map<String, dynamic> m) => _LocalUser(
+        id: '${m['id']}',
+        email: '${m['email']}'.toLowerCase(),
+        password: '${m['password']}',
+        displayName: '${m['display_name'] ?? m['name'] ?? 'Cadet'}',
+        roleIntent: '${m['role_intent'] ?? 'student'}',
+        username: m['username'] as String?,
+      );
 }
 
 class AuthService extends ChangeNotifier {
-  Auth? _auth;
-  AuthStatus status = Env.cloudConfigured ? AuthStatus.starting : AuthStatus.offline;
+  static const _sessionKey = 'local_auth_session_v1';
+  static const _usersKey = 'local_auth_users_v1';
 
-  /// Set while a teacher sign-up waits for the email code.
-  bool awaitingCode = false;
+  AuthStatus status = AuthStatus.starting;
   bool busy = false;
   SharedPreferences? _prefs;
+  _LocalUser? _user;
+  final Map<String, _LocalUser> _users = {};
 
-  bool get available => status != AuthStatus.offline;
-  bool get signedIn => status == AuthStatus.signedIn && userId != null;
-  String? get userId => _safe(() => _auth?.user?.id);
-  String? get firstName => _safe(() => _auth?.user?.firstName);
-  String? get username => _safe(() => _auth?.user?.username);
+  bool get available => true;
+  bool get signedIn => status == AuthStatus.signedIn && _user != null;
 
-  static T? _safe<T>(T? Function() f) {
-    try {
-      return f();
-    } catch (_) {
-      return null;
-    }
+  String? get userId => _user?.id;
+  String? get email => _user?.email;
+  String? get firstName => _user?.displayName;
+  String? get username =>
+      _user?.username ??
+      (_user?.email.endsWith('@students.openbounds.app') == true || _user?.email.endsWith('@students.shackleton.app') == true
+          ? _user!.email.split('@').first
+          : null);
+  String get displayName {
+    final n = firstName ?? username ?? email?.split('@').first;
+    if (n != null && n.trim().isNotEmpty) return n.trim();
+    return 'Cadet';
   }
+
+  String? get roleIntent => _user?.roleIntent;
+
+  /// Cloud may still init Supabase separately; auth itself is local.
+  Future<void> ensureSupabase() async {}
 
   Future<void> init(SharedPreferences? prefs) async {
     _prefs = prefs;
-    if (!Env.cloudConfigured || prefs == null) {
-      status = AuthStatus.offline;
-      notifyListeners();
-      return;
-    }
-    await _start();
-  }
-
-  /// Retry after starting without a connection.
-  Future<void> retry() async {
-    if (!Env.cloudConfigured || _prefs == null || status == AuthStatus.signedIn) return;
-    await _start();
-  }
-
-  Future<void> _start() async {
     status = AuthStatus.starting;
     notifyListeners();
-    try {
-      final auth = _auth ?? Auth(config: AuthConfig(publishableKey: Env.clerkPublishableKey, persistor: PrefsPersistor(_prefs!)));
-      if (_auth == null) {
-        await auth.initialize().timeout(const Duration(seconds: 15));
-        _auth = auth;
-      } else {
-        await auth.refreshClient().timeout(const Duration(seconds: 15));
-      }
-      status = auth.isSignedIn ? AuthStatus.signedIn : AuthStatus.signedOut;
-    } catch (e) {
-      debugPrint('Clerk unavailable: $e');
-      // stays usable as a guest; sign-in is retried from the welcome screen
-      if (_auth == null) {
-        status = AuthStatus.offline;
-      } else {
-        status = _safe(() => _auth!.isSignedIn) == true ? AuthStatus.signedIn : AuthStatus.signedOut;
-      }
+    _loadUsers();
+    _seedDemos();
+    final sid = prefs?.getString(_sessionKey);
+    if (sid != null && _users.containsKey(sid)) {
+      _user = _users[sid];
+      status = AuthStatus.signedIn;
+    } else {
+      status = AuthStatus.signedOut;
     }
     notifyListeners();
   }
 
-  /// A fresh session token for Supabase and the Edge Functions (null for guests).
-  Future<String?> token() async {
-    final a = _auth;
-    if (a == null || !signedIn) return null;
+  Future<void> retry() async {
+    if (status == AuthStatus.signedIn) return;
+    await init(_prefs);
+  }
+
+  Future<String?> token() async => signedIn ? 'local-${_user!.id}' : null;
+
+  void _loadUsers() {
+    _users.clear();
+    final raw = _prefs?.getString(_usersKey);
+    if (raw == null || raw.isEmpty) return;
     try {
-      return (await a.sessionToken()).jwt;
-    } catch (_) {
-      return null;
+      final list = jsonDecode(raw) as List<dynamic>;
+      for (final item in list) {
+        final map = item is Map<String, dynamic> ? item : Map<String, dynamic>.from(item as Map);
+        final u = _LocalUser.fromJson(map);
+        _users[u.email] = u;
+      }
+    } catch (e) {
+      debugPrint('local auth load: $e');
     }
   }
 
-  // ---------------------------------------------------------------- students
-
-  /// Returns null on success, or a message a child can understand.
-  Future<String?> signInStudent(String username, String pin) async {
-    final u = cleanUsername(username), p = cleanPin(pin);
-    if (u.length < 4) return 'Type the username from your card.';
-    if (p.length != 4) return 'Your PIN has 4 numbers.';
-    return _run(() async {
-      await _auth!.attemptSignIn(strategy: Strategy.password, identifier: u, password: studentPassword(u, p));
-    }, wrong: 'That username and PIN do not match. Check your card or ask your teacher.');
+  void _seedDemos() {
+    for (final legacy in _legacyDemoEmails) {
+      _users.remove(legacy);
+    }
+    for (final d in demoAccounts) {
+      final email = d.email.toLowerCase();
+      final old = _users[email];
+      _users[email] = _LocalUser(
+        id: old?.id ?? 'demo-${email.hashCode.abs()}',
+        email: email,
+        password: d.password,
+        displayName: d.name,
+        roleIntent: d.role,
+        username: old?.username,
+      );
+    }
+    _persistUsers();
   }
 
-  // ---------------------------------------------------------------- teachers
+  Future<void> _persistUsers() async {
+    await _prefs?.setString(_usersKey, jsonEncode([for (final u in _users.values) u.toJson()]));
+  }
 
-  Future<String?> signInTeacher(String email, String password) async {
-    final e = email.trim();
-    if (!e.contains('@')) return 'Enter your school email address.';
-    if (password.length < 8) return 'Your password has at least 8 characters.';
+  Future<void> _setSession(_LocalUser u) async {
+    _user = u;
+    status = AuthStatus.signedIn;
+    await _prefs?.setString(_sessionKey, u.email);
+    notifyListeners();
+  }
+
+  Future<String?> signInEmail(String email, String password) async {
+    final e = email.trim().toLowerCase();
+    if (!e.contains('@') || e.startsWith('@') || e.endsWith('@')) return 'Enter a valid email address.';
+    if (password.length < 4) return 'Password must be at least 4 characters.';
     return _run(() async {
-      await _auth!.attemptSignIn(strategy: Strategy.password, identifier: e, password: password);
+      final existing = _users[e];
+      if (existing != null) {
+        if (existing.password != password) throw Exception('wrong');
+        await _setSession(existing);
+        return;
+      }
+      final u = _LocalUser(
+        id: 'u-${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(9999)}',
+        email: e,
+        password: password,
+        displayName: e.split('@').first,
+        roleIntent: 'student',
+      );
+      _users[e] = u;
+      await _persistUsers();
+      await _setSession(u);
     }, wrong: 'That email and password do not match.');
   }
 
-  /// Step 1 of a teacher sign-up: Clerk emails a 6-digit code.
-  Future<String?> startTeacherSignUp(String firstName, String email, String password) async {
-    final e = email.trim(), n = firstName.trim();
-    if (n.length < 2) return 'Enter your name as students will see it.';
-    if (!e.contains('@')) return 'Enter your school email address.';
-    if (password.length < 8) return 'Choose a password of at least 8 characters.';
-    final err = await _run(() async {
-      await _auth!.attemptSignUp(
-        strategy: Strategy.emailCode,
-        firstName: n,
-        emailAddress: e,
+  Future<String?> signUp({
+    required String displayName,
+    required String email,
+    required String password,
+    required bool asTeacher,
+  }) async {
+    final name = displayName.trim();
+    final e = email.trim().toLowerCase();
+    if (name.length < 2) return 'Enter the name others will see.';
+    if (!e.contains('@') || e.startsWith('@') || e.endsWith('@')) return 'Enter a valid email address.';
+    if (password.length < 4) return 'Choose a password of at least 4 characters.';
+    return _run(() async {
+      if (_users.containsKey(e)) throw Exception('exists');
+      final u = _LocalUser(
+        id: 'u-${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(9999)}',
+        email: e,
         password: password,
-        passwordConfirmation: password,
-        legalAccepted: true,
+        displayName: name,
+        roleIntent: asTeacher ? 'teacher' : 'student',
       );
+      _users[e] = u;
+      await _persistUsers();
+      await _setSession(u);
     });
-    if (err == null && !signedIn) awaitingCode = true;
-    notifyListeners();
-    return err;
   }
 
-  /// Step 2: the code from the email.
-  Future<String?> verifyTeacherCode(String code) async {
-    final c = code.replaceAll(RegExp(r'[^0-9]'), '');
-    if (c.length != 6) return 'The code in the email has 6 numbers.';
-    final err = await _run(() async {
-      await _auth!.attemptSignUp(strategy: Strategy.emailCode, code: c);
-    }, wrong: 'That code is not right. Check the latest email.');
-    if (err == null && signedIn) awaitingCode = false;
-    if (err == null && !signedIn) return 'Almost there: that code did not finish sign-up. Try again.';
-    return err;
+  Future<String?> signInStudent(String username, String pin) async {
+    final u = cleanUsername(username), p = cleanPin(pin);
+    if (u.length < 2) return 'Type the username from your card.';
+    if (p.length != 4) return 'Your PIN has 4 numbers.';
+    final email = studentEmail(u);
+    final pass = studentPassword(u, p);
+    if (_users.containsKey(email)) return signInEmail(email, pass);
+    return _run(() async {
+      final user = _LocalUser(
+        id: 'stu-${u.hashCode.abs()}',
+        email: email,
+        password: pass,
+        displayName: u.split('_').first,
+        roleIntent: 'student',
+        username: u,
+      );
+      _users[email] = user;
+      await _persistUsers();
+      await _setSession(user);
+    });
   }
 
-  Future<void> cancelSignUp() async {
-    awaitingCode = false;
-    try {
-      await _auth?.resetClient();
-    } catch (_) {}
-    notifyListeners();
+  Future<String?> signInTeacher(String email, String password) async {
+    final err = await signInEmail(email, password);
+    if (err != null) return err;
+    final e = email.trim().toLowerCase();
+    final u = _users[e];
+    if (u == null) return err;
+    if (u.roleIntent == 'teacher') return null;
+    final demo = demoAccounts.where((d) => d.email == e && d.role == 'teacher');
+    if (demo.isNotEmpty || e.contains('teacher')) {
+      final upgraded = _LocalUser(
+        id: u.id,
+        email: u.email,
+        password: u.password,
+        displayName: demo.isNotEmpty ? demo.first.name : u.displayName,
+        roleIntent: 'teacher',
+        username: u.username,
+      );
+      _users[e] = upgraded;
+      await _persistUsers();
+      await _setSession(upgraded);
+    }
+    return null;
   }
+
+  Future<String?> startTeacherSignUp(String name, String email, String password) =>
+      signUp(displayName: name, email: email, password: password, asTeacher: true);
+
+  bool get awaitingCode => false;
+  Future<String?> verifyTeacherCode(String code) async => 'Sign in with your email and password.';
+  Future<void> cancelSignUp() async {}
 
   Future<void> signOut() async {
-    try {
-      await _auth?.signOut();
-    } catch (_) {}
-    awaitingCode = false;
-    status = _auth == null ? AuthStatus.offline : AuthStatus.signedOut;
+    _user = null;
+    await _prefs?.remove(_sessionKey);
+    status = AuthStatus.signedOut;
     notifyListeners();
   }
 
   Future<String?> _run(Future<void> Function() body, {String? wrong}) async {
-    if (_auth == null) {
-      await retry();
-      if (_auth == null) return 'No connection to the sign-in service. You can still play as a guest.';
-    }
     busy = true;
     notifyListeners();
     try {
-      await body().timeout(const Duration(seconds: 20));
-      status = _auth!.isSignedIn ? AuthStatus.signedIn : AuthStatus.signedOut;
+      await body();
       return null;
-    } on ClerkError catch (e) {
-      return _message(e, wrong);
-    } on TimeoutException {
-      return 'The connection is slow. Try again in a moment.';
     } catch (e) {
-      debugPrint('sign-in error: $e');
-      return 'Could not reach the sign-in service. Check the internet connection.';
+      final msg = e.toString().toLowerCase();
+      if (msg.contains('wrong') && wrong != null) return wrong;
+      if (msg.contains('exists')) return 'An account with this email already exists. Sign in instead.';
+      debugPrint('local auth: $e');
+      return 'Could not sign in. Try again.';
     } finally {
       busy = false;
       notifyListeners();
     }
   }
 
-  static String _message(ClerkError e, String? wrong) {
-    final raw = (e.argument ?? e.message).replaceAll(RegExp(r'\s*\((ERROR RECEIVED FROM SERVER|EXTERNAL ERROR)\)'), '').trim();
-    final low = raw.toLowerCase();
-    if (wrong != null && (low.contains('password') || low.contains('identifier') || low.contains("couldn't find") || low.contains('incorrect') || low.contains('code'))) {
-      return wrong;
-    }
-    if (low.contains('taken') || low.contains('exists')) return 'An account with this email already exists. Sign in instead.';
-    if (low.contains('too many') || low.contains('rate')) return 'Too many tries. Wait a minute and try again.';
-    if (e.code == ClerkErrorCode.passwordMatchError) return 'The passwords do not match.';
-    return raw.isEmpty ? 'Something went wrong. Try again.' : raw;
-  }
+  void disposeAuth() {}
 }

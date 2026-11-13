@@ -227,7 +227,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                 Container(
                   height: 68,
                   decoration: BoxDecoration(
-                    color: active ? C.evergreen : C.panel,
+                    color: active ? C.ink : C.panel,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(color: active ? C.cyan : C.line, width: active ? 1.5 : 1),
                   ),

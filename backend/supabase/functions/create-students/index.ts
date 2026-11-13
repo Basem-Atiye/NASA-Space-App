@@ -1,15 +1,13 @@
 // POST /functions/v1/create-students
-// The teacher manages student accounts for one class. Body:
+// Teacher-managed student accounts for one class. Body:
 //   { "action": "create",   "class_id": "<uuid>", "names": ["Rana", "Omar"] }
-//   { "action": "reset_pin", "class_id": "<uuid>", "student_id": "user_..." }
-//   { "action": "remove",    "class_id": "<uuid>", "student_id": "user_..." }
+//   { "action": "reset_pin", "class_id": "<uuid>", "student_id": "<uuid>" }
+//   { "action": "remove",    "class_id": "<uuid>", "student_id": "<uuid>" }
 // "create" returns printable cards: [{ name, username, pin, student_id }].
-// PINs are shown once and never stored by us; a lost PIN is reset, not looked up.
-import { createClerkClient } from "@clerk/backend";
 import { admin, requireTeacherOfClass } from "../_shared/admin.ts";
-import { clerkUserId } from "../_shared/auth.ts";
-import { handler, HttpError, json, requireEnv } from "../_shared/http.ts";
-import { cleanName, newPin, newUsername, studentPassword } from "../_shared/students.ts";
+import { requireUserId } from "../_shared/auth.ts";
+import { handler, HttpError, json } from "../_shared/http.ts";
+import { cleanName, newPin, newUsername, studentEmail, studentPassword } from "../_shared/students.ts";
 
 const MAX_PER_CALL = 40;
 
@@ -17,11 +15,10 @@ type Card = { name: string; username: string; pin: string; student_id: string };
 
 Deno.serve(handler(async (req) => {
   if (req.method !== "POST") throw new HttpError(405, "Use POST");
-  const teacherId = await clerkUserId(req);
+  const teacherId = await requireUserId(req);
   const body = await req.json().catch(() => ({}));
   const action = String(body.action ?? "create");
   const klass = await requireTeacherOfClass(teacherId, String(body.class_id ?? ""));
-  const clerk = createClerkClient({ secretKey: requireEnv("CLERK_SECRET_KEY") });
   const db = admin();
 
   if (action === "create") {
@@ -40,30 +37,43 @@ Deno.serve(handler(async (req) => {
       for (let tries = 0; tries < 3 && !created; tries++) {
         const username = newUsername(name);
         const pin = newPin();
+        const email = studentEmail(username);
         try {
-          const user = await clerk.users.createUser({
-            username,
+          const { data: createdUser, error: authErr } = await db.auth.admin.createUser({
+            email,
             password: studentPassword(username, pin),
-            firstName: name,
-            skipPasswordChecks: true,
-            skipLegalChecks: true,
-            publicMetadata: { role: "student", created_by: teacherId },
+            email_confirm: true,
+            user_metadata: {
+              role_intent: "student",
+              display_name: name,
+              username,
+              created_by: teacherId,
+            },
           });
+          if (authErr || !createdUser.user) throw authErr ?? new Error("create failed");
+          const userId = createdUser.user.id;
           const { error: pErr } = await db.from("profiles").insert({
-            id: user.id, role: "student", display_name: name, username, created_by: teacherId,
+            id: userId,
+            role: "student",
+            display_name: name,
+            username,
+            created_by: teacherId,
             age_mode: klass.age_mode,
           });
           if (pErr) {
-            await clerk.users.deleteUser(user.id).catch(() => {});
+            await db.auth.admin.deleteUser(userId).catch(() => {});
             throw pErr;
           }
-          const { error: mErr } = await db.from("class_members").insert({ class_id: klass.id, student_id: user.id });
+          const { error: mErr } = await db.from("class_members").insert({
+            class_id: klass.id,
+            student_id: userId,
+          });
           if (mErr) throw mErr;
-          cards.push({ name, username, pin, student_id: user.id });
+          cards.push({ name, username, pin, student_id: userId });
           created = true;
         } catch (e) {
-          const msg = (e as { errors?: { code?: string }[] }).errors?.[0]?.code ?? "";
-          if (msg === "form_identifier_exists") continue; // username taken: try another
+          const msg = String((e as { message?: string })?.message ?? e).toLowerCase();
+          if (msg.includes("already") || msg.includes("exists") || msg.includes("unique")) continue;
           console.error("create student failed", e);
           failed.push({ name, reason: "Could not create this account" });
           break;
@@ -85,19 +95,16 @@ Deno.serve(handler(async (req) => {
       throw new HttpError(403, "Only accounts you created can get a new PIN");
     }
     const pin = newPin();
-    await clerk.users.updateUser(studentId, {
+    const { error } = await db.auth.admin.updateUserById(studentId, {
       password: studentPassword(profile.username, pin),
-      skipPasswordChecks: true,
-      signOutOfOtherSessions: true,
     });
+    if (error) throw error;
     return json({ card: { name: profile.display_name, username: profile.username, pin, student_id: studentId } });
   }
 
   if (action === "remove") {
-    // Accounts this teacher created are deleted entirely (Clerk webhook removes the data);
-    // anyone who joined with a code is just taken out of the class.
     if (profile.created_by === teacherId) {
-      await clerk.users.deleteUser(studentId);
+      await db.auth.admin.deleteUser(studentId).catch(() => {});
       await db.from("profiles").delete().eq("id", studentId);
       return json({ removed: studentId, deleted_account: true });
     }

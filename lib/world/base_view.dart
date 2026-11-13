@@ -145,7 +145,7 @@ class _BasePainter extends CustomPainter {
 
     // ---- sky and ground
     final sky = Offset.zero & s;
-    canvas.drawRect(sky, Paint()..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: sun ? const [Color(0xFF04120A), Color(0xFF0A1C14)] : const [Color(0xFF010403), Color(0xFF040A08)]).createShader(sky));
+    canvas.drawRect(sky, Paint()..shader = LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: sun ? const [Color(0xFF0A1331), Color(0xFF171B41)] : const [Color(0xFF050A1E), Color(0xFF0A1331)]).createShader(sky));
     final rnd = math.Random(4);
     for (var i = 0; i < 50; i++) {
       canvas.drawCircle(Offset(rnd.nextDouble() * s.width, rnd.nextDouble() * s.height * 0.8), i % 8 == 0 ? 1.2 : 0.7, Paint()..color = Colors.white.withValues(alpha: 0.35 + 0.4 * (0.5 + 0.5 * math.sin(t * 1.5 + i))));

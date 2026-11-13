@@ -1,5 +1,6 @@
 /// Data classes describing a mission. Missions themselves live in
 /// lib/data/missions.dart so writers can edit them without touching the engine.
+library;
 
 enum EventType { storm, failure, dust, night, day, cargo, home }
 

@@ -89,7 +89,7 @@ class _ReadinessScreenState extends State<ReadinessScreen> {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 8, 20, 16 + bottom),
+          padding: EdgeInsets.fromLTRB(24, 8, 24, 16 + bottom),
           child: _done ? _result() : _question(),
         ),
       ),

@@ -44,6 +44,32 @@ abstract class TeacherRepo {
   /// The class as CSV (opens in any spreadsheet).
   Future<String> reportCsv(String cid);
 
+  /// Base Commander: one row per student and mission (best stars, tries,
+  /// wins and the most common reason the mission was lost).
+  Future<List<BaseMissionStat>> baseSummary(String cid);
+
   /// The live lesson channel for the class (null when there is no Realtime).
   Link? liveLink(String cid);
+}
+
+/// One student's results in one Base Commander mission.
+class BaseMissionStat {
+  final String studentId;
+  final String name;
+  final int mission;
+  final int bestStars;
+  final int tries;
+  final int wins;
+  final String? topCause;
+  const BaseMissionStat({required this.studentId, required this.name, required this.mission, required this.bestStars, required this.tries, required this.wins, this.topCause});
+
+  factory BaseMissionStat.fromRow(Map<String, dynamic> r) => BaseMissionStat(
+        studentId: r['student_id'] as String,
+        name: (r['display_name'] ?? '') as String,
+        mission: (r['mission'] as num).toInt(),
+        bestStars: ((r['best_stars'] ?? 0) as num).toInt(),
+        tries: ((r['tries'] ?? 0) as num).toInt(),
+        wins: ((r['wins'] ?? 0) as num).toInt(),
+        topCause: r['top_cause'] as String?,
+      );
 }

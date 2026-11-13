@@ -13,6 +13,7 @@ import '../cloud/teacher_repo.dart';
 import '../data/catalogue.dart';
 import '../story/campaign.dart';
 import '../story/story_model.dart' show AgeMode;
+import 'local_class_hub.dart';
 
 class _DemoStudent {
   final StudentRow row;
@@ -28,6 +29,7 @@ class DemoTeacherRepo implements TeacherRepo {
   final Map<String, List<Assignment>> _assign = {};
   final Map<String, List<ClassGoal>> _goals = {};
   final LocalHub hub = LocalHub(delay: const Duration(milliseconds: 120));
+  final String? teacherName;
   int _ids = 0;
 
   static const _names = [
@@ -35,16 +37,31 @@ class DemoTeacherRepo implements TeacherRepo {
     'Tala', 'Rami', 'Zeina', 'Fadi', 'Leila', 'Sami', 'Mira', 'Joe', 'Aya', 'Ziad', 'Dana', 'Nadim',
   ];
 
-  DemoTeacherRepo() {
+  DemoTeacherRepo({this.teacherName}) {
     final now = DateTime.now();
-    _classes.add(ClassInfo(id: 'demo-explorer', name: 'Grade 7 Blue', joinCode: 'MOON7B', ageMode: AgeMode.explorer, createdAt: now.subtract(const Duration(days: 21))));
-    _classes.add(ClassInfo(id: 'demo-cadet', name: 'Grade 4 Stars', joinCode: 'STAR4A', ageMode: AgeMode.cadet, createdAt: now.subtract(const Duration(days: 9))));
-    _classes.add(ClassInfo(id: 'demo-engineer', name: 'Physics 11', joinCode: 'ART11P', ageMode: AgeMode.engineer, createdAt: now.subtract(const Duration(days: 30))));
-    for (final c in _classes) {
-      _students[c.id] = _makeClass(c, c.id == 'demo-explorer' ? 24 : (c.id == 'demo-cadet' ? 18 : 16));
+    final nova = (teacherName ?? '').toLowerCase().contains('orion');
+    // Two ready-made teacher demos: Ms Nova (explorer-heavy) and Mr Orion (cadet + engineer).
+    if (nova) {
+      _classes.add(ClassInfo(id: 'demo-orion-a', name: 'Grade 4 Stars', joinCode: 'STAR4A', ageMode: AgeMode.cadet, createdAt: now.subtract(const Duration(days: 9))));
+      _classes.add(ClassInfo(id: 'demo-orion-b', name: 'Physics 11', joinCode: 'ART11P', ageMode: AgeMode.engineer, createdAt: now.subtract(const Duration(days: 30))));
+      _students['demo-orion-a'] = _makeClass(_classes[0], 18);
+      _students['demo-orion-b'] = _makeClass(_classes[1], 16);
+      _assign['demo-orion-a'] = [Assignment(id: 'a-orion-1', levelId: 'cadet-03', dueAt: now.add(const Duration(days: 2)))];
+      _assign['demo-orion-b'] = [Assignment(id: 'a-orion-2', levelId: 'engineer-04', dueAt: now.add(const Duration(days: 5)))];
+      _goals['demo-orion-a'] = [const ClassGoal(id: 'g-orion-1', title: 'Cadets clear Day 4', skill: Skill.procedure, target: 65)];
+      _goals['demo-orion-b'] = [const ClassGoal(id: 'g-orion-2', title: 'Root cause above 70', skill: Skill.rootCause, target: 70)];
+    } else {
+      _classes.add(ClassInfo(id: 'demo-explorer', name: 'Grade 7 Blue', joinCode: 'MOON7B', ageMode: AgeMode.explorer, createdAt: now.subtract(const Duration(days: 21))));
+      _classes.add(ClassInfo(id: 'demo-cadet', name: 'Grade 4 Stars', joinCode: 'STAR4A', ageMode: AgeMode.cadet, createdAt: now.subtract(const Duration(days: 9))));
+      _classes.add(ClassInfo(id: 'demo-engineer', name: 'Physics 11', joinCode: 'ART11P', ageMode: AgeMode.engineer, createdAt: now.subtract(const Duration(days: 30))));
+      for (final c in _classes) {
+        _students[c.id] = _makeClass(c, c.id == 'demo-explorer' ? 24 : (c.id == 'demo-cadet' ? 18 : 16));
+      }
+      _assign['demo-explorer'] = [Assignment(id: 'a1', levelId: 'explorer-05', dueAt: now.add(const Duration(days: 3)))];
+      _assign['demo-explorer']!.add(Assignment(id: 'a2', levelId: 'explorer-08', dueAt: now.add(const Duration(days: 7))));
+      _goals['demo-explorer'] = [const ClassGoal(id: 'g1', title: 'Everyone reaches Systems 70', skill: Skill.systems, target: 70)];
+      _goals['demo-cadet'] = [const ClassGoal(id: 'g2', title: 'Teamwork above 60', skill: Skill.teamwork, target: 60)];
     }
-    _assign['demo-explorer'] = [Assignment(id: 'a1', levelId: 'explorer-05', dueAt: now.add(const Duration(days: 3)))];
-    _goals['demo-explorer'] = [const ClassGoal(id: 'g1', title: 'Everyone reaches Systems 70', skill: Skill.systems, target: 70)];
   }
 
   List<_DemoStudent> _makeClass(ClassInfo c, int count) {
@@ -130,11 +147,12 @@ class DemoTeacherRepo implements TeacherRepo {
   Future<List<ClassInfo>> classes() => _later(List.of(_classes));
 
   @override
-  Future<ClassInfo> createClass(String name, AgeMode mode, {bool lockRank = true}) {
+  Future<ClassInfo> createClass(String name, AgeMode mode, {bool lockRank = true}) async {
     final code = String.fromCharCodes([for (var i = 0; i < 6; i++) 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'.codeUnitAt(_rnd.nextInt(32))]);
     final c = ClassInfo(id: 'demo-new-${_ids++}', name: name, joinCode: code, ageMode: mode, lockRank: lockRank, createdAt: DateTime.now());
     _classes.add(c);
     _students[c.id] = [];
+    await LocalClassHub.instance.registerClass(c);
     return _later(c);
   }
 
@@ -150,7 +168,28 @@ class DemoTeacherRepo implements TeacherRepo {
   Future<void> archiveClass(String id) async => _classes.removeWhere((c) => c.id == id);
 
   ClassInfo _class(String cid) => _classes.firstWhere((c) => c.id == cid, orElse: () => _classes.first);
-  List<_DemoStudent> _of(String cid) => _students[cid] ?? const [];
+
+  /// Sample students plus any real players who joined this class on this device.
+  List<_DemoStudent> _of(String cid) {
+    final demo = _students[cid] ?? const <_DemoStudent>[];
+    ClassInfo? info;
+    for (final c in _classes) {
+      if (c.id == cid) {
+        info = c;
+        break;
+      }
+    }
+    final live = LocalClassHub.instance.liveStudents(classId: cid, joinCode: info?.joinCode);
+    if (live.isEmpty) return demo;
+    final liveIds = {for (final e in live) e.studentId};
+    final merged = <_DemoStudent>[
+      for (final e in live)
+        _DemoStudent(e.toRow(), {for (final k in Skill.values) k: e.skills[k] ?? 0}, const []),
+      for (final d in demo)
+        if (!liveIds.contains(d.row.id)) d,
+    ];
+    return merged;
+  }
 
   @override
   Future<ClassOverview> overview(String cid) {
@@ -240,7 +279,7 @@ class DemoTeacherRepo implements TeacherRepo {
       if (n.length < 2) continue;
       final user = '${n.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}_${(100000 + _rnd.nextInt(899999)).toRadixString(36)}';
       final pin = (_rnd.nextInt(9000) + 1000).toString();
-      final id = 'demo-${cid}-new-${_ids++}';
+      final id = 'demo-$cid-new-${_ids++}';
       cards.add(StudentCard(name: n, username: user, pin: pin, studentId: id));
       _students.putIfAbsent(cid, () => []).add(_DemoStudent(StudentRow(id: id, name: n, username: user, reason: HelpReason.notStarted, needsHelp: true), {for (final k in Skill.values) k: 0}, const []));
     }
@@ -288,6 +327,31 @@ class DemoTeacherRepo implements TeacherRepo {
     for (final l in _goals.values) {
       l.removeWhere((g) => g.id == id);
     }
+  }
+
+  @override
+  Future<List<BaseMissionStat>> baseSummary(String cid) async {
+    // a believable class: most finish the first missions; the solar storm
+    // (mission 4) is where many lose power
+    final out = <BaseMissionStat>[];
+    final ss = await students(cid);
+    for (var k = 0; k < ss.length; k++) {
+      final st = ss[k];
+      final reached = 5 - (k % 4);
+      for (var m = 1; m <= reached; m++) {
+        final lostHere = m == 4 && k % 3 != 0;
+        out.add(BaseMissionStat(
+          studentId: st.id,
+          name: st.name,
+          mission: m,
+          bestStars: lostHere ? 0 : 1 + ((k + m) % 3),
+          tries: lostHere ? 2 + k % 2 : 1 + (m == 2 ? k % 2 : 0),
+          wins: lostHere ? 0 : 1,
+          topCause: lostHere ? (k.isEven ? 'power' : 'crew') : (m == 2 && k % 2 == 1 ? 'water' : null),
+        ));
+      }
+    }
+    return out;
   }
 
   @override

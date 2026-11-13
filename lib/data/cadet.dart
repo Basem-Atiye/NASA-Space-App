@@ -38,9 +38,9 @@ final cadetTasks = <StoryTask>[
         objective: 'Meet Commander Nova',
         eva: false,
         intro: [
-          const Line(_n, 'Hello, Cadet! I am Commander Nova. Welcome to Shackleton Base on the Moon!', Mood.happy),
-          const Line(_n, 'There is no air outside. Before we go out, we need our spacesuits.'),
-          const Line(_a, 'Tip: tap the ground to walk. Glowing things can be picked up.'),
+          Line(_n, 'Hello, Cadet! I am Commander Nova. Welcome to Shackleton Base on the Moon!', Mood.happy),
+          Line(_n, 'There is no air outside. Before we go out, we need our spacesuits.'),
+          Line(_a, 'Tip: tap the ground to walk. Glowing things can be picked up.'),
         ],
       ),
       const StoryStep(
@@ -48,9 +48,9 @@ final cadetTasks = <StoryTask>[
         kind: StepKind.collect,
         objective: 'Find the 4 suit parts',
         items: ['boots', 'gloves', 'pack', 'helmet'],
-        intro: [const Line(_n, 'Oh no, my suit parts are all over the place! Help me find the boots, gloves, backpack and helmet.')],
+        intro: [Line(_n, 'Oh no, my suit parts are all over the place! Help me find the boots, gloves, backpack and helmet.')],
         hint: 'Look for the glowing things on the ground. Tap one and Nova walks there.',
-        outro: [const Line(_n, 'We found them all! Now let\'s put them on.', Mood.happy)],
+        outro: [Line(_n, 'We found them all! Now let\'s put them on.', Mood.happy)],
       ),
       const StoryStep(
         id: 'c1_order',
@@ -58,7 +58,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Put the suit on in the right order',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.order,
           title: 'SUIT UP',
           instructions: 'Tap the parts in the order Nova puts them on.',
@@ -68,7 +68,7 @@ final cadetTasks = <StoryTask>[
           answer: [0, 1, 2, 3, 4, 5],
           hint: 'Start with what touches your skin. The helmet goes on last so you can see.',
         ),
-        outro: [const Line(_n, 'Snug as a bug in a rug!', Mood.happy)],
+        outro: [Line(_n, 'Snug as a bug in a rug!', Mood.happy)],
       ),
       StoryStep(
         id: 'c1_why',
@@ -89,7 +89,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Check the suit with Nova',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.checklist,
           title: 'BUDDY CHECK',
           instructions: 'Astronauts always check each other. Check every part. Fix anything that is not ready.',
@@ -108,7 +108,7 @@ final cadetTasks = <StoryTask>[
         target: 'habitat',
         useLabel: 'GO OUTSIDE',
         hint: 'The airlock is the door of the white base.',
-        outro: [const Line(_c, 'Shackleton, this is Houston. Great suit check, Cadet!'), const Line(_n, 'We did it! Next time we pack a rocket.', Mood.happy)],
+        outro: [Line(_c, 'Shackleton, this is Houston. Great suit check, Cadet!'), Line(_n, 'We did it! Next time we pack a rocket.', Mood.happy)],
       ),
     ],
   ),
@@ -127,8 +127,8 @@ final cadetTasks = <StoryTask>[
         kind: StepKind.talk,
         objective: 'Listen to Houston',
         intro: [
-          const Line(_c, 'Cadet, a cargo rocket leaves for the other base tomorrow. Please pack it!'),
-          const Line(_n, 'The rocket is on the landing pad. First, let\'s collect the boxes.'),
+          Line(_c, 'Cadet, a cargo rocket leaves for the other base tomorrow. Please pack it!'),
+          Line(_n, 'The rocket is on the landing pad. First, let\'s collect the boxes.'),
         ],
       ),
       const StoryStep(
@@ -144,7 +144,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Pack it or leave it?',
         eva: false,
         skill: Skill.prioritise,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.sort,
           title: 'PACK THE ROCKET',
           instructions: 'Every kilo is expensive. What goes on the rocket?',
@@ -175,7 +175,7 @@ final cadetTasks = <StoryTask>[
         target: 'pad',
         useLabel: 'LOAD',
         hint: 'Walk to the rocket on the landing pad.',
-        outro: [const Line(_n, 'All packed! Light and ready to go.', Mood.happy)],
+        outro: [Line(_n, 'All packed! Light and ready to go.', Mood.happy)],
       ),
     ],
   ),
@@ -195,7 +195,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Walk to the rocket',
         target: 'pad',
         useLabel: 'CHECK ROCKET',
-        intro: [const Line(_n, 'Today our cargo rocket launches. Let\'s check it is ready.')],
+        intro: [Line(_n, 'Today our cargo rocket launches. Let\'s check it is ready.')],
       ),
       const StoryStep(
         id: 'c3_check',
@@ -203,7 +203,7 @@ final cadetTasks = <StoryTask>[
         objective: 'GO or NO-GO?',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.checklist,
           title: 'COUNTDOWN CHECKLIST',
           instructions: 'Check each item. Everything must say GO before launch.',
@@ -234,7 +234,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Fire the engines',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.hold,
           title: 'ENGINES',
           instructions: 'Hold to build up thrust. Let go in the green zone.',
@@ -252,7 +252,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Lift off!',
         eva: false,
         launch: true,
-        intro: [const Line(_c, '3, 2, 1... lift off!'), const Line(_n, 'Look at it go! Great teamwork, Cadet!', Mood.happy)],
+        intro: [Line(_c, '3, 2, 1... lift off!'), Line(_n, 'Look at it go! Great teamwork, Cadet!', Mood.happy)],
       ),
     ],
   ),
@@ -271,8 +271,8 @@ final cadetTasks = <StoryTask>[
         kind: StepKind.talk,
         objective: 'Try a little hop',
         intro: [
-          const Line(_n, 'Watch this, Cadet. On the Moon I weigh six times less than on Earth!', Mood.happy),
-          const Line(_a, 'Moon gravity: 1.62. Earth gravity: 9.81. That is about 6 times stronger.'),
+          Line(_n, 'Watch this, Cadet. On the Moon I weigh six times less than on Earth!', Mood.happy),
+          Line(_a, 'Moon gravity: 1.62. Earth gravity: 9.81. That is about 6 times stronger.'),
         ],
       ),
       StoryStep(
@@ -292,7 +292,7 @@ final cadetTasks = <StoryTask>[
         kind: StepKind.game,
         objective: 'Jump over the craters',
         skill: Skill.systems,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.jump,
           title: 'CRATER HOP',
           instructions: 'Nova runs by herself. Tap JUMP just before each crater.',
@@ -307,7 +307,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Plant the flag at the crater',
         items: ['flag'],
         hint: 'The flag is near the big crater.',
-        outro: [const Line(_n, 'Best jumping lesson ever! Next, we turn on the lights.', Mood.happy)],
+        outro: [Line(_n, 'Best jumping lesson ever! Next, we turn on the lights.', Mood.happy)],
       ),
     ],
   ),
@@ -325,7 +325,7 @@ final cadetTasks = <StoryTask>[
         id: 'c5_dark',
         kind: StepKind.talk,
         objective: 'The base is dark',
-        intro: [const Line(_n, 'Brrr! The base has no power. The new solar panels are still in that box.', Mood.worried)],
+        intro: [Line(_n, 'Brrr! The base has no power. The new solar panels are still in that box.', Mood.worried)],
       ),
       const StoryStep(
         id: 'c5_open',
@@ -333,14 +333,14 @@ final cadetTasks = <StoryTask>[
         objective: 'Open the box of solar panels',
         target: 'crate',
         useLabel: 'OPEN',
-        effect: const Effect(flags: {'panelsUp'}),
+        effect: Effect(flags: {'panelsUp'}),
       ),
       const StoryStep(
         id: 'c5_aim',
         kind: StepKind.game,
         objective: 'Point the panels at the Sun',
         skill: Skill.systems,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.tune,
           title: 'AIM THE PANELS',
           instructions: 'Turn the dial until the panels face the Sun. Watch the power go up!',
@@ -353,7 +353,7 @@ final cadetTasks = <StoryTask>[
         kind: StepKind.game,
         objective: 'Plug in the cables',
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.wire,
           title: 'PLUG IT IN',
           instructions: 'Match each cable to the plug with the same colour and sign.',
@@ -362,7 +362,7 @@ final cadetTasks = <StoryTask>[
           answer: [2, 0, 1],
           hint: 'Red goes with red (+). Black goes with black (−).',
         ),
-        effect: const Effect(flags: {'wired'}, battery: 40),
+        effect: Effect(flags: {'wired'}, battery: 40),
       ),
       StoryStep(
         id: 'c5_share',
@@ -383,7 +383,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Turn on the base lights',
         target: 'habitat',
         useLabel: 'LIGHTS ON',
-        outro: [const Line(_n, 'Lights on! Sunshine power!', Mood.happy)],
+        outro: [Line(_n, 'Lights on! Sunshine power!', Mood.happy)],
       ),
     ],
   ),
@@ -402,7 +402,7 @@ final cadetTasks = <StoryTask>[
         kind: StepKind.collect,
         objective: 'Get seeds and water',
         items: ['seed', 'water'],
-        intro: [const Line(_n, 'Let\'s grow some food! First we need seeds and water.')],
+        intro: [Line(_n, 'Let\'s grow some food! First we need seeds and water.')],
       ),
       const StoryStep(
         id: 'c6_plant',
@@ -417,7 +417,7 @@ final cadetTasks = <StoryTask>[
         objective: 'What do plants need?',
         eva: false,
         skill: Skill.systems,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.sort,
           title: 'PLANT NEEDS',
           instructions: 'Sort each thing: does a plant need it to grow?',
@@ -434,7 +434,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Water the plants',
         eva: false,
         skill: Skill.resourceMath,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.hold,
           title: 'WATER THE PLANTS',
           instructions: 'Hold to pour. Stop in the green: not too little, not too much.',
@@ -476,14 +476,14 @@ final cadetTasks = <StoryTask>[
         id: 'c7_alarm',
         kind: StepKind.talk,
         objective: 'Water alarm',
-        intro: [const Line(_a, 'Water check: one tank is not clean.'), const Line(_n, 'Let\'s find out which one, Cadet.')],
+        intro: [Line(_a, 'Water check: one tank is not clean.'), Line(_n, 'Let\'s find out which one, Cadet.')],
       ),
       const StoryStep(
         id: 'c7_tank',
         kind: StepKind.game,
         objective: 'Find the dirty tank',
         skill: Skill.rootCause,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.probe,
           title: 'WATER TEST',
           instructions: 'Test each tank. Mark the dirty one.',
@@ -506,7 +506,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Clean the water step by step',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.order,
           title: 'WATER CLEANER',
           instructions: 'Put the cleaning steps in order.',
@@ -547,7 +547,7 @@ final cadetTasks = <StoryTask>[
         kind: StepKind.collect,
         objective: 'Collect 3 rock samples',
         items: ['rock1', 'rock2', 'rock3'],
-        intro: [const Line(_n, 'Time to be rock detectives! Pick up three different rocks.')],
+        intro: [Line(_n, 'Time to be rock detectives! Pick up three different rocks.')],
         hint: 'Rocks glow near the rover and the crater. Pip scans each one.',
       ),
       const StoryStep(
@@ -556,7 +556,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Sort the rocks',
         eva: false,
         skill: Skill.rootCause,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.sort,
           title: 'ROCK SORTER',
           instructions: 'Dark rocks come from old lava plains. Light rocks come from the bright mountains.',
@@ -573,7 +573,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Which sample has ice?',
         eva: false,
         skill: Skill.rootCause,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.probe,
           title: 'ICE SCANNER',
           instructions: 'Pip\'s scanner looks for water. Scan each rock and mark the icy one.',
@@ -615,14 +615,14 @@ final cadetTasks = <StoryTask>[
         objective: 'Get in the rover',
         target: 'rover',
         useLabel: 'GET IN',
-        intro: [const Line(_n, 'Hop in, Cadet! We are driving to the big crater.', Mood.happy)],
+        intro: [Line(_n, 'Hop in, Cadet! We are driving to the big crater.', Mood.happy)],
       ),
       const StoryStep(
         id: 'c9_drive',
         kind: StepKind.game,
         objective: 'Drive around the boulders',
         skill: Skill.prioritise,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.drive,
           title: 'ROVER RIDE',
           instructions: 'Tilt the phone or press the arrows to steer around the boulders.',
@@ -647,7 +647,7 @@ final cadetTasks = <StoryTask>[
         kind: StepKind.collect,
         objective: 'Pick up the flag marker',
         items: ['flag'],
-        outro: [const Line(_n, 'What a ride! Next time the battery will be full.', Mood.happy)],
+        outro: [Line(_n, 'What a ride! Next time the battery will be full.', Mood.happy)],
       ),
     ],
   ),
@@ -665,14 +665,14 @@ final cadetTasks = <StoryTask>[
         id: 'c10_dark',
         kind: StepKind.talk,
         objective: 'Night is coming',
-        intro: [const Line(_n, 'The Sun is going down, Cadet. A Moon night is very long and very cold.', Mood.worried)],
+        intro: [Line(_n, 'The Sun is going down, Cadet. A Moon night is very long and very cold.', Mood.worried)],
       ),
       const StoryStep(
         id: 'c10_sort',
         kind: StepKind.game,
         objective: 'Day or night?',
         skill: Skill.systems,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.sort,
           title: 'DAY OR NIGHT',
           instructions: 'Sort each thing: does it happen in the Moon day or the Moon night?',
@@ -695,7 +695,7 @@ final cadetTasks = <StoryTask>[
         kind: StepKind.game,
         objective: 'Fill the battery before dark',
         skill: Skill.resourceMath,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.hold,
           title: 'CHARGE UP',
           instructions: 'Hold to charge. Stop in the green zone: full, but not over-charged.',
@@ -706,7 +706,7 @@ final cadetTasks = <StoryTask>[
           unit: '%',
           hint: 'Let go just before 100%.',
         ),
-        effect: const Effect(battery: 60),
+        effect: Effect(battery: 60),
       ),
       StoryStep(
         id: 'c10_long',
@@ -753,7 +753,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Do the astronaut workout',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.fitness,
           title: 'ASTRONAUT WORKOUT',
           instructions: 'Stand up and move with Nova! Make space around you first.',
@@ -793,7 +793,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Walk to the antenna',
         target: 'antenna',
         useLabel: 'POINT AT EARTH',
-        intro: [const Line(_n, 'Let\'s send a picture home to Earth, Cadet!', Mood.happy)],
+        intro: [Line(_n, 'Let\'s send a picture home to Earth, Cadet!', Mood.happy)],
       ),
       const StoryStep(
         id: 'c12_draw',
@@ -801,7 +801,7 @@ final cadetTasks = <StoryTask>[
         objective: 'Draw a star for Earth',
         eva: false,
         skill: Skill.procedure,
-        game: const GameSpec(
+        game: GameSpec(
           kind: GameKind.draw,
           title: 'DRAW A MESSAGE',
           instructions: 'Connect the dots in order to draw a star.',
@@ -829,9 +829,9 @@ final cadetTasks = <StoryTask>[
         objective: 'Earth answers!',
         eva: false,
         intro: [
-          const Line(_h, 'Hello Shackleton! We love your star! Everyone here is waving at the Moon!'),
-          const Line(_c, 'Cadet, you finished Moon Cadet training. You are a real Moon Cadet now!'),
-          const Line(_n, 'I am so proud of you. See you on the next mission!', Mood.happy),
+          Line(_h, 'Hello Shackleton! We love your star! Everyone here is waving at the Moon!'),
+          Line(_c, 'Cadet, you finished Moon Cadet training. You are a real Moon Cadet now!'),
+          Line(_n, 'I am so proud of you. See you on the next mission!', Mood.happy),
         ],
       ),
     ],

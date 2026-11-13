@@ -1,8 +1,8 @@
 /// A tiny message link between phones: broadcast events plus "who is here"
-/// (presence). Used by co-op missions and the teacher's live lesson.
+/// (presence). Used by the teacher's live lesson.
 ///
 /// [SupabaseLink] (supabase_link.dart) goes over Supabase Realtime. [LocalHub]
-/// connects links inside one app: same-phone co-op and the tests.
+/// connects links inside one app (tests and same-device demos).
 library;
 
 import 'dart:async';

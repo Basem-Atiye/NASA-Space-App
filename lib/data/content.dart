@@ -1,5 +1,6 @@
 /// Learning content: debrief facts, "What would NASA do?", quizzes,
 /// teacher mode and the Mission Data sources.
+library;
 
 class NasaFact {
   final String text;

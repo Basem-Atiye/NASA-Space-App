@@ -4,9 +4,12 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../kit.dart';
+import '../line_icons.dart';
 import '../theme.dart';
 
-/// Twilight Indigo glass card with a thin Frozen Water edge.
+/// A design card (Twilight Indigo, round corners). Kept under its old name
+/// so every older screen takes the Figma look.
 class GlassPanel extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -25,7 +28,7 @@ class GlassPanel extends StatelessWidget {
     this.borderColor,
     this.color,
     this.blur = false,
-    this.radius = 20,
+    this.radius = 22,
     this.brackets = false,
   });
 
@@ -36,7 +39,7 @@ class GlassPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: color ?? C.panel,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: borderColor ?? C.line, width: 1),
+        border: Border.all(color: borderColor ?? Colors.transparent, width: borderColor == null ? 0 : 1.5),
       ),
       child: child,
     );
@@ -81,7 +84,7 @@ class _PressableState extends State<Pressable> {
   }
 }
 
-/// The one main action on a screen: solid Electric Sapphire with a soft glow.
+/// The one main action on a screen: the design's chunky cyan button.
 class PrimaryButton extends StatelessWidget {
   final String label;
   final IconData? icon;
@@ -89,30 +92,16 @@ class PrimaryButton extends StatelessWidget {
   final Color color;
   final Color textColor;
   final double height;
-  const PrimaryButton({super.key, required this.label, this.icon, this.onTap, this.color = C.sapphire, this.textColor = Colors.white, this.height = 56});
+  const PrimaryButton({super.key, required this.label, this.icon, this.onTap, this.color = C.cyan, this.textColor = C.ink, this.height = 58});
 
   @override
-  Widget build(BuildContext context) {
-    final enabled = onTap != null;
-    return Pressable(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: Motion.fast,
+  Widget build(BuildContext context) => KitButton(
+        label,
+        onTap: onTap,
+        materialIcon: icon,
         height: height,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 22),
-        decoration: BoxDecoration(
-          color: enabled ? color : C.panelSolid,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: enabled ? [BoxShadow(color: color.withValues(alpha: 0.42), blurRadius: 26, offset: const Offset(0, 8))] : null,
-        ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          if (icon != null) ...[Icon(icon, color: enabled ? textColor : C.dim, size: 20), const SizedBox(width: 10)],
-          Flexible(child: Text(label.toUpperCase(), style: T.button.copyWith(color: enabled ? textColor : C.dim), overflow: TextOverflow.ellipsis)),
-        ]),
-      ),
-    );
-  }
+        style: color == C.red ? KitButtonStyle.danger : (color == C.raised || color == C.panel || color == C.indigo ? KitButtonStyle.secondary : KitButtonStyle.primary),
+      );
 }
 
 /// Second-level button: Strong Cyan outline, or a filled variant of any colour.
@@ -141,7 +130,7 @@ class HudButton extends StatelessWidget {
     final enabled = onTap != null;
     final c = enabled ? color : C.dim;
     final solid = filled && enabled;
-    final fg = solid ? (c == C.cyan || c == C.frozen ? C.evergreen : Colors.white) : c;
+    final fg = solid ? (c == C.cyan || c == C.frozen || c == C.yellow || c == C.green ? C.ink : Colors.white) : (c == C.cyan ? C.frozen : c);
     return Pressable(
       onTap: onTap,
       child: Stack(clipBehavior: Clip.none, children: [
@@ -150,15 +139,15 @@ class HudButton extends StatelessWidget {
           constraints: BoxConstraints(minHeight: compact ? 40 : 48, minWidth: compact ? 40 : 48),
           padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 18, vertical: compact ? 8 : 12),
           decoration: BoxDecoration(
-            color: solid ? c : c.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(compact ? 12 : 14),
-            border: Border.all(color: c.withValues(alpha: enabled ? (solid ? 1 : 0.6) : 0.3), width: 1.2),
-            boxShadow: solid ? [BoxShadow(color: c.withValues(alpha: 0.35), blurRadius: 18, offset: const Offset(0, 6))] : null,
+            color: solid ? c : C.raised,
+            borderRadius: BorderRadius.circular(compact ? 14 : 18),
+            border: Border.all(color: solid ? c : C.line, width: 1.5),
+            boxShadow: [BoxShadow(color: solid ? Color.lerp(c, Colors.black, 0.4)! : C.raisedEdge, offset: const Offset(0, 4))],
           ),
           child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
             if (icon != null) Icon(icon, size: compact ? 17 : 19, color: fg),
             if (icon != null && label.isNotEmpty) const SizedBox(width: 8),
-            if (label.isNotEmpty) Flexible(child: Text(label, style: T.h3.copyWith(color: fg, fontSize: compact ? 12.5 : 14, letterSpacing: 0.6), overflow: TextOverflow.ellipsis)),
+            if (label.isNotEmpty) Flexible(child: Text(label, style: T.h3.copyWith(color: fg, fontSize: compact ? 14 : 16.5), overflow: TextOverflow.ellipsis)),
           ]),
         ),
         if (badge != null)
@@ -180,7 +169,7 @@ class HudButton extends StatelessWidget {
 class SparkleStar extends StatelessWidget {
   final double size;
   final Color color;
-  const SparkleStar({super.key, this.size = 16, this.color = C.cyan});
+  const SparkleStar({super.key, this.size = 16, this.color = C.yellow});
 
   @override
   Widget build(BuildContext context) => SizedBox(width: size, height: size, child: CustomPaint(painter: _SparklePainter(color)));
@@ -207,77 +196,16 @@ Path sparklePath(Offset c, double r) {
     ..close();
 }
 
-/// Evergreen-black space with slowly drifting Indigo, Sapphire and Cyan
-/// glows and twinkling stars: the background of every menu screen.
-class AuroraBackground extends StatefulWidget {
+/// The design's night sky behind every menu screen (navy, stars, sparkles).
+class AuroraBackground extends StatelessWidget {
   final Widget? child;
   final double intensity;
-  const AuroraBackground({super.key, this.child, this.intensity = 1});
+  final bool hill;
+  final Color? glow;
+  const AuroraBackground({super.key, this.child, this.intensity = 1, this.hill = false, this.glow});
 
   @override
-  State<AuroraBackground> createState() => _AuroraBackgroundState();
-}
-
-class _AuroraBackgroundState extends State<AuroraBackground> with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(seconds: 24))..repeat();
-
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(fit: StackFit.expand, children: [
-      RepaintBoundary(
-        child: AnimatedBuilder(
-          animation: _c,
-          builder: (context, _) => CustomPaint(painter: AuroraPainter(_c.value, widget.intensity)),
-        ),
-      ),
-      if (widget.child != null) widget.child!,
-    ]);
-  }
-}
-
-class AuroraPainter extends CustomPainter {
-  final double t; // 0..1 loop
-  final double intensity;
-  AuroraPainter(this.t, this.intensity);
-
-  static final List<Offset> _stars = List.generate(90, (i) {
-    final r = math.Random(i * 7919 + 13);
-    return Offset(r.nextDouble(), r.nextDouble());
-  });
-
-  void _glow(Canvas canvas, Offset c, double r, Color color, double a) {
-    canvas.drawCircle(
-      c,
-      r,
-      Paint()
-        ..shader = RadialGradient(colors: [color.withValues(alpha: a * intensity), color.withValues(alpha: 0)]).createShader(Rect.fromCircle(center: c, radius: r)),
-    );
-  }
-
-  @override
-  void paint(Canvas canvas, Size s) {
-    canvas.drawRect(Offset.zero & s, Paint()..color = C.bg);
-    final a = t * math.pi * 2;
-    _glow(canvas, Offset(s.width * (0.82 + 0.06 * math.sin(a)), s.height * (0.16 + 0.03 * math.cos(a))), s.width * 0.8, C.sapphire, 0.5);
-    _glow(canvas, Offset(s.width * (0.1 + 0.05 * math.cos(a)), s.height * 0.38), s.width * 0.75, C.indigo, 0.9);
-    _glow(canvas, Offset(s.width * (0.5 + 0.08 * math.sin(a * 2)), s.height * (0.62 + 0.02 * math.sin(a))), s.width * 0.7, C.cyan, 0.3);
-    final p = Paint()..color = C.frozen;
-    for (var i = 0; i < _stars.length; i++) {
-      final o = _stars.elementAt(i);
-      final tw = 0.35 + 0.65 * (0.5 + 0.5 * math.sin(a * 3 + i * 1.7));
-      p.color = C.frozen.withValues(alpha: tw * 0.8);
-      canvas.drawCircle(Offset(o.dx * s.width, o.dy * s.height), i % 9 == 0 ? 1.4 : 0.8, p);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant AuroraPainter old) => old.t != t;
+  Widget build(BuildContext context) => SpaceBackground(hill: hill, glow: glow, child: child);
 }
 
 /// A labelled bar gauge: label, thin bar, value.
@@ -445,7 +373,7 @@ class StarRow extends StatelessWidget {
         3,
         (i) => Padding(
           padding: EdgeInsets.symmetric(horizontal: size * 0.08),
-          child: i < stars ? SparkleStar(size: size, color: C.cyan) : SparkleStar(size: size, color: C.lineSoft),
+          child: LineIcon(Ln.star, size: size, color: i < stars ? C.yellow : C.line),
         ),
       ),
     );
@@ -455,7 +383,7 @@ class StarRow extends StatelessWidget {
 class SectionLabel extends StatelessWidget {
   final String text;
   final Color color;
-  const SectionLabel(this.text, {super.key, this.color = C.cyan});
+  const SectionLabel(this.text, {super.key, this.color = C.muted});
 
   @override
   Widget build(BuildContext context) => Text(text.toUpperCase(), style: T.label.copyWith(color: color));

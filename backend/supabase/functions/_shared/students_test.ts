@@ -3,7 +3,7 @@ import { Webhook } from "svix";
 
 function assert(c: boolean, m: string) { if (!c) throw new Error(m); }
 
-Deno.test("usernames are lowercase, unique-ish and Clerk-safe", () => {
+Deno.test("usernames are lowercase, unique-ish and email-safe", () => {
   const seen = new Set<string>();
   for (let i = 0; i < 500; i++) {
     const u = newUsername("Rána-Lou");

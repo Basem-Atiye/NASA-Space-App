@@ -54,6 +54,9 @@ class Progress extends ChangeNotifier {
   /// Soft clicks while messages type onto the screen.
   bool typingSound = true;
 
+  /// Text size from Settings (A A A): 0 small, 1 normal, 2 large.
+  int textSize = 1;
+
   /// Read lines aloud. Null means "default": on for Cadets, off otherwise.
   bool? voice;
   bool get voiceOn => voice ?? (ageMode == AgeMode.cadet);
@@ -128,6 +131,7 @@ class Progress extends ChangeNotifier {
       tutorialHints = p.getBool('hints') ?? true;
       reducedMotion = p.getBool('reduced_motion') ?? false;
       typingSound = p.getBool('typing_sound') ?? true;
+      textSize = p.getInt('text_size') ?? 1;
       voice = p.getBool('voice');
       ageModeName = p.getString('age_mode');
       rankLocked = p.getBool('rank_locked') ?? false;
@@ -428,6 +432,9 @@ class Progress extends ChangeNotifier {
       case 'typing_sound':
         typingSound = value as bool;
         break;
+      case 'text_size':
+        textSize = value as int;
+        break;
       case 'voice':
         voice = value as bool;
         break;
@@ -441,6 +448,7 @@ class Progress extends ChangeNotifier {
     try {
       if (value is bool) await p.setBool(key, value);
       if (value is double) await p.setDouble(key, value);
+      if (value is int) await p.setInt(key, value);
     } catch (_) {}
   }
 

@@ -1,9 +1,13 @@
 // Student accounts made by teachers: a username and a 4-digit PIN on a printed card.
-// Children never type an email. The Clerk password is derived from the PIN and the
-// username, and the app derives it the same way (lib/services/auth_service.dart).
+// Children never type an email. Password is derived from PIN + username; the app
+// uses the same formula (lib/services/auth_service.dart). Email is synthetic.
 
 export function studentPassword(username: string, pin: string): string {
   return `ShStn-${pin}-${username}`;
+}
+
+export function studentEmail(username: string): string {
+  return `${username.trim().toLowerCase()}@students.openbounds.app`;
 }
 
 export function newPin(): string {

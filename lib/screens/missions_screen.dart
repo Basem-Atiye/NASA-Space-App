@@ -4,6 +4,7 @@ import '../data/missions.dart';
 import '../engine/mission.dart';
 import '../main.dart';
 import '../ui/theme.dart';
+import '../ui/kit.dart';
 import '../ui/widgets/common.dart';
 
 class MissionsScreen extends StatefulWidget {
@@ -37,15 +38,12 @@ class _MissionsScreenState extends State<MissionsScreen> {
         child: CustomScrollView(slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 20, 0),
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
               child: Row(children: [
-                IconButton(
-                  onPressed: () {
-                    sv.audio.tap();
-                    sv.nav.back();
-                  },
-                  icon: const Icon(Icons.arrow_back_rounded, color: C.frozen),
-                ),
+                RoundButton(onTap: () {
+                  sv.audio.tap();
+                  sv.nav.back();
+                }),
                 const Spacer(),
                 const SparkleStar(size: 16),
                 const SizedBox(width: 6),
@@ -55,7 +53,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
+              padding: const EdgeInsets.fromLTRB(24, 4, 24, 14),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('FLIGHT DIRECTOR', style: T.label.copyWith(letterSpacing: 3)),
                 const SizedBox(height: 6),

@@ -502,7 +502,7 @@ class MissionSheet extends StatelessWidget {
         const HudDivider(),
         const SectionLabel('Stars'),
         const SizedBox(height: 4),
-        const Row(children: [StarRow(stars: 1, size: 14), SizedBox(width: 8), const Text('Complete the mission', style: T.bodySmall)]),
+        const Row(children: [StarRow(stars: 1, size: 14), SizedBox(width: 8), Text('Complete the mission', style: T.bodySmall)]),
         star(m.star2, 2),
         star(m.star3, 3),
         const HudDivider(),

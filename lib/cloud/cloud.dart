@@ -1,8 +1,7 @@
 /// Supabase: profiles, classes, progress sync, teacher data and Realtime.
 ///
-/// The Clerk session token is handed to Supabase through `accessToken`
-/// (third-party auth), so row-level security sees the Clerk user id. The
-/// service role key never ships in the app.
+/// Auth uses Supabase email/password. RLS sees `auth.uid()` from the session.
+/// The service role key never ships in the app.
 library;
 
 import 'dart:async';
@@ -72,14 +71,17 @@ class Cloud extends ChangeNotifier {
     if (_db != null || _starting || !Env.realtimeConfigured) return;
     _starting = true;
     try {
-      await Supabase.initialize(
-        url: Env.supabaseUrl,
-        publishableKey: Env.supabasePublishableKey,
-        // Clerk session token for signed-in players, none for guests (anon role)
-        accessToken: auth.token,
-        debug: false,
-      );
-      _db = Supabase.instance.client;
+      // Auth is local; Supabase is only for optional cloud sync / catalogue.
+      try {
+        _db = Supabase.instance.client;
+      } catch (_) {
+        await Supabase.initialize(
+          url: Env.supabaseUrl,
+          publishableKey: Env.supabasePublishableKey,
+          debug: false,
+        );
+        _db = Supabase.instance.client;
+      }
     } catch (e) {
       debugPrint('Supabase init failed: $e');
     } finally {
@@ -193,8 +195,14 @@ class Cloud extends ChangeNotifier {
           await _timed(_c.from('campaign_state').upsert({...op.data, 'user_id': uid, 'updated_at': DateTime.now().toUtc().toIso8601String()}, onConflict: 'user_id,campaign'));
         case 'settings':
           await _timed(_c.from('settings').upsert({...op.data, 'user_id': uid}, onConflict: 'user_id'));
-        case 'coop_result':
-          await _timed(_c.from('coop_results').insert({...op.data, 'host_id': uid}));
+        case 'base_run':
+          await _timed(_c.from('base_runs').upsert({...op.data, 'user_id': uid}, onConflict: 'client_id', ignoreDuplicates: true));
+        case 'supply_run':
+          await _timed(_c.from('supply_runs').upsert({...op.data, 'user_id': uid}, onConflict: 'client_id', ignoreDuplicates: true));
+        case 'badges':
+          final ids = (op.data['ids'] as List? ?? const []).map((e) => '$e').toList();
+          if (ids.isEmpty) return;
+          await _timed(_c.from('badges_earned').upsert([for (final b in ids) {'user_id': uid, 'badge_id': b}], onConflict: 'user_id,badge_id', ignoreDuplicates: true));
         default:
           throw PermanentSyncError('unknown op ${op.kind}');
       }
@@ -206,32 +214,6 @@ class Cloud extends ChangeNotifier {
       }
       rethrow;
     }
-  }
-
-  // ---------------------------------------------------------------- co-op rooms
-
-  Future<({String roomId, String code})> createCoopRoom(String missionId) async {
-    final rows = await _timed(_c.rpc('create_coop_room', params: {'mission': missionId}));
-    if (rows is List && rows.isNotEmpty) {
-      final r = rows.first as Map;
-      return (roomId: '${r['room_id']}', code: '${r['code']}');
-    }
-    throw const CloudError('Could not open a room. Try again.');
-  }
-
-  Future<({String roomId, String missionId, String status})> joinCoopRoom(String code) async {
-    final rows = await _timed(_c.rpc('join_coop_room', params: {'room_code': code}));
-    if (rows is List && rows.isNotEmpty) {
-      final r = rows.first as Map;
-      return (roomId: '${r['room_id']}', missionId: '${r['mission_id']}', status: '${r['status']}');
-    }
-    throw const CloudError('No open room with that code.');
-  }
-
-  Future<void> setCoopStatus(String roomId, String status) async {
-    try {
-      await _timed(_c.rpc('set_coop_status', params: {'room': roomId, 'new_status': status}));
-    } catch (_) {}
   }
 
   RealtimeChannel channel(String name, {bool private = false, String presenceKey = ''}) =>
@@ -375,6 +357,12 @@ class CloudTeacherRepo implements TeacherRepo {
 
   @override
   Future<void> removeGoal(String id) => _t(_c.from('class_goals').delete().eq('id', id));
+
+  @override
+  Future<List<BaseMissionStat>> baseSummary(String cid) async {
+    final rows = await _t(_c.rpc('class_base_summary', params: {'cid': cid}));
+    return [for (final r in rows as List) BaseMissionStat.fromRow(Map<String, dynamic>.from(r as Map))];
+  }
 
   @override
   Future<String> reportCsv(String cid) async {

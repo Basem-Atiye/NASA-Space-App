@@ -1,4 +1,4 @@
-/// The teacher app, on the phone: a clear light dashboard with six tabs.
+/// The teacher app, on the phone: the game's dark brand theme with six tabs.
 ///
 ///   Today     who needs help now, class progress, Pip's insights, live lesson
 ///   Class     learning gain (Readiness Check), skills, where the class gets stuck, goals
@@ -22,7 +22,9 @@ import '../data/catalogue.dart';
 import '../main.dart';
 import '../story/campaign.dart';
 import '../story/story_model.dart' show AgeMode, AgeModeInfo;
+import '../ui/line_icons.dart';
 import '../ui/theme.dart';
+import '../ui/kit.dart';
 import 'charts.dart';
 import 'insights.dart';
 
@@ -90,43 +92,50 @@ class _TeacherAppState extends State<TeacherApp> {
       child: ColoredBox(
         color: TC.bg,
         child: Column(children: [
-          // header: back, title, class switcher
+          // header: back, title, class switcher (on the night sky, like the game)
           Container(
-            padding: EdgeInsets.fromLTRB(8, top + 6, 12, 10),
-            decoration: const BoxDecoration(color: TC.card, border: Border(bottom: BorderSide(color: TC.line))),
-            child: Row(children: [
-              IconButton(onPressed: () => sv.nav.resetTo(Screen.title), icon: const Icon(Icons.arrow_back_rounded, color: TC.ink)),
+            padding: EdgeInsets.fromLTRB(20, top + 12, 20, 14),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF070D26), C.bg]),
+            ),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              RoundButton(onTap: () => sv.nav.resetTo(Screen.title)),
+              const SizedBox(width: 14),
               Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
                   Row(children: [
-                    const Text('TEACHER', style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 2, color: TC.teal)),
+                    const Overline('TEACHER', color: C.cyan, size: 11),
                     if (repo.isDemo) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                        decoration: BoxDecoration(color: TC.warn.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
-                        child: const Text('SAMPLE CLASS', style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: 9.5, letterSpacing: 1, color: TC.warn)),
+                        height: 20,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(color: C.yellow.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(10)),
+                        child: Text('SAMPLE CLASS', style: T.label.copyWith(fontSize: 9.5, letterSpacing: 1.2, color: C.yellow)),
                       ),
                     ],
                   ]),
+                  const SizedBox(height: 2),
                   if (_class != null)
-                    InkWell(
+                    TapScale(
                       onTap: _pickClass,
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Flexible(child: Text(_class!.name, style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 21, color: TC.ink), overflow: TextOverflow.ellipsis)),
-                        const Icon(Icons.expand_more_rounded, color: TC.ink),
+                        Flexible(child: Text(_class!.name, style: T.h2.copyWith(fontSize: 21), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        const SizedBox(width: 4),
+                        const LineIcon(Ln.down, size: 18, color: C.muted),
                       ]),
                     )
                   else
-                    const Text('Your classes', style: TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 21, color: TC.ink)),
+                    Text('Your classes', style: T.h2.copyWith(fontSize: 21)),
                 ]),
               ),
-              if (_class != null) _ageChip(_class!.ageMode),
+              if (_class != null) ...[const SizedBox(width: 10), _ageChip(_class!.ageMode)],
             ]),
           ),
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator(color: TC.blue))
+                ? const Center(child: CircularProgressIndicator(color: C.cyan))
                 : _error != null
                     ? _errorView()
                     : (_class == null || _tab == 5)
@@ -153,42 +162,28 @@ class _TeacherAppState extends State<TeacherApp> {
       );
 
   Widget _ageChip(AgeMode m) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(color: TC.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-        child: Text('${m.title} · ${m.ages}', style: const TextStyle(fontFamily: F.body, fontWeight: FontWeight.w700, fontSize: 11.5, color: TC.blue)),
+        height: 32,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(color: C.raised, borderRadius: BorderRadius.circular(16)),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Text(m.title, style: T.h3.copyWith(fontSize: 12.5, height: 1.1)),
+          Text(m.ages, style: T.bodySmall.copyWith(fontSize: 10, height: 1.1, color: C.muted)),
+        ]),
       );
 
-  Widget _tabBar() {
-    const items = [
-      (Icons.today_rounded, 'Today'),
-      (Icons.insights_rounded, 'Class'),
-      (Icons.people_alt_rounded, 'Students'),
-      (Icons.menu_book_rounded, 'Lessons'),
-      (Icons.sensors_rounded, 'Live'),
-      (Icons.person_rounded, 'Me'),
-    ];
-    final bottom = MediaQuery.of(context).padding.bottom;
-    return Container(
-      padding: EdgeInsets.only(bottom: bottom, top: 4),
-      decoration: const BoxDecoration(color: TC.card, border: Border(top: BorderSide(color: TC.line))),
-      child: Row(children: [
-        for (var i = 0; i < items.length; i++)
-          Expanded(
-            child: InkWell(
-              onTap: () => setState(() => _tab = i),
-              child: SizedBox(
-                height: 56,
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(items[i].$1, color: _tab == i ? TC.blue : TC.faint, size: 23),
-                  const SizedBox(height: 2),
-                  Text(items[i].$2, style: TextStyle(fontFamily: F.body, fontWeight: FontWeight.w700, fontSize: 10.5, color: _tab == i ? TC.blue : TC.faint)),
-                ]),
-              ),
-            ),
-          ),
-      ]),
-    );
-  }
+  Widget _tabBar() => BottomTabs(
+        items: const [
+          TabItem(Ln.calendar, 'Today'),
+          TabItem(Ln.chart, 'Class'),
+          TabItem(Ln.users, 'Students'),
+          TabItem(Ln.book, 'Lessons'),
+          TabItem(Ln.radio, 'Live'),
+          TabItem(Ln.user, 'Me'),
+        ],
+        index: _class == null ? 5 : _tab,
+        onTap: (i) => setState(() => _tab = i),
+      );
 
   Future<void> _pickClass() async {
     final picked = await showModalBottomSheet<String>(
@@ -307,14 +302,101 @@ class _TeacherAppState extends State<TeacherApp> {
   void _snack(String s) => ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: Text(s)));
 }
 
-ThemeData _teacherTheme() => ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
-      fontFamily: F.body,
-      colorScheme: ColorScheme.fromSeed(seedColor: C.sapphire, brightness: Brightness.light, surface: TC.card),
-      scaffoldBackgroundColor: TC.bg,
-      dividerColor: TC.line,
-    );
+ThemeData _teacherTheme() {
+  final base = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    fontFamily: F.body,
+    colorScheme: ColorScheme.fromSeed(seedColor: C.sapphire, brightness: Brightness.dark, surface: TC.card, primary: C.sapphire, secondary: C.cyan),
+  );
+  return base.copyWith(
+    scaffoldBackgroundColor: TC.bg,
+    dividerColor: TC.line,
+    canvasColor: TC.bg,
+    cardColor: TC.card,
+    primaryColor: C.sapphire,
+    textTheme: base.textTheme.apply(bodyColor: TC.ink, displayColor: TC.ink, fontFamily: F.body),
+    primaryTextTheme: base.primaryTextTheme.apply(bodyColor: TC.ink, displayColor: TC.ink),
+    iconTheme: const IconThemeData(color: TC.ink),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: C.bg,
+      foregroundColor: TC.ink,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      centerTitle: false,
+      titleTextStyle: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, fontSize: 21, color: TC.ink),
+    ),
+    listTileTheme: const ListTileThemeData(iconColor: TC.teal, textColor: TC.ink),
+    chipTheme: base.chipTheme.copyWith(
+      backgroundColor: C.panelDeep,
+      selectedColor: C.sapphire.withValues(alpha: 0.35),
+      labelStyle: const TextStyle(color: TC.ink, fontWeight: FontWeight.w700),
+      secondaryLabelStyle: const TextStyle(color: TC.ink),
+      side: BorderSide.none,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: C.panelDeep,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      hintStyle: const TextStyle(color: TC.faint),
+      labelStyle: const TextStyle(color: TC.sub),
+      prefixIconColor: TC.teal,
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: C.cyan, width: 2)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        foregroundColor: C.ink,
+        backgroundColor: C.cyan,
+        disabledBackgroundColor: C.locked,
+        minimumSize: const Size(64, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        textStyle: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, fontSize: 16),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: TC.ink,
+        backgroundColor: C.raised,
+        minimumSize: const Size(64, 48),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        side: BorderSide.none,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        textStyle: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, fontSize: 15),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(foregroundColor: TC.teal, textStyle: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, fontSize: 15)),
+    ),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: C.raised,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      contentTextStyle: const TextStyle(fontFamily: F.body, fontWeight: FontWeight.w700, color: TC.ink),
+    ),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: C.panel,
+      surfaceTintColor: Colors.transparent,
+      dragHandleColor: C.line,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+    ),
+    dividerTheme: const DividerThemeData(color: Color(0x335E5690), thickness: 1, space: 1),
+    progressIndicatorTheme: const ProgressIndicatorThemeData(color: C.cyan, linearTrackColor: C.ink, circularTrackColor: Colors.transparent),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? C.ink : C.muted),
+      trackColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? C.cyan : C.panelDeep),
+      trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: C.panel,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      titleTextStyle: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, fontSize: 21, color: TC.ink),
+    ),
+  );
+}
 
 // ------------------------------------------------------------------ shared bits
 
@@ -323,24 +405,19 @@ class _Card extends StatelessWidget {
   final String? title;
   final Widget? trailing;
   final EdgeInsetsGeometry padding;
-  const _Card({required this.child, this.title, this.trailing, this.padding = const EdgeInsets.all(16)});
+  const _Card({required this.child, this.title, this.trailing, this.padding = const EdgeInsets.fromLTRB(18, 16, 18, 18)});
 
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: 14),
         padding: padding,
-        decoration: BoxDecoration(
-          color: TC.card,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: TC.line),
-          boxShadow: const [BoxShadow(color: Color(0x0D07240F), blurRadius: 16, offset: Offset(0, 4))],
-        ),
+        decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(22)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           if (title != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(children: [
-                Expanded(child: Text(title!.toUpperCase(), style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 1.6, color: TC.sub))),
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                Expanded(child: Overline(title!.toUpperCase(), color: C.muted, size: 11.5)),
                 if (trailing != null) trailing!,
               ]),
             ),
@@ -357,8 +434,9 @@ class _Stat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(value, style: TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 26, color: color)),
-        Text(label, style: const TextStyle(fontFamily: F.body, fontWeight: FontWeight.w600, fontSize: 12, color: TC.sub)),
+        FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(value, style: T.number.copyWith(fontSize: 28, color: color))),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(fontFamily: F.body, fontWeight: FontWeight.w700, fontSize: 12, color: TC.sub)),
       ]);
 }
 
@@ -366,8 +444,8 @@ Widget _avatar(String name, {Color color = TC.blue, double size = 38}) => Contai
       width: size,
       height: size,
       alignment: Alignment.center,
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-      child: Text(name.isEmpty ? '?' : name.characters.first.toUpperCase(), style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: size * 0.42, color: color)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.18), shape: BoxShape.circle),
+      child: Text(name.isEmpty ? '?' : name.characters.first.toUpperCase(), style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: size * 0.42, color: color)),
     );
 
 String _ago(DateTime? t) {
@@ -416,7 +494,7 @@ class _LoaderState<T> extends State<_Loader<T>> {
               ),
             );
           }
-          if (!s.hasData) return const Center(child: CircularProgressIndicator(color: TC.blue));
+          if (!s.hasData) return const Center(child: CircularProgressIndicator(color: C.cyan));
           return RefreshIndicator(onRefresh: () async => _reload(), child: widget.builder(context, s.data as T, _reload));
         },
       );
@@ -441,10 +519,11 @@ class _TodayTab extends StatelessWidget {
         final tips = classInsights(o, students, skills, levels, camp);
         final hour = DateTime.now().hour;
         final hello = hour < 12 ? 'Good morning' : (hour < 18 ? 'Good afternoon' : 'Good evening');
-        return ListView(padding: const EdgeInsets.all(16), children: [
-          Text(hello, style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 26, color: TC.ink)),
-          Text('${klass.name} · ${camp.title}', style: const TextStyle(color: TC.sub, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 14),
+        return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 28), children: [
+          Text(hello, style: T.h1.copyWith(fontSize: 28)),
+          const SizedBox(height: 4),
+          Text('${klass.name} · ${camp.title}', style: T.body.copyWith(color: C.muted, fontSize: 14.5)),
+          const SizedBox(height: 18),
           _Card(
             child: Row(children: [
               ProgressRing(value: o.progress, center: '${(o.progress * 100).round()}%', sub: 'of the\ncampaign', size: 126),
@@ -452,7 +531,7 @@ class _TodayTab extends StatelessWidget {
               Expanded(
                 child: Wrap(spacing: 18, runSpacing: 12, children: [
                   _Stat('${o.activeToday}/${o.students}', 'played today'),
-                  _Stat('${o.avgLevelsDone.toStringAsFixed(1)}', 'levels each'),
+                  _Stat(o.avgLevelsDone.toStringAsFixed(1), 'levels each'),
                   _Stat('${o.needsHelp}', 'need help', color: o.needsHelp > 0 ? TC.bad : TC.good),
                   _Stat(o.gainPoints == null ? '—' : '+${o.gainPoints}', 'learning gain', color: TC.good),
                 ]),
@@ -474,12 +553,12 @@ class _TodayTab extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(color: t.color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(9)),
-                      child: Icon(t.icon, size: 18, color: t.color),
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(color: t.color.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(12)),
+                      child: Icon(t.icon, size: 19, color: t.color),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(t.title, style: const TextStyle(fontWeight: FontWeight.w800, color: TC.ink)),
@@ -515,7 +594,7 @@ class _TodayTab extends StatelessWidget {
               ]),
             ),
           FilledButton.icon(
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(54), backgroundColor: TC.blue),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56), backgroundColor: TC.blue),
             onPressed: () => onTab(4),
             icon: const Icon(Icons.sensors_rounded),
             label: const Text('Start a live lesson', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
@@ -583,7 +662,7 @@ class _ClassTab extends StatelessWidget {
         final (o, skills, levels, goals) = d;
         final finished = [for (final l in levels) l.finished];
         final stuck = bottleneck(levels, o.students);
-        return ListView(padding: const EdgeInsets.all(16), children: [
+        return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 28), children: [
           _Card(
             title: 'Learning gain · Readiness Check',
             child: Column(children: [
@@ -595,7 +674,7 @@ class _ClassTab extends StatelessWidget {
           _Card(
             title: 'Skills',
             child: Column(children: [
-              SizedBox(height: 240, child: RadarChart(labels: [for (final s in skills) s.skill.short], values: [for (final s in skills) s.score / 100])),
+              SizedBox(height: 240, child: RadarChart(labels: [for (final s in skills) s.skill.short], values: [for (final s in skills) s.score / 100], dark: true)),
               for (final s in skills)
                 HBar(
                   label: s.skill.title,
@@ -615,6 +694,7 @@ class _ClassTab extends StatelessWidget {
                 Text('Most students stop at level ${stuck.number}, ${stuck.title}. Average hints there: ${stuck.avgHints?.toStringAsFixed(1) ?? '—'}.', style: const TextStyle(color: TC.sub)),
             ]),
           ),
+          _BaseCard(repo: repo, klass: klass),
           _Card(
             title: 'Class goals',
             trailing: TextButton.icon(onPressed: () => _addGoal(context, reload), icon: const Icon(Icons.add_rounded, size: 18), label: const Text('Add')),
@@ -629,7 +709,7 @@ class _ClassTab extends StatelessWidget {
                   ]),
           ),
           OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+            style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(56)),
             onPressed: () async {
               try {
                 final csv = await repo.reportCsv(klass.id);
@@ -718,17 +798,18 @@ class _StudentsTabState extends State<_StudentsTab> {
           for (final s in all)
             if ((_q.isEmpty || s.name.toLowerCase().contains(_q.toLowerCase())) && (!_helpOnly || s.needsHelp)) s,
         ];
-        return ListView(padding: const EdgeInsets.all(16), children: [
+        return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 28), children: [
           Row(children: [
             Expanded(
               child: TextField(
+                style: const TextStyle(color: TC.ink, fontWeight: FontWeight.w600),
                 decoration: InputDecoration(
                   hintText: 'Search ${all.length} students',
-                  prefixIcon: const Icon(Icons.search_rounded),
+                  prefixIcon: const Icon(Icons.search_rounded, color: TC.teal),
                   filled: true,
-                  fillColor: TC.card,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: TC.line)),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                  fillColor: C.panelDeep,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 onChanged: (v) => setState(() => _q = v),
               ),
@@ -754,7 +835,7 @@ class _StudentsTabState extends State<_StudentsTab> {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
                         Expanded(child: Text(s.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: TC.ink))),
-                        Text('${s.levelsDone}/${camp.length}', style: const TextStyle(fontFamily: F.mono, fontWeight: FontWeight.w700, color: TC.ink)),
+                        Text('${s.levelsDone}/${camp.length}', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, color: TC.ink)),
                       ]),
                       const SizedBox(height: 6),
                       ClipRRect(
@@ -799,7 +880,7 @@ class StudentPage extends StatelessWidget {
         builder: (context, d, reload) {
           final (skills, attempts) = d;
           final weakest = [...skills]..sort((a, b) => a.score.compareTo(b.score));
-          return ListView(padding: const EdgeInsets.all(16), children: [
+          return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 28), children: [
             _Card(
               child: Row(children: [
                 _avatar(s.name, size: 54),
@@ -827,7 +908,7 @@ class StudentPage extends StatelessWidget {
             _Card(
               title: 'Skills vs class average',
               child: Column(children: [
-                SizedBox(height: 230, child: RadarChart(labels: [for (final k in skills) k.skill.short], values: [for (final k in skills) k.score / 100], compare: [for (final k in skills) k.classAvg / 100])),
+                SizedBox(height: 230, child: RadarChart(labels: [for (final k in skills) k.skill.short], values: [for (final k in skills) k.score / 100], compare: [for (final k in skills) k.classAvg / 100], dark: true)),
                 const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Icon(Icons.circle, size: 10, color: TC.blue),
                   Text(' Student   ', style: TextStyle(color: TC.sub, fontSize: 12)),
@@ -958,7 +1039,7 @@ class _LessonsTab extends StatelessWidget {
       load: () async => (await repo.levels(klass.id), await repo.assignments(klass.id), await repo.overview(klass.id)),
       builder: (context, d, reload) {
         final (levels, assigned, o) = d;
-        return ListView(padding: const EdgeInsets.all(16), children: [
+        return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 28), children: [
           Text('${camp.title} · ${camp.length} levels', style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 22, color: TC.ink)),
           Text(camp.tagline, style: const TextStyle(color: TC.sub)),
           const SizedBox(height: 12),
@@ -1120,7 +1201,7 @@ class _LiveTabState extends State<_LiveTab> {
     final live = _link != null;
     final steps = camp.task(_level).steps.length;
     if (!live) {
-      return ListView(padding: const EdgeInsets.all(16), children: [
+      return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 28), children: [
         _Card(
           title: 'Live lesson',
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -1139,7 +1220,7 @@ class _LiveTabState extends State<_LiveTab> {
             ),
             const SizedBox(height: 14),
             FilledButton.icon(
-              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: TC.blue),
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56), backgroundColor: TC.blue),
               onPressed: _connecting ? null : _start,
               icon: _connecting ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.play_circle_fill_rounded),
               label: const Text('Start live lesson', style: TextStyle(fontWeight: FontWeight.w800)),
@@ -1155,7 +1236,7 @@ class _LiveTabState extends State<_LiveTab> {
       final st = ((s['step'] as num?) ?? 0).toInt().clamp(0, steps);
       counts[st]++;
     }
-    return ListView(padding: const EdgeInsets.all(16), children: [
+    return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 28), children: [
       _Card(
         child: Row(children: [
           Container(width: 10, height: 10, decoration: BoxDecoration(color: _paused ? TC.warn : TC.bad, shape: BoxShape.circle)),
@@ -1203,7 +1284,7 @@ class _LiveTabState extends State<_LiveTab> {
       Row(children: [
         Expanded(
           child: FilledButton.icon(
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: _paused ? TC.good : TC.warn),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56), backgroundColor: _paused ? TC.good : TC.warn),
             onPressed: _togglePause,
             icon: Icon(_paused ? Icons.play_arrow_rounded : Icons.pause_rounded),
             label: Text(_paused ? 'Resume everyone' : 'Pause everyone', style: const TextStyle(fontWeight: FontWeight.w800)),
@@ -1245,31 +1326,47 @@ class _MeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final sv = Services.of(context);
     final session = sv.session;
-    return ListView(padding: const EdgeInsets.all(16), children: [
+    return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 28), children: [
       _Card(
         child: Row(children: [
           _avatar(session.isTeacher ? session.name : 'Guest', size: 50),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(session.isTeacher ? session.name : 'Sample class', style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 20, color: TC.ink)),
-              Text(session.isTeacher ? 'Signed in as a teacher' : 'Sign in as a teacher to make your own classes.', style: const TextStyle(color: TC.sub)),
+              Text(session.isTeacher ? session.name : 'Sample dashboard', style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 20, color: TC.ink)),
+              Text(
+                session.isTeacher
+                    ? 'Signed in as a teacher · progress on this device'
+                    : 'Browsing the demo classes. Sign in as a teacher to keep your own roster on this device.',
+                style: const TextStyle(color: TC.sub),
+              ),
             ]),
           ),
         ]),
       ),
-      if (!session.isTeacher)
+      if (!session.isTeacher) ...[
+        const SizedBox(height: 8),
         FilledButton.icon(
-          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52), backgroundColor: TC.blue),
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56), backgroundColor: TC.blue),
           onPressed: () => sv.nav.go(Screen.account),
           icon: const Icon(Icons.login_rounded),
           label: const Text('Teacher sign in or sign up', style: TextStyle(fontWeight: FontWeight.w800)),
         ),
+        const SizedBox(height: 8),
+        const _Card(
+          child: Text(
+            'Demo tip: open Account → Teacher demo, or sign in with the sample teacher emails shown there. Classes below are sample data on this device.',
+            style: TextStyle(color: TC.sub, height: 1.35),
+          ),
+        ),
+      ],
       const SizedBox(height: 12),
       Row(children: [
-        const Expanded(child: Text('YOUR CLASSES', style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 1.6, color: TC.sub))),
-        TextButton.icon(onPressed: onCreate, icon: const Icon(Icons.add_rounded), label: const Text('New class')),
+        Expanded(child: Text(session.isTeacher ? 'YOUR CLASSES' : 'DEMO CLASSES', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: 11, letterSpacing: 1.6, color: TC.sub))),
+        if (session.isTeacher) TextButton.icon(onPressed: onCreate, icon: const Icon(Icons.add_rounded), label: const Text('New class')),
       ]),
+      if (classes.isEmpty)
+        const _Card(child: Text('No classes yet. Tap New class to create one on this device.', style: TextStyle(color: TC.sub))),
       for (final c in classes)
         _Card(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1285,7 +1382,7 @@ class _MeTab extends StatelessWidget {
               FilledButton.tonalIcon(onPressed: () => onCards(c), icon: const Icon(Icons.badge_rounded), label: const Text('Make sign-in cards')),
               OutlinedButton.icon(
                 onPressed: () async {
-                  await Clipboard.setData(ClipboardData(text: 'Join ${c.name} in Shackleton Station: open the app, sign in, tap "Join a class" and enter the code ${c.joinCode}.'));
+                  await Clipboard.setData(ClipboardData(text: 'Join ${c.name} in Open Bounds: open the app, sign in, tap "Join a class" and enter the code ${c.joinCode}.'));
                   if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation copied.')));
                 },
                 icon: const Icon(Icons.copy_rounded),
@@ -1324,10 +1421,10 @@ class _JoinCode extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: small ? 8 : 14),
-        decoration: BoxDecoration(color: TC.blue.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(14), border: Border.all(color: TC.blue.withValues(alpha: 0.35))),
+        decoration: BoxDecoration(color: C.panelDeep, borderRadius: BorderRadius.circular(18), border: Border.all(color: TC.blue.withValues(alpha: 0.5), width: 1.5)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text('JOIN CODE  ', style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: small ? 10 : 11, letterSpacing: 1.5, color: TC.sub)),
-          Text(code.split('').join(' '), style: TextStyle(fontFamily: F.mono, fontWeight: FontWeight.w700, fontSize: small ? 18 : 28, color: TC.blue)),
+          Text('JOIN CODE  ', style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: small ? 10 : 11, letterSpacing: 1.5, color: TC.sub)),
+          Text(code.split('').join(' '), style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, fontSize: small ? 20 : 32, letterSpacing: 2, color: TC.blue)),
         ]),
       );
 }
@@ -1360,7 +1457,7 @@ class _ClassFormState extends State<_ClassForm> {
         const SizedBox(height: 12),
         TextField(controller: _name, maxLength: 40, decoration: const InputDecoration(labelText: 'Class name', hintText: 'Grade 7 Blue', border: OutlineInputBorder())),
         const SizedBox(height: 8),
-        const Text('AGE LEVEL', style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 1.6, color: TC.sub)),
+        const Text('AGE LEVEL', style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: 11, letterSpacing: 1.6, color: TC.sub)),
         const SizedBox(height: 6),
         for (final m in AgeMode.values)
           Padding(
@@ -1370,11 +1467,11 @@ class _ClassFormState extends State<_ClassForm> {
               onTap: () => setState(() => _mode = m),
               child: AnimatedContainer(
                 duration: Motion.fast,
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: _mode == m ? TC.blue.withValues(alpha: 0.08) : TC.card,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: _mode == m ? TC.blue : TC.line, width: _mode == m ? 2 : 1),
+                  color: _mode == m ? C.raised : C.panelDeep,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: _mode == m ? TC.blue : Colors.transparent, width: 2),
                 ),
                 child: Row(children: [
                   Icon(_mode == m ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded, color: _mode == m ? TC.blue : TC.faint),
@@ -1398,7 +1495,7 @@ class _ClassFormState extends State<_ClassForm> {
         ),
         const SizedBox(height: 6),
         FilledButton(
-          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
           onPressed: () {
             final n = _name.text.trim();
             if (n.isEmpty) return;
@@ -1446,7 +1543,7 @@ class _NamesFormState extends State<_NamesForm> {
           ),
           const SizedBox(height: 12),
           FilledButton(
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
             onPressed: _names.isEmpty || _names.length > 40 ? null : () => Navigator.pop(context, _names),
             child: Text(_names.length > 40 ? 'At most 40 at a time' : 'Make ${_names.length} card${_names.length == 1 ? '' : 's'}'),
           ),
@@ -1480,7 +1577,7 @@ class CardsPage extends StatelessWidget {
             ),
           ],
         ),
-        body: ListView(padding: const EdgeInsets.all(16), children: [
+        body: ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 28), children: [
           const Text('PINs are shown only now. Copy or screenshot them, then cut out one card per student. A lost PIN can be reset from the student\'s page.', style: TextStyle(color: TC.sub)),
           const SizedBox(height: 12),
           for (final f in failed) Text('Not created: $f', style: const TextStyle(color: TC.bad)),
@@ -1497,9 +1594,9 @@ class _SignInCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: TC.card, borderRadius: BorderRadius.circular(14), border: Border.all(color: TC.ink.withValues(alpha: 0.4), style: BorderStyle.solid)),
+        decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(18), border: Border.all(color: C.line, width: 1.5)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-          Text('SHACKLETON STATION · ${klass.name.toUpperCase()}', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: 8.5, letterSpacing: 1, color: TC.teal), maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text('OPEN BOUNDS · ${klass.name.toUpperCase()}', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: 8.5, letterSpacing: 1, color: TC.teal), maxLines: 1, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 6),
           Text(card.name, style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 19, color: TC.ink)),
           const SizedBox(height: 6),
@@ -1510,4 +1607,70 @@ class _SignInCard extends StatelessWidget {
           Text(card.pin.split('').join(' '), style: const TextStyle(fontFamily: F.mono, fontWeight: FontWeight.w700, fontSize: 22, color: TC.blue)),
         ]),
       );
+}
+
+
+/// Base Commander (the Mission Trainer game): how the class does in each
+/// mission and the most common reason a mission is lost.
+class _BaseCard extends StatelessWidget {
+  final TeacherRepo repo;
+  final ClassInfo klass;
+  const _BaseCard({required this.repo, required this.klass});
+
+  static const _titles = ['Crash Landing', 'Build a Shelter', 'Grow Your Food', 'Solar Storm', 'Fix & Fly Home'];
+  static const _causes = {
+    'power': 'ran out of power',
+    'oxygen': 'ran out of air',
+    'water': 'ran out of water',
+    'food': 'ran out of food',
+    'crew': 'did not protect the crew',
+    'launch': 'had too few repair parts',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return _Card(
+      title: 'Base Commander missions',
+      child: FutureBuilder<List<BaseMissionStat>>(
+        future: repo.baseSummary(klass.id),
+        builder: (context, snap) {
+          final rows = snap.data;
+          if (rows == null) return const Padding(padding: EdgeInsets.all(12), child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
+          if (rows.isEmpty) return const Text('No one has played a Base Commander mission yet.', style: TextStyle(color: TC.sub));
+          final students = rows.map((r) => r.studentId).toSet().length;
+          return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            for (var m = 1; m <= 5; m++) _missionRow(m, rows.where((r) => r.mission == m).toList(), students),
+            const SizedBox(height: 6),
+            Text(_hardest(rows), style: const TextStyle(color: TC.sub)),
+          ]);
+        },
+      ),
+    );
+  }
+
+  Widget _missionRow(int m, List<BaseMissionStat> rows, int students) {
+    final won = rows.where((r) => r.wins > 0).length;
+    return HBar(
+      label: '$m · ${_titles[m - 1]}',
+      value: students == 0 ? 0 : won / students,
+      text: '$won/$students',
+      color: won == students ? TC.good : (won * 2 >= students ? TC.blue : TC.warn),
+    );
+  }
+
+  String _hardest(List<BaseMissionStat> rows) {
+    final lost = rows.where((r) => r.topCause != null).toList();
+    if (lost.isEmpty) return 'No mission is causing trouble.';
+    final byMission = <int, int>{};
+    for (final r in lost) {
+      byMission[r.mission] = (byMission[r.mission] ?? 0) + 1;
+    }
+    final m = byMission.entries.reduce((a, b) => b.value > a.value ? b : a).key;
+    final causes = <String, int>{};
+    for (final r in lost.where((r) => r.mission == m)) {
+      causes[r.topCause!] = (causes[r.topCause!] ?? 0) + 1;
+    }
+    final c = causes.entries.reduce((a, b) => b.value > a.value ? b : a).key;
+    return 'Hardest: mission $m, ${_titles[m - 1]}. Most students who lost it ${_causes[c] ?? c}.';
+  }
 }

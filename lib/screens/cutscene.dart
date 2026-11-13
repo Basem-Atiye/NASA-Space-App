@@ -203,7 +203,7 @@ class _CutsceneState extends State<Cutscene> with SingleTickerProviderStateMixin
 
 void _sky(Canvas c, Size s, double t, {double earthY = 0.24, double drift = 0}) {
   final r = Offset.zero & s;
-  c.drawRect(r, Paint()..shader = const RadialGradient(center: Alignment(-0.6, -0.7), radius: 1.4, colors: [Color(0xFF2A2752), Color(0xFF04120A)]).createShader(r));
+  c.drawRect(r, Paint()..shader = const RadialGradient(center: Alignment(-0.6, -0.7), radius: 1.4, colors: [Color(0xFF2A2752), Color(0xFF0A1331)]).createShader(r));
   final rnd = math.Random(5);
   final p = Paint()..color = Colors.white;
   for (var i = 0; i < 70; i++) {

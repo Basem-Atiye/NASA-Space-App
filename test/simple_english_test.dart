@@ -3,7 +3,6 @@ import 'package:shackleton_station/data/catalogue.dart';
 import 'package:shackleton_station/data/encyclopedia.dart';
 import 'package:shackleton_station/data/glossary.dart';
 import 'package:shackleton_station/story/campaign.dart';
-import 'package:shackleton_station/story/story_model.dart';
 
 /// Every line the player reads in a campaign: dialogue, objectives, choices.
 List<String> playerText(Campaign c) {

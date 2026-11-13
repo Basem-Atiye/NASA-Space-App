@@ -1,8 +1,8 @@
 // GET /functions/v1/class-report?class_id=<uuid>
 // A CSV of the class for the teacher: progress, Readiness Check before/after and
-// the six skills. Runs as the teacher (their Clerk token), so RLS decides what is visible.
+// the six skills. Runs as the teacher (their Supabase JWT), so RLS decides what is visible.
 import { createClient } from "@supabase/supabase-js";
-import { clerkUserId } from "../_shared/auth.ts";
+import { requireUserId } from "../_shared/auth.ts";
 import { cors, handler, HttpError, requireEnv } from "../_shared/http.ts";
 
 const SKILLS = ["prioritise", "systems", "root_cause", "resource_math", "procedure", "teamwork"];
@@ -15,7 +15,7 @@ function cell(v: unknown): string {
 }
 
 Deno.serve(handler(async (req) => {
-  await clerkUserId(req); // rejects missing or expired tokens early
+  await requireUserId(req); // rejects missing or expired tokens early
   const classId = new URL(req.url).searchParams.get("class_id") ?? "";
   if (!/^[0-9a-f-]{36}$/.test(classId)) throw new HttpError(400, "Bad class id");
   const db = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_ANON_KEY"), {

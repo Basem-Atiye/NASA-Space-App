@@ -20,6 +20,7 @@ import 'package:flutter/scheduler.dart';
 import '../data/story.dart';
 import '../services/audio.dart';
 import '../ui/theme.dart';
+import '../ui/widgets/rotary_dial.dart';
 import 'minigames.dart';
 import 'story_logic.dart';
 import 'story_model.dart';
@@ -237,7 +238,7 @@ class _TriageGameState extends State<TriageGame> with SingleTickerProviderStateM
                         height: 30,
                         alignment: Alignment.center,
                         decoration: const BoxDecoration(color: C.green, shape: BoxShape.circle),
-                        child: Text('${order + 1}', style: T.h3.copyWith(color: C.evergreen, fontSize: 14)),
+                        child: Text('${order + 1}', style: T.h3.copyWith(color: C.ink, fontSize: 14)),
                       ),
                     )
                   : CustomPaint(painter: _HazardPainter(kind, _t + i * 0.7, danger: d, hold: holding ? _hold : 0, color: col)),
@@ -801,7 +802,7 @@ class _JarPainter extends CustomPainter {
 // ======================================================================= KNOBS & GAUGES
 
 /// A dial you twist with your finger. Each step gives a soft click.
-class Knob extends StatefulWidget {
+class Knob extends StatelessWidget {
   final double value, min, max, step;
   final String label;
   final String text;
@@ -809,140 +810,76 @@ class Knob extends StatefulWidget {
   final ValueChanged<double>? onChanged;
   final VoidCallback? onClick;
   final double size;
-  const Knob(
-      {super.key,
-      required this.value,
-      required this.min,
-      required this.max,
-      required this.step,
-      required this.label,
-      required this.text,
-      this.color = C.cyan,
-      this.onChanged,
-      this.onClick,
-      this.size = 96});
-
-  @override
-  State<Knob> createState() => _KnobState();
-}
-
-class _KnobState extends State<Knob> {
-  double? _lastAngle;
-
-  static const _sweep = math.pi * 1.5; // 270° of travel
-
-  void _update(Offset local) {
-    final c = Offset(widget.size / 2, widget.size / 2);
-    final a = math.atan2(local.dy - c.dy, local.dx - c.dx);
-    final last = _lastAngle;
-    _lastAngle = a;
-    if (last == null) return;
-    var da = a - last;
-    if (da > math.pi) da -= math.pi * 2;
-    if (da < -math.pi) da += math.pi * 2;
-    final range = widget.max - widget.min;
-    var v = widget.value + da / _sweep * range;
-    v = (v / widget.step).round() * widget.step;
-    v = v.clamp(widget.min, widget.max).toDouble();
-    if (v != widget.value) {
-      widget.onClick?.call();
-      widget.onChanged?.call(v);
-    }
-  }
+  const Knob({
+    super.key,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.step,
+    required this.label,
+    required this.text,
+    this.color = C.cyan,
+    this.onChanged,
+    this.onClick,
+    this.size = 112,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final f = ((widget.value - widget.min) / (widget.max - widget.min)).clamp(0.0, 1.0);
     return Column(mainAxisSize: MainAxisSize.min, children: [
-      GestureDetector(
-        onPanStart: (d) {
-          _lastAngle = null;
-          _update(d.localPosition);
-        },
-        onPanUpdate: widget.onChanged == null ? null : (d) => _update(d.localPosition),
-        onPanEnd: (_) => _lastAngle = null,
-        child: SizedBox(
-          width: widget.size,
-          height: widget.size,
-          child: CustomPaint(painter: _KnobPainter(f, widget.color, enabled: widget.onChanged != null)),
-        ),
+      RotaryDial(
+        value: value,
+        min: min,
+        max: max,
+        step: step,
+        size: size,
+        color: color,
+        onChanged: onChanged,
+        onStep: onClick,
+        onClamp: onClick,
       ),
+      const SizedBox(height: 2),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        _nudge(Icons.remove_rounded, onChanged == null ? null : () {
+          final v = (value - step).clamp(min, max).toDouble();
+          final snapped = (v / step).round() * step;
+          final next = snapped.clamp(min, max).toDouble();
+          if (next != value) {
+            onClick?.call();
+            onChanged!(next);
+          }
+        }),
+        const SizedBox(width: 6),
+        _nudge(Icons.add_rounded, onChanged == null ? null : () {
+          final v = (value + step).clamp(min, max).toDouble();
+          final snapped = (v / step).round() * step;
+          final next = snapped.clamp(min, max).toDouble();
+          if (next != value) {
+            onClick?.call();
+            onChanged!(next);
+          }
+        }),
+      ]),
       const SizedBox(height: 4),
-      Text(widget.text, style: T.mono.copyWith(color: widget.color, fontSize: 13)),
-      Text(widget.label, style: T.bodySmall.copyWith(fontSize: 11), textAlign: TextAlign.center, maxLines: 2),
+      Text(text, style: T.mono.copyWith(color: color, fontSize: 13)),
+      Text(label, style: T.bodySmall.copyWith(fontSize: 11), textAlign: TextAlign.center, maxLines: 2),
     ]);
   }
-}
 
-class _KnobPainter extends CustomPainter {
-  final double f;
-  final Color color;
-  final bool enabled;
-  _KnobPainter(this.f, this.color, {required this.enabled});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = size.center(Offset.zero);
-    final r = size.shortestSide / 2;
-    const start = math.pi * 0.75, sweep = math.pi * 1.5;
-    // scale ticks
-    final tick = Paint()
-      ..color = C.dim
-      ..strokeWidth = 1.2;
-    for (var k = 0; k <= 20; k++) {
-      final a = start + sweep * k / 20;
-      final inner = k % 5 == 0 ? r - 9 : r - 6;
-      canvas.drawLine(c + Offset(math.cos(a), math.sin(a)) * inner, c + Offset(math.cos(a), math.sin(a)) * (r - 2), tick);
-    }
-    // value arc
-    canvas.drawArc(
-        Rect.fromCircle(center: c, radius: r - 13),
-        start,
-        sweep,
-        false,
-        Paint()
-          ..color = C.lineSoft
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 5
-          ..strokeCap = StrokeCap.round);
-    canvas.drawArc(
-        Rect.fromCircle(center: c, radius: r - 13),
-        start,
-        sweep * f,
-        false,
-        Paint()
-          ..color = color
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 5
-          ..strokeCap = StrokeCap.round);
-    // the knob body with a lit top-left and grip ridges
-    final body = Rect.fromCircle(center: c, radius: r - 20);
-    canvas.drawCircle(c + const Offset(0, 3), r - 20, Paint()..color = Colors.black.withValues(alpha: 0.35));
-    canvas.drawCircle(
-      c,
-      r - 20,
-      Paint()
-        ..shader = const RadialGradient(center: Alignment(-0.4, -0.5), colors: [Color(0xFF5A5680), Color(0xFF2A2748), Color(0xFF1A1830)], stops: [0, 0.7, 1]).createShader(body),
-    );
-    final a = start + sweep * f;
-    final ridge = Paint()
-      ..color = Colors.white.withValues(alpha: 0.08)
-      ..strokeWidth = 1.5;
-    for (var k = 0; k < 16; k++) {
-      final b = a + k * math.pi / 8;
-      canvas.drawLine(c + Offset(math.cos(b), math.sin(b)) * (r - 26), c + Offset(math.cos(b), math.sin(b)) * (r - 21), ridge);
-    }
-    canvas.drawLine(
-        c + Offset(math.cos(a), math.sin(a)) * 6,
-        c + Offset(math.cos(a), math.sin(a)) * (r - 25),
-        Paint()
-          ..color = enabled ? color : C.dim
-          ..strokeWidth = 3.5
-          ..strokeCap = StrokeCap.round);
-  }
-
-  @override
-  bool shouldRepaint(covariant _KnobPainter old) => old.f != f || old.color != color || old.enabled != enabled;
+  Widget _nudge(IconData icon, VoidCallback? onTap) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 28,
+          height: 28,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: C.panelDeep,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: C.line),
+          ),
+          child: Icon(icon, size: 16, color: onTap == null ? C.dim : color),
+        ),
+      );
 }
 
 /// A needle gauge for one SIM result: green when safe, red when not.

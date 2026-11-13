@@ -1,0 +1,28 @@
+{
+  "name": "shackleton_station",
+  "version": "1.0.0",
+  "description": "A portrait mobile game for Android and iPhone, made for the NASA Space Apps Challenge 2026\r challenge **Build a Junior Astronaut Mission Trainer** (Beirut team).",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Basem-Atiye/NASA-Space-App.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Basem-Atiye/NASA-Space-App/issues"
+  },
+  "homepage": "https://github.com/Basem-Atiye/NASA-Space-App#readme",
+  "dependencies": {
+    "ws": "^8.22.2"
+  }
+}

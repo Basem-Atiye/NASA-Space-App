@@ -29,7 +29,7 @@ if '<queries>' in s:
     s = s.replace('<queries>', q.strip().replace('</queries>', '').rstrip() + '\n', 1)
 else:
     s = s.replace('</manifest>', q + '</manifest>')
-s = s.replace('android:label="shackleton_station"', 'android:label="Shackleton Station"')
+s = s.replace('android:label="shackleton_station"', 'android:label="Open Bounds"')
 # release builds need this for sign-in, cloud progress, co-op and NASA data
 if 'android.permission.INTERNET' not in s:
     s = s.replace('<application', '<uses-permission android:name="android.permission.INTERNET" />\n    <application', 1)
@@ -41,7 +41,7 @@ fi
 
 PLIST=ios/Runner/Info.plist
 if [ -f "$PLIST" ]; then
-  sed -i.bak 's#<string>shackleton_station</string>#<string>Shackleton Station</string>#' "$PLIST" && rm -f "$PLIST.bak"
+  sed -i.bak 's#<string>shackleton_station</string>#<string>Open Bounds</string>#' "$PLIST" && rm -f "$PLIST.bak"
   # portrait only on iPhone
   python3 - "$PLIST" <<'PLISTEOF'
 import re, sys
