@@ -179,7 +179,8 @@ class _AstronautFigureState extends State<AstronautFigure> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _syncTicker();
+    // Do not read InheritedWidgets here (TickerMode) — that throws.
+    if (widget.animate) _a.repeat();
   }
 
   @override
@@ -191,7 +192,7 @@ class _AstronautFigureState extends State<AstronautFigure> with SingleTickerProv
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Re-assert after inherited ticker mode / media-query settles.
+    // Safe place to read TickerMode after initState has finished.
     _syncTicker();
   }
 

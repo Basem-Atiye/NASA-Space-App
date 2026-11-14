@@ -11,3 +11,5 @@ backend/.env
 backend/generated/
 backend/supabase/functions/.env
 backend/supabase/.temp/
+.env
+.env/*
