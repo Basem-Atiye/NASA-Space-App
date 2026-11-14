@@ -722,7 +722,9 @@ class _DialogueBoxState extends State<_DialogueBox> with SingleTickerProviderSta
   @override
   Widget build(BuildContext context) {
     final l = widget.line;
-    final n = _clock.shown.clamp(0, l.text.length);
+    final characterName = Services.of(context).session.characterName;
+    final displayedText = personalizeCharacterName(l.text, characterName);
+    final n = l.text.isEmpty ? 0 : (_clock.shown * displayedText.length / l.text.length).round().clamp(0, displayedText.length);
     final done = _clock.done;
     final color = l.who == Speaker.nova ? C.frozen : (l.who == Speaker.aria ? C.violet : C.cyan);
     return GestureDetector(
@@ -745,13 +747,13 @@ class _DialogueBoxState extends State<_DialogueBox> with SingleTickerProviderSta
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(speakerName(l.who).toUpperCase(), style: T.label.copyWith(color: color, fontSize: 10)),
+                  Text(speakerName(l.who, characterName: characterName).toUpperCase(), style: T.label.copyWith(color: color, fontSize: 10)),
                   const SizedBox(height: 3),
                   Expanded(
                     child: SingleChildScrollView(
                       child: Text.rich(
                         TextSpan(
-                          children: typedSpans(l.text, n, tips: widget.tips, recognizers: _rec.map),
+                          children: typedSpans(displayedText, n, tips: widget.tips, recognizers: _rec.map),
                         ),
                         style: T.body.copyWith(fontSize: 15, height: 1.38, fontWeight: FontWeight.w600),
                       ),

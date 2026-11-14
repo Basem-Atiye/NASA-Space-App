@@ -65,6 +65,8 @@ class Session extends ChangeNotifier {
   bool get isTeacher => signedIn && (profile?.isTeacher ?? progress.accountRole == 'teacher');
   bool get isStudent => signedIn && !isTeacher;
   String get name => profile?.displayName ?? progress.displayName ?? auth.displayName;
+  /// Astronaut name shown in the story follows the student's username.
+  String get characterName => auth.username ?? profile?.username ?? (signedIn ? name : 'Nova');
   int get pending => queue.length;
 
   /// Teacher dashboard always uses rich local demo classes (students + levels).

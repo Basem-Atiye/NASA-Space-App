@@ -21,10 +21,10 @@ class GameMessage {
   const GameMessage(this.speaker, this.text, {this.mood = Mood.calm, this.important = false, this.replies = const []});
 }
 
-String speakerName(Speaker s) {
+String speakerName(Speaker s, {String characterName = 'Nova Haddad'}) {
   switch (s) {
     case Speaker.nova:
-      return 'Cmdr. Nova Haddad';
+      return 'Cmdr. $characterName';
     case Speaker.capcom:
       return 'CAPCOM Sami';
     case Speaker.lina:
@@ -38,6 +38,17 @@ String speakerName(Speaker s) {
     case Speaker.home:
       return 'Message from Earth';
   }
+}
+
+/// Personalizes scripted dialogue while keeping the story text as the source of truth.
+String personalizeCharacterName(String text, String characterName) {
+  if (characterName == 'Nova' || characterName == 'Nova Haddad') return text;
+  return text
+      .replaceAll('Commander Nova Haddad', 'Commander $characterName')
+      .replaceAll('Cmdr. Nova Haddad', 'Cmdr. $characterName')
+      .replaceAll('Nova Haddad', characterName)
+      .replaceAll('Commander Nova', 'Commander $characterName')
+      .replaceAll('Nova', characterName);
 }
 
 String speakerRole(Speaker s) {

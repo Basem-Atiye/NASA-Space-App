@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../main.dart';
 import '../data/messages.dart';
 import '../engine/constants.dart';
 import '../engine/mission.dart';
@@ -548,12 +549,12 @@ class LogSheet extends StatelessWidget {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
-                    Text(speakerName(f.message.speaker).toUpperCase(), style: T.label.copyWith(fontSize: 9.5, color: speakerColor(f.message.speaker))),
+                    Text(speakerName(f.message.speaker, characterName: Services.of(context).session.characterName).toUpperCase(), style: T.label.copyWith(fontSize: 9.5, color: speakerColor(f.message.speaker))),
                     const Spacer(),
                     Text(missionClock(f.hour), style: T.monoSmall.copyWith(fontSize: 9.5)),
                   ]),
                   const SizedBox(height: 2),
-                  Text(f.message.text, style: T.body.copyWith(fontSize: 13)),
+                  Text(personalizeCharacterName(f.message.text, Services.of(context).session.characterName), style: T.body.copyWith(fontSize: 13)),
                 ]),
               ),
             ]),

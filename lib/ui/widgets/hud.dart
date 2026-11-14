@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../main.dart';
 import '../../data/messages.dart';
 import '../../engine/mission.dart';
 import '../../engine/simulation.dart';
@@ -418,7 +419,7 @@ class _CrewCardState extends State<CrewCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      Text(speakerName(last.message.speaker).toUpperCase(),
+                      Text(speakerName(last.message.speaker, characterName: Services.of(context).session.characterName).toUpperCase(),
                           style: T.label.copyWith(fontSize: 9, color: speakerColor(last.message.speaker))),
                       const Spacer(),
                       Text('LOG ${g.feed.length}', style: T.monoSmall.copyWith(fontSize: 9)),
@@ -427,7 +428,7 @@ class _CrewCardState extends State<CrewCard> {
                     const SizedBox(height: 3),
                     Typewriter(
                       key: ValueKey(g.feed.length),
-                      text: last.message.text,
+                      text: personalizeCharacterName(last.message.text, Services.of(context).session.characterName),
                       style: T.body.copyWith(fontSize: 12.5),
                       speed: widget.textSpeed,
                       onTyping: (t) {
@@ -612,7 +613,7 @@ class _MessageModalState extends State<MessageModal> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(speakerName(m.speaker).toUpperCase(), style: T.h3.copyWith(color: color == C.text ? C.text : color)),
+                      Text(speakerName(m.speaker, characterName: Services.of(context).session.characterName).toUpperCase(), style: T.h3.copyWith(color: color == C.text ? C.text : color)),
                       Text(speakerRole(m.speaker), style: T.bodySmall),
                     ]),
                   ),
@@ -623,7 +624,7 @@ class _MessageModalState extends State<MessageModal> {
                   onTap: () => _tw.currentState?.complete(),
                   child: Typewriter(
                     key: _tw,
-                    text: m.text,
+                    text: personalizeCharacterName(m.text, Services.of(context).session.characterName),
                     style: T.body.copyWith(fontSize: 15),
                     speed: widget.textSpeed,
                     onTyping: (t) {
