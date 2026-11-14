@@ -1,11 +1,11 @@
 {
-    "name": "Open Bounds",
-    "short_name": "Open Bounds",
+    "name": "Space Bounds",
+    "short_name": "Space Bounds",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Open Bounds — Junior Astronaut Mission Trainer",
+    "description": "Space Bounds — Junior Astronaut Mission Trainer",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
