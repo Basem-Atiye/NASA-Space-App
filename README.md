@@ -1,4 +1,4 @@
-# Space Bounds — Junior Astronaut Mission Trainer
+# Open Bounds — Junior Astronaut Mission Trainer
 
 Walk Commander Nova across the Moon’s south pole, solve real engineering problems with real NASA numbers, and bring your crew home safely.
 
