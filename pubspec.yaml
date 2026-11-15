@@ -38,6 +38,7 @@ flutter:
     - assets/sounds/
     - assets/images/
     - env/dev.json
+    - env/pages.json
   fonts:
     # Figma design: Fredoka for titles, numbers and buttons; Nunito for text
     - family: Fredoka

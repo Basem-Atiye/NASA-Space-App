@@ -155,6 +155,22 @@ flutter build apk --release --dart-define-from-file=env/dev.json
 `env/dev.json` holds **public** keys only. The Clerk secret key and the Supabase service role
 key never go in the app; they live in Supabase Edge Function secrets.
 
+### Web (Chrome) and GitHub Pages
+
+```bash
+flutter run -d chrome --dart-define-from-file=env/dev.json
+flutter build web --release --base-href /NASA-Space-App/ --dart-define-from-file=env/dev.json
+```
+
+Pushing to `main` runs `.github/workflows/deploy.yml`, which builds Flutter web and deploys
+`build/web` to GitHub Pages at https://basem-atiye.github.io/NASA-Space-App/
+
+**One-time repo setting:** Settings → Pages → Build and deployment → Source → **GitHub Actions**
+(not “Deploy from a branch”). Branch/root deploy only shows this README.
+
+Optional Actions secrets (public client keys): `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`.
+If unset, the workflow uses committed `env/pages.json`.
+
 ## Cloud setup (about 20 minutes)
 
 ### 1. Clerk

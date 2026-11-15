@@ -1,0 +1,80 @@
+# Deploy the Flutter web game to GitHub Pages (not the README).
+# Repo Settings → Pages → Build and deployment → Source: GitHub Actions
+name: Deploy Flutter Web to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable web
+        run: flutter config --enable-web
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # env/dev.json is gitignored (local secrets). CI builds a public client env
+      # from GitHub Actions secrets when set, otherwise from env/pages.json.
+      - name: Prepare env/dev.json for asset + dart-define
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -e
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            printf '%s\n' "{" \
+              "  \"APP_ENV\": \"prod\"," \
+              "  \"SUPABASE_URL\": \"$SUPABASE_URL\"," \
+              "  \"SUPABASE_PUBLISHABLE_KEY\": \"$SUPABASE_PUBLISHABLE_KEY\"," \
+              "  \"TEACHER_DASHBOARD_URL\": \"\"" \
+              "}" > env/dev.json
+          else
+            cp env/pages.json env/dev.json
+          fi
+
+      - name: Build Flutter web (GitHub Pages base path)
+        run: |
+          flutter build web --release --base-href /NASA-Space-App/ \
+            --dart-define-from-file=env/dev.json
+
+      # SPA fallback: refresh on non-root paths still loads the Flutter app
+      - name: Add 404.html for GitHub Pages
+        run: cp build/web/index.html build/web/404.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

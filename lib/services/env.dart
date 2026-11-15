@@ -28,7 +28,7 @@ class Env {
       debugPrint('Env: cloud keys from dart-define');
       return;
     }
-    for (final path in const ['env/dev.json', 'assets/env/dev.json']) {
+    for (final path in const ['env/dev.json', 'env/pages.json', 'assets/env/dev.json', 'assets/env/pages.json']) {
       try {
         final raw = await rootBundle.loadString(path);
         final map = jsonDecode(raw.replaceFirst(RegExp(r'^\uFEFF'), '')) as Map<String, dynamic>;

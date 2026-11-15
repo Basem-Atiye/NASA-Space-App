@@ -1,0 +1,6 @@
+{
+  "APP_ENV": "prod",
+  "SUPABASE_URL": "https://hnvpqbvrxfxocbpzhkey.supabase.co",
+  "SUPABASE_PUBLISHABLE_KEY": "sb_publishable__TafXlcW0zPHmKVC4DZzog_Gofw_v8A",
+  "TEACHER_DASHBOARD_URL": ""
+}
