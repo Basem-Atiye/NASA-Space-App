@@ -77,6 +77,7 @@ Tests: `flutter test`
 - **Supabase** — auth, Postgres, Realtime (classes, co-op, sync)
 - **GitHub Actions + GitHub Pages** — web deploy
 - **Audioplayers / flutter_tts / sensors_plus** — sound, read-aloud, tilt & motion
+- **Cursor** - To make coding and planning (coding architecture) faster
 
 ---
 
