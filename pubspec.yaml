@@ -31,6 +31,11 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   adaptive_icon_background: '#0A1331'
   adaptive_icon_foreground: assets/images/icon.png
+  web:
+    generate: true
+    image_path: assets/images/icon.png
+    background_color: '#0A1331'
+    theme_color: '#0ABCCA'
 
 flutter:
   uses-material-design: true
