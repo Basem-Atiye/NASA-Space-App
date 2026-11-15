@@ -27,6 +27,10 @@ double _nodeX(int i) => 0.5 + 0.24 * math.sin(i * 1.3 + 0.6);
 
 const _rowH = 92.0;
 
+/// Space under level 1 inside the path, so the first node sits clearly
+/// above the bottom level card (not under it).
+const _pathPad = 56.0;
+
 class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   late int _selected = Services.of(context).progress.nextStoryTask();
   late final AnimationController _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 1600))..repeat();
@@ -63,15 +67,16 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     }
   }
 
-  /// Scrolls the map so [level] sits comfortably above the card.
+  /// Scrolls the map so [level] sits in the visible path area (above the card).
   void _reveal(int level, {bool animate = true}) {
     if (!mounted || !_scroll.hasClients || _viewH <= 0) return;
     final pos = _scroll.position;
-    final fromBottom = 84 + (level - 1) * _rowH;
-    const margin = 70.0;
+    // Level 1 sits [_pathPad] above the bottom of the path content.
+    final fromBottom = _pathPad + (level - 1) * _rowH;
+    const margin = 48.0;
     final o = pos.pixels;
     if (fromBottom >= o + margin && fromBottom <= o + _viewH - margin) return;
-    final target = (fromBottom - _viewH * 0.4).clamp(0.0, pos.maxScrollExtent);
+    final target = (fromBottom - _viewH * 0.38).clamp(0.0, pos.maxScrollExtent);
     if (animate) {
       _scroll.animateTo(target, duration: const Duration(milliseconds: 450), curve: Curves.easeOutCubic);
     } else {
@@ -125,12 +130,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       color: _ground,
       child: LayoutBuilder(builder: (context, box) {
         final mapTop = top + (p.className != null ? 124 : 98);
-        final cardH = _cardH ?? 346.0 + (showPre || showPost ? 132 : 0);
-        // the map stops just above the card (a little overlap hides under its shadow)
-        final viewH = math.max(200.0, box.maxHeight - mapTop - (cardH + 16 + bottom) + 10);
+        // Card stays at the bottom; map height ends just above it so levels start there.
+        final maxCard = math.min(268.0, box.maxHeight * 0.36);
+        final cardH = math.min(_cardH ?? 210.0, maxCard);
+        final cardGap = 12.0 + bottom;
+        final viewH = math.max(220.0, box.maxHeight - mapTop - cardH - cardGap);
         _viewH = viewH;
-        final contentH = math.max(viewH, n * _rowH + 170);
-        Offset nodeAt(int i) => Offset(_nodeX(i) * box.maxWidth, contentH - 84 - i * _rowH);
+        final contentH = math.max(viewH, n * _rowH + _pathPad + 120);
+        Offset nodeAt(int i) => Offset(_nodeX(i) * box.maxWidth, contentH - _pathPad - i * _rowH);
         WidgetsBinding.instance.addPostFrameCallback((_) => _measureCard());
         if (!_scrolled) {
           _scrolled = true;
@@ -144,18 +151,18 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           },
           child: Stack(fit: StackFit.expand, children: [
             const ColoredBox(color: _ground),
-            // the scrolling path
+            // Path area ends above the level card — nodes start here, not under the sheet.
             Positioned(
               left: 0,
               right: 0,
-              top: mapTop - 20,
-              height: viewH + 20,
+              top: mapTop - 12,
+              height: viewH + 12,
               child: ShaderMask(
                 shaderCallback: (r) => const LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
-                    stops: [0, 0.07, 0.93, 1]).createShader(r),
+                    colors: [Colors.transparent, Colors.black, Colors.black, Colors.black],
+                    stops: [0, 0.06, 0.88, 1]).createShader(r),
                 blendMode: BlendMode.dstIn,
                 child: SingleChildScrollView(
                   controller: _scroll,
@@ -303,97 +310,98 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   ),
               ]),
             ),
-            // the level card
+            // Level detail + Play — sits under the path; path never draws behind this.
             Positioned(
-              left: 24,
-              right: 24,
-              bottom: 16 + bottom,
+              left: 20,
+              right: 20,
+              bottom: 12 + bottom,
               child: AnimatedSwitcher(
                 key: _cardKey,
                 duration: Motion.normal,
                 switchInCurve: Motion.curve,
                 transitionBuilder: (c, a) =>
                     FadeTransition(opacity: a, child: SlideTransition(position: Tween(begin: const Offset(0, 0.06), end: Offset.zero).animate(a), child: c)),
-                child: Container(
+                child: ConstrainedBox(
                   key: ValueKey('${camp.id}-$_selected'),
-                  decoration: BoxDecoration(
-                    color: C.panel,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 30, offset: const Offset(0, 12)),
-                      BoxShadow(color: selTheme.accent.withValues(alpha: 0.18), blurRadius: 40),
-                    ],
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
-                    // a strip in the colour of the mission
-                    Container(height: 5, color: selTheme.accent),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                        Row(children: [
-                          Overline('LEVEL $_selected', color: C.cyan, size: 11.5),
-                          const SizedBox(width: 8),
-                          const LineIcon(Ln.clock, size: 14, color: C.muted),
-                          const SizedBox(width: 4),
-                          Flexible(child: Text('about $mins min', style: T.bodySmall.copyWith(fontSize: 12.5), overflow: TextOverflow.ellipsis)),
-                          const Spacer(),
-                          if (p.storyStars(_selected) > 0) StarRow(stars: p.storyStars(_selected), size: 15),
-                        ]),
-                        const SizedBox(height: 8),
-                        Text(task.title, style: T.h2.copyWith(fontSize: 23), maxLines: 2, overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: 8),
-                        Row(children: [
-                          Container(
-                            height: 26,
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            decoration: BoxDecoration(color: selTheme.accent.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(13)),
-                            child: Row(mainAxisSize: MainAxisSize.min, children: [
-                              Icon(moodIcon(selTheme), size: 14, color: selTheme.accent),
-                              const SizedBox(width: 6),
-                              Text(selTheme.name.toUpperCase(), style: T.label.copyWith(color: selTheme.accent, fontSize: 10.5, letterSpacing: 1.6)),
-                            ]),
-                          ),
-                        ]),
-                        const SizedBox(height: 10),
-                        Text(info.brief, style: T.body.copyWith(color: C.muted, fontSize: 14, height: 1.4), maxLines: 3, overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: 12),
-                        Wrap(spacing: 8, runSpacing: 8, children: [
-                          for (final g in info.games) _chip(g, C.panelDeep, C.text),
-                          _chip(info.chip, C.info, C.frozen),
-                        ]),
-                        const SizedBox(height: 16),
-                        if (showPre || showPost) ...[
-                          Container(
-                            width: double.infinity,
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(color: C.yellow.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(16)),
-                            child: Row(children: [
-                              const IconBox(Ln.bulb, color: C.yellow, size: 34),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  showPre ? 'Take the short readiness check before Level 1 (about 2 min).' : 'Campaign complete! Finish the final readiness check.',
-                                  style: T.body.copyWith(fontSize: 13.5, color: C.frozen),
+                  constraints: BoxConstraints(maxHeight: maxCard),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: C.panel,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 28, offset: const Offset(0, 10)),
+                        BoxShadow(color: selTheme.accent.withValues(alpha: 0.16), blurRadius: 32),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
+                        Container(height: 4, color: selTheme.accent),
+                        Flexible(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                              Row(children: [
+                                Overline('LEVEL $_selected', color: C.cyan, size: 11),
+                                const SizedBox(width: 8),
+                                Container(
+                                  height: 22,
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  decoration: BoxDecoration(color: selTheme.accent.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(11)),
+                                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                    Icon(moodIcon(selTheme), size: 12, color: selTheme.accent),
+                                    const SizedBox(width: 4),
+                                    Text(selTheme.name.toUpperCase(), style: T.label.copyWith(color: selTheme.accent, fontSize: 9.5, letterSpacing: 1.2)),
+                                  ]),
                                 ),
+                                const Spacer(),
+                                Text('~$mins min', style: T.bodySmall.copyWith(fontSize: 11.5, color: C.muted)),
+                                if (p.storyStars(_selected) > 0) ...[
+                                  const SizedBox(width: 8),
+                                  StarRow(stars: p.storyStars(_selected), size: 13),
+                                ],
+                              ]),
+                              const SizedBox(height: 6),
+                              Text(task.title, style: T.h2.copyWith(fontSize: 20), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              if (showPre || showPost) ...[
+                                const SizedBox(height: 10),
+                                Material(
+                                  color: C.yellow.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(14),
+                                    onTap: () => sv.nav.go(Screen.readiness),
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                                      child: Row(children: [
+                                        const Icon(Icons.lightbulb_rounded, size: 18, color: C.yellow),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            showPre ? 'Quick readiness check first (~2 min) ✓' : 'Final readiness check — tap here!',
+                                            style: T.body.copyWith(fontSize: 12.5, color: C.frozen),
+                                          ),
+                                        ),
+                                        Icon(Icons.chevron_right_rounded, size: 18, color: C.yellow.withValues(alpha: 0.9)),
+                                      ]),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 10),
+                              KitButton(
+                                p.storyUnlocked(_selected)
+                                    ? (_selected == current && p.storyStars(_selected) == 0 ? 'Play next · Level $_selected' : 'Play level $_selected')
+                                    : 'Locked',
+                                icon: p.storyUnlocked(_selected) ? Ln.play : Ln.lock,
+                                onTap: p.storyUnlocked(_selected) ? _playLevel : null,
                               ),
                             ]),
                           ),
-                          KitButton(showPre ? 'Readiness check first' : 'Final readiness check', icon: Ln.check, onTap: () => sv.nav.go(Screen.readiness)),
-                          const SizedBox(height: 12),
-                        ],
-                        KitButton(
-                          p.storyUnlocked(_selected)
-                              ? (_selected == current && p.storyStars(_selected) == 0 ? 'Play next · Level $_selected' : 'Play level $_selected')
-                              : 'Locked',
-                          icon: p.storyUnlocked(_selected) ? Ln.play : Ln.lock,
-                          style: showPre || showPost ? KitButtonStyle.secondary : KitButtonStyle.primary,
-                          onTap: p.storyUnlocked(_selected) ? _playLevel : null,
                         ),
                       ]),
                     ),
-                  ]),
+                  ),
                 ),
               ),
             ),
@@ -402,14 +410,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       }),
     );
   }
-
-  Widget _chip(String text, Color bg, Color fg) => Container(
-        height: 30,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(15)),
-        child: Text(text, style: T.body.copyWith(fontSize: 12.5, color: fg, fontWeight: FontWeight.w700, height: 1.1)),
-      );
 
   Widget _node(int n, Offset at, int current) {
     final p = Services.of(context).progress;
@@ -667,7 +667,8 @@ class _SurfacePainter extends CustomPainter {
       c.drawOval(Rect.fromCenter(center: p, width: w * 1.6, height: w), Paint()..color = const Color(0xFF6A62A0));
       c.drawOval(Rect.fromCenter(center: p + Offset(light.dx * w * 0.25, -w * 0.15), width: w * 0.8, height: w * 0.35), Paint()..color = Colors.white.withValues(alpha: 0.18));
     }
-    if (nodes.isNotEmpty) _label(c, 'LANDING SITE', nodes.first + const Offset(0, 52), C.muted);
+    // Sit above node 1 so the bottom level card never covers the label.
+    if (nodes.isNotEmpty) _label(c, 'LANDING SITE', nodes.first + const Offset(0, -48), C.muted);
   }
 
   void _label(Canvas c, String text, Offset at, Color col) {

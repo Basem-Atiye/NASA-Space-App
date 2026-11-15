@@ -19,6 +19,8 @@ import 'package:flutter/scheduler.dart';
 
 import '../data/story.dart';
 import '../services/audio.dart';
+import '../ui/kit.dart';
+import '../ui/line_icons.dart';
 import '../ui/theme.dart';
 import '../ui/widgets/rotary_dial.dart';
 import 'minigames.dart';
@@ -76,12 +78,16 @@ class _TriageGameState extends State<TriageGame> with SingleTickerProviderStateM
   int? _wrong;
   double _wrongT = 0;
   String? _status;
+  late bool _showIntro;
 
   static const _holdTime = 0.85;
+
+  bool get _isLoadShedding => widget.spec.title.toUpperCase().contains('LOAD SHEDDING');
 
   @override
   void initState() {
     super.initState();
+    _showIntro = _isLoadShedding;
     final n = widget.spec.items.length;
     _danger = List.filled(n, 0);
     _rate = List.filled(n, 0);
@@ -91,7 +97,15 @@ class _TriageGameState extends State<TriageGame> with SingleTickerProviderStateM
       _rate[item] = 0.11 - k * 0.018;
       _danger[item] = 0.22 - k * 0.03;
     }
-    _ticker = createTicker(_tick)..start();
+    _ticker = createTicker(_tick);
+    if (!_showIntro) _ticker.start();
+  }
+
+  void _beginPlay() {
+    widget.audio.play(Sfx.tap, volume: 0.45);
+    setState(() => _showIntro = false);
+    _last = Duration.zero;
+    _ticker.start();
   }
 
   void _tick(Duration now) {
@@ -178,6 +192,7 @@ class _TriageGameState extends State<TriageGame> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    if (_showIntro) return _LoadSheddingIntro(onReady: _beginPlay);
     final s = widget.spec;
     final left = s.items.length - _fixed.length;
     return GameFrame(
@@ -277,6 +292,124 @@ class _TriageGameState extends State<TriageGame> with SingleTickerProviderStateM
           ]),
         ),
       ),
+    );
+  }
+}
+
+/// Coach card before Load Shedding: turn nice-to-haves off first; keep life support on.
+class _LoadSheddingIntro extends StatelessWidget {
+  final VoidCallback onReady;
+  const _LoadSheddingIntro({required this.onReady});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: C.cyan.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: C.cyan.withValues(alpha: 0.45)),
+                    ),
+                    child: const Icon(Icons.bolt_rounded, color: C.cyan, size: 26),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text('Power is short', style: T.h2.copyWith(fontSize: 24))),
+                ]),
+                const SizedBox(height: 14),
+                Text(
+                  'When the battery dips, you switch loads off — but not all at once. Start with the nice-to-haves. Keep the critical systems running.',
+                  style: T.body.copyWith(color: C.muted, fontSize: 15, height: 1.4),
+                ),
+                const SizedBox(height: 18),
+                _priorityCard(
+                  step: '1',
+                  title: 'Switch off first',
+                  body: 'Science tools, rover charging, greenhouse lights — useful, but the crew can wait.',
+                  color: C.amber,
+                  icon: Icons.power_settings_new_rounded,
+                ),
+                const SizedBox(height: 10),
+                _priorityCard(
+                  step: '2',
+                  title: 'Keep critical on',
+                  body: 'Heaters and life support stay on longest. People first. Always.',
+                  color: C.green,
+                  icon: Icons.favorite_rounded,
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                  decoration: BoxDecoration(
+                    color: C.cyan.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: C.cyan.withValues(alpha: 0.35)),
+                  ),
+                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Icon(Icons.lightbulb_outline_rounded, color: C.cyan, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Tap each load in order: first to switch off → last to switch off.',
+                        style: T.body.copyWith(fontSize: 13.5, color: C.frozen, height: 1.35),
+                      ),
+                    ),
+                  ]),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        KitButton("Got it — let's shed", icon: Ln.play, onTap: onReady),
+      ],
+    );
+  }
+
+  Widget _priorityCard({
+    required String step,
+    required String title,
+    required String body,
+    required Color color,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        color: C.panelDeep,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+      ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          width: 40,
+          height: 40,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.18), shape: BoxShape.circle),
+          child: Text(step, style: T.h3.copyWith(color: color, fontSize: 18)),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 6),
+              Expanded(child: Text(title, style: T.h3.copyWith(fontSize: 15, color: C.frozen))),
+            ]),
+            const SizedBox(height: 4),
+            Text(body, style: T.body.copyWith(fontSize: 13, color: C.muted, height: 1.35)),
+          ]),
+        ),
+      ]),
     );
   }
 }

@@ -270,6 +270,16 @@ class StoryController extends ChangeNotifier implements SurfaceDriver {
       emote(NovaAction.scared, 1.6);
       _eye(PipEye.alarm, 2.5);
     }
+    // Cadet explore steps: keep walking — tip as bubble/toast, not a frozen dialog wall.
+    final explore = step.kind == StepKind.goTo || step.kind == StepKind.collect;
+    if (mode == AgeMode.cadet && explore && step.intro.isNotEmpty) {
+      final tip = step.intro.first.text;
+      say(tip, 3.6);
+      voice?.say(tip);
+      _toast(StoryToast('Pip', [tip], ++_toastId));
+      _sync();
+      return;
+    }
     _say(step.intro);
     _sync();
   }
@@ -360,13 +370,15 @@ class StoryController extends ChangeNotifier implements SurfaceDriver {
     notifyListeners();
   }
 
-  /// Cadets: Pip says where to go next.
+  /// Cadets: Pip says where to go next (toast only — never freezes walking).
   void _pipPoint() {
     final g = goal;
     if (g == null) return;
     final dir = WorldModel.xOf(g) > world.novaX ? 'right' : 'left';
     final name = _nameOf(g);
-    _toast(StoryToast('Pip', ['This way! The $name is to the $dir. Follow my arrow.'], ++_toastId));
+    final tip = 'This way! The $name is to the $dir.';
+    _toast(StoryToast('Pip', [tip, 'Follow my arrow!'], ++_toastId));
+    say(tip, 2.8);
   }
 
   String _nameOf(String id) {

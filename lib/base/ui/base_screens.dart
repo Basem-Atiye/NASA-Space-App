@@ -15,6 +15,7 @@ import '../../ui/theme.dart';
 import '../base_badges.dart';
 import '../base_content.dart';
 import '../base_engine.dart';
+import '../base_kid_copy.dart';
 import 'base_style.dart';
 
 /// A centred, phone-width column with the design's 24 side margins.
@@ -323,7 +324,7 @@ class BaseBriefingScreen extends StatelessWidget {
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         const Overline('Your goal', size: 11.5),
                         const SizedBox(height: 4),
-                        Text(m.goal, style: T.h3.copyWith(fontSize: 17.5, height: 1.3)),
+                        Text(useKidBaseCopy(sv.progress.ageMode) ? kidGoal(m) : m.goal, style: T.h3.copyWith(fontSize: 17.5, height: 1.3)),
                       ]),
                     ),
                   ]),
@@ -363,9 +364,9 @@ class BaseBriefingScreen extends StatelessWidget {
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        TagChip(m.newTitle, color: C.cyan, on: C.info, size: 12.5),
+                        TagChip(useKidBaseCopy(sv.progress.ageMode) ? kidNewTitle(m) : m.newTitle, color: C.cyan, on: C.info, size: 12.5),
                         const SizedBox(height: 10),
-                        Text(m.newText, style: T.body.copyWith(fontSize: 15, height: 1.45)),
+                        Text(useKidBaseCopy(sv.progress.ageMode) ? kidNewText(m) : m.newText, style: T.body.copyWith(fontSize: 15, height: 1.45)),
                       ]),
                     ),
                   ]),
@@ -504,26 +505,31 @@ class HowToPlayScreen extends StatelessWidget {
             ScreenHeader(title: 'How to Play', onBack: () => sv.nav.back()),
             Expanded(
               child: ListView(padding: const EdgeInsets.fromLTRB(24, 8, 24, 16), children: [
-                Text('Keep your crew alive', style: T.h2.copyWith(fontSize: 21)),
+                Text(useKidBaseCopy(sv.progress.ageMode) ? 'Keep your crew safe! 🛟' : 'Keep your crew alive', style: T.h2.copyWith(fontSize: 21)),
                 const SizedBox(height: 6),
-                Text('You run a base on the Moon. Your job is to keep everyone safe until the last day.', style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 15.5)),
+                Text(
+                  useKidBaseCopy(sv.progress.ageMode)
+                      ? 'Walk to the glowing building → fix it → Next Day! 🌕🌟'
+                      : 'Walk to glowing buildings when alerts fire, fix them, then press Next Day.',
+                  style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 15.5),
+                ),
                 const SizedBox(height: 18),
                 _Step(
                   n: 1,
-                  title: 'Check your supplies',
-                  text: 'Air, water, food and power each have a meter.',
+                  title: useKidBaseCopy(sv.progress.ageMode) ? 'Check meters 📊' : 'Check your supplies',
+                  text: useKidBaseCopy(sv.progress.ageMode) ? 'Air, water, food, power! 🌬️💧🥗⚡' : 'Air, water, food and power each have a meter.',
                   extra: Row(children: [
                     for (final (i, c) in [(Ln.wind, C.air), (Ln.droplet, C.water), (Ln.sprout, C.food), (Ln.zap, C.power)]) Padding(padding: const EdgeInsets.only(right: 6), child: IconBox(i, color: c, size: 34, on: C.panel, alpha: 0.25)),
                   ]),
                 ),
                 const SizedBox(height: 12),
-                const _Step(n: 2, title: 'Tap a part of the base', text: 'Turn it up or down. You will see what changes.'),
+                _Step(n: 2, title: useKidBaseCopy(sv.progress.ageMode) ? 'Tap a base part 🏠' : 'Tap a part of the base', text: useKidBaseCopy(sv.progress.ageMode) ? 'Turn it up or down. Watch what changes! 👀' : 'Turn it up or down. You will see what changes.'),
                 const SizedBox(height: 12),
-                const _Step(n: 3, title: 'Press Next Day', text: 'Watch what happens. Surprises can pop up!'),
+                _Step(n: 3, title: useKidBaseCopy(sv.progress.ageMode) ? 'Press Next Day ⏭️' : 'Press Next Day', text: useKidBaseCopy(sv.progress.ageMode) ? 'Surprises can pop up! 🎉' : 'Watch what happens. Surprises can pop up!'),
                 const SizedBox(height: 12),
-                const TipCard(title: 'Every choice has a cost', text: 'More food uses more water and power. You can\'t max everything!', color: Color(0xFF3E3A6A)),
+                TipCard(title: useKidBaseCopy(sv.progress.ageMode) ? 'Choices cost something ⚖️' : 'Every choice has a cost', text: useKidBaseCopy(sv.progress.ageMode) ? 'More food needs more water + power. You can’t max everything! 😅' : 'More food uses more water and power. You can\'t max everything!', color: const Color(0xFF3E3A6A)),
                 const SizedBox(height: 12),
-                const TipCard(title: 'Real science', text: 'Real Moon bases will sit near the south pole, where there is sunlight for power and ice for water.', icon: Ln.sparkles, iconColor: C.yellow, color: Color(0xFF3E3A6A)),
+                TipCard(title: useKidBaseCopy(sv.progress.ageMode) ? 'Real science ✨' : 'Real science', text: useKidBaseCopy(sv.progress.ageMode) ? 'Moon bases like sunny south poles + ice for water! ☀️🧊' : 'Real Moon bases will sit near the south pole, where there is sunlight for power and ice for water.', icon: Ln.sparkles, iconColor: C.yellow, color: const Color(0xFF3E3A6A)),
               ]),
             ),
             Padding(padding: const EdgeInsets.fromLTRB(24, 6, 24, 14), child: KitButton('Got It', onTap: () => sv.nav.back())),

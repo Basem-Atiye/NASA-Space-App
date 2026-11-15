@@ -56,7 +56,7 @@ void main() {
     expect(carry.o2Kg, greaterThan(0));
     expect(carry.foodKg, greaterThanOrEqualTo(0));
   });
-
+  
   test('every task can also be started on its own', () {
     for (final t in storyTasks) {
       final r = playTask(t.n, Carry.defaultsFor(t.n));
@@ -137,9 +137,16 @@ void main() {
     expect(r.outcome, TaskOutcome.failed);
   });
 
+  void _reachHazardsDust(StoryRun r) {
+    expect(r.step.id, 't6_to_panels');
+    r.arrive('panels');
+    r.use();
+    expect(r.step.id, 't6_dust');
+  }
+
   test('a timed hazard that runs out of time picks the risky option', () {
     final r = StoryRun(storyTask(6), Carry.defaultsFor(6));
-    expect(r.step.id, 't6_dust');
+    _reachHazardsDust(r);
     for (var i = 0; i < 25; i++) {
       r.tick(1);
     }
@@ -153,8 +160,10 @@ void main() {
 
   test('age modes: Engineers get 15 s, Cadets have no clock and no suit drain', () {
     final eng = StoryRun(storyTask(6), Carry.defaultsFor(6), mode: AgeMode.engineer);
+    _reachHazardsDust(eng);
     expect(eng.timer, 15);
     final cadet = StoryRun(storyTask(6), Carry.defaultsFor(6), mode: AgeMode.cadet);
+    _reachHazardsDust(cadet);
     expect(cadet.timer, 0);
     for (var i = 0; i < 100; i++) {
       cadet.tick(1);
@@ -173,11 +182,13 @@ void main() {
 
   test('age modes: a Cadet mistake is retried, an Engineer one moves on', () {
     final cadet = StoryRun(storyTask(6), Carry.defaultsFor(6), mode: AgeMode.cadet);
+    _reachHazardsDust(cadet);
     final bad = cadet.step.options.firstWhere((o) => o.mistake);
     cadet.choose(bad.id);
     expect(cadet.step.id, 't6_dust');
     expect(cadet.mistakes, 1);
     final eng = StoryRun(storyTask(6), Carry.defaultsFor(6), mode: AgeMode.engineer);
+    _reachHazardsDust(eng);
     eng.choose(bad.id);
     expect(eng.step.id, isNot('t6_dust'));
   });

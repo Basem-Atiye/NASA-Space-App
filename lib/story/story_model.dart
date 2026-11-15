@@ -29,7 +29,7 @@ extension AgeModeInfo on AgeMode {
   String get title => const ['Little Explorer', 'Explorer', 'Engineer'][index];
   String get ages => const ['ages 6–10', 'ages 11–14', 'ages 15–18'][index];
   String get blurb => const [
-        'Every line read aloud. Pictures instead of numbers. Pip shows the way and nothing runs out of time.',
+        'Short lines + fun emoji! 🎉 Pictures, free hints, and no timers. Pip helps you all the way. 🚀',
         'Real numbers and simple maths. Gentle timers. Hints cost a star.',
         'Real NASA rates and formulas. Tight timers. Mistakes follow you to the next level.',
       ][index];

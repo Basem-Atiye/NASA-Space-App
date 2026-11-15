@@ -50,7 +50,7 @@ class _EndingScreenState extends State<EndingScreen> with SingleTickerProviderSt
     final avg = (total / upTo).round().clamp(1, 3);
     final seasonOne = camp.id == CampaignId.explorer && upTo <= 10;
     final (kicker, heading, message) = switch (camp.id) {
-      CampaignId.cadet => ('TRAINING COMPLETE', 'Moon Cadet!', 'You finished Moon Cadet training. You can suit up, share power fairly, grow food, clean water and talk to Earth. Commander Nova is proud of you!'),
+      CampaignId.cadet => ('TRAINING COMPLETE 🎉', 'Moon Cadet! 🏅', 'You did it! 🚀 Suit up, grow food, clean water, and talk to Earth. Nova is so proud! 💕'),
       CampaignId.engineer => ('SOL 40 · DESIGN APPROVED', 'Artemis Base Camp', 'From a launch window to a Mars plan: every decision you made used real NASA numbers. Your station design is on its way to the Mars team.'),
       _ when seasonOne => ('DAY $rescueDays · LIFT-OFF', 'Going home', '$finalMessage Season 2 is unlocked: come back with a crew and build the station.'),
       _ => ('SEASON 2 COMPLETE', 'Shackleton Station', 'A crash site became a station with a crew, a garden and its own water. Mission accomplished, Commander.'),

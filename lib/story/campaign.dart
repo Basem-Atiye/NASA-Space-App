@@ -66,7 +66,7 @@ final List<Campaign> campaigns = [
     id: CampaignId.cadet,
     mode: AgeMode.cadet,
     title: 'Moon Cadets',
-    tagline: 'Twelve short missions at Shackleton Base with Commander Nova.',
+    tagline: '12 short Moon missions with Nova! 🚀🌕 Lots of emoji. No timers.',
     tasks: cadetTasks,
     infos: cadetInfos,
     seasons: const [Season('Moon Cadet training', 1, 12)],

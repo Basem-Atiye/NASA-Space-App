@@ -10,6 +10,7 @@ import '../../ui/line_icons.dart';
 import '../../ui/theme.dart';
 import '../base_badges.dart';
 import '../base_engine.dart';
+import '../base_kid_copy.dart';
 import 'base_screens.dart';
 import 'base_style.dart';
 import 'mission_control.dart';
@@ -217,7 +218,12 @@ class _Failed extends StatelessWidget {
                   if (i < steps.length - 1) const Padding(padding: EdgeInsets.symmetric(vertical: 6), child: Center(child: LineIcon(Ln.down, size: 20, color: C.frozen))),
                 ],
                 const SizedBox(height: 14),
-                TipCard(title: 'Lesson', text: r.lesson),
+                TipCard(
+                  title: useKidBaseCopy(Services.of(context).progress.ageMode) ? 'Lesson 💡' : 'Lesson',
+                  text: useKidBaseCopy(Services.of(context).progress.ageMode)
+                      ? kidLesson(r.lesson, mission: state.mission.n)
+                      : r.lesson,
+                ),
                 const SizedBox(height: 12),
                 ExpansionTile(
                   tilePadding: EdgeInsets.zero,

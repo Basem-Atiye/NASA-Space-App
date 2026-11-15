@@ -11,12 +11,14 @@ import 'package:flutter/services.dart';
 
 import '../../main.dart';
 import '../../services/audio.dart';
+import '../../story/story_model.dart' show AgeMode;
 import '../../ui/astro_art.dart';
 import '../../ui/figma_art.dart';
 import '../../ui/kit.dart';
 import '../../ui/line_icons.dart';
 import '../../ui/theme.dart';
 import '../base_engine.dart';
+import '../base_kid_copy.dart';
 import '../base_strip.dart';
 import 'base_screens.dart';
 import 'base_style.dart';
@@ -44,6 +46,15 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
   EventOption? _result;
   EventDef? _resultEvent;
   int? _choice;
+
+  /// Player must walk/tap the glowing building before the event card opens.
+  bool _eventReached = false;
+  /// For dust/leak/clog on Cadet/Explorer: a short mini-action before choices.
+  bool _miniDone = false;
+  double _miniHold = 0;
+  int? _miniProbe;
+  /// Soft-highlight the best option after a weak choice (Little Explorer).
+  bool _hintBest = false;
 
   /// A short line after each day ("The storm passed. The crew was safe.").
   String? _dayNote;
@@ -76,8 +87,20 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
         if (s.mission.systems.contains(Sys.recycler)) Spot.recycler,
       };
 
+  /// Spot for a pending emergency card (walk here first).
+  Spot _spotForEvent(String id) => switch (id) {
+        'dust' || 'rock' || 'duststorm' => Spot.power,
+        'leak' || 'storm' || 'sick' || 'night' || 'quake' => Spot.habitat,
+        'clog' => Spot.recycler,
+        'leaves' => Spot.greenhouse,
+        'parts' || 'printer' || 'ship' => Spot.lab,
+        _ => Spot.habitat,
+      };
+
   /// The building that needs Nova most right now.
   Spot? get _alertSpot {
+    final e = s.pendingEvent;
+    if (e != null && !_eventReached) return _spotForEvent(e.id);
     if (s.leaking) return Spot.habitat;
     final w = s.warning;
     if (w?.system != null) return _spotFor(w!.system!);
@@ -93,20 +116,54 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
         Sys.shield => Spot.habitat,
       };
 
-  String? get _alertLabel => switch (_alertSpot) {
-        Spot.power => 'Dusty panels',
-        Spot.habitat => s.leaking ? 'Air leak' : 'Life Support',
-        Spot.greenhouse => 'Greenhouse',
-        Spot.recycler => 'Recycler',
-        Spot.lab => 'Lab',
-        null => null,
-      };
+  String? get _alertLabel {
+    final e = s.pendingEvent;
+    if (e != null && !_eventReached) {
+      return useKidBaseCopy(sv.progress.ageMode) ? 'Go here! ${kidEventTitle(e.id, e.title)}' : 'Go here · ${e.title}';
+    }
+    return switch (_alertSpot) {
+      Spot.power => 'Dusty panels',
+      Spot.habitat => s.leaking ? 'Air leak' : 'Life Support',
+      Spot.greenhouse => 'Greenhouse',
+      Spot.recycler => 'Recycler',
+      Spot.lab => 'Lab',
+      null => null,
+    };
+  }
+
+  bool get _skipEventWalk => sv.progress.ageMode == AgeMode.engineer;
+
+  bool get _needsMini {
+    final id = s.pendingEvent?.id;
+    if (id == null) return false;
+    if (sv.progress.ageMode == AgeMode.engineer) return false;
+    return id == 'dust' || id == 'leak' || id == 'clog';
+  }
+
+  void _reachEvent(Spot sp) {
+    final e = s.pendingEvent;
+    if (e == null || _eventReached) return;
+    if (_spotForEvent(e.id) != sp) return;
+    setState(() {
+      _eventReached = true;
+      _miniDone = !_needsMini;
+      _miniHold = 0;
+      _miniProbe = null;
+    });
+    _strip.say('On it!');
+    _strip.doEmote(StripEmote.work, 1.4);
+  }
 
   bool get _sheetOpen => !mounted || ModalRoute.of(context)?.isCurrent != true;
 
   void _stepNova(double dt) {
     final arrived = _strip.update(dt, view: _viewMetres, shelter: s.sheltering);
     if (arrived == null) return;
+    if (s.pendingEvent != null && !_eventReached && arrived == _spotForEvent(s.pendingEvent!.id)) {
+      _openOnArrive = null;
+      _reachEvent(arrived);
+      return;
+    }
     if (arrived == _openOnArrive) {
       _openOnArrive = null;
       if (!_sheetOpen) _useSpot(arrived);
@@ -120,6 +177,14 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
   /// the panel opens at once and she bounds over while you decide.
   void _tapBuilding(Spot sp) {
     _moved = true;
+    // Pending emergency: walking to the glowing building unlocks the card.
+    if (s.pendingEvent != null && !_eventReached) {
+      sv.audio.tap();
+      _strip.goTo(sp);
+      _openOnArrive = sp;
+      if (_strip.nearIn(_built) == sp) _reachEvent(sp);
+      return;
+    }
     final reduce = sv.progress.reducedMotion || MediaQuery.of(context).disableAnimations;
     if (reduce || _strip.nearIn(_built) == sp || _openOnArrive == sp || _strip.inside) {
       _openOnArrive = null;
@@ -206,6 +271,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
   @override
   void dispose() {
     _auto?.cancel();
+    _holdTimer?.cancel();
     _ticker.dispose();
     _t.dispose();
     super.dispose();
@@ -234,6 +300,15 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
       _stopAuto();
       sv.audio.play(Sfx.alert, volume: 0.6);
       HapticFeedback.mediumImpact();
+      _eventReached = _skipEventWalk;
+      _miniDone = _skipEventWalk || !_needsMini;
+      _miniHold = 0;
+      _miniProbe = null;
+      _hintBest = false;
+      _choice = null;
+      final spot = _spotForEvent(s.pendingEvent!.id);
+      _strip.say(useKidBaseCopy(sv.progress.ageMode) ? 'Go fix it!' : 'Check the alert!');
+      if (!_skipEventWalk) _strip.goTo(spot);
     }
     if (s.outcome != BaseOutcome.running) {
       _stopAuto();
@@ -272,6 +347,8 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
   @override
   Widget build(BuildContext context) {
     final event = s.pendingEvent;
+    final showCard = _resultEvent != null || (event != null && _eventReached && _miniDone);
+    final showMini = event != null && _eventReached && !_miniDone && _needsMini;
     return Stack(children: [
       SpaceBackground(
         glow: s.stormIn > 0 ? C.orange : (s.leaking ? C.red : null),
@@ -303,7 +380,8 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
           ]),
         ),
       ),
-      if (event != null || _resultEvent != null) _eventOverlay(),
+      if (showMini) _miniActionOverlay(),
+      if (showCard) _eventOverlay(),
       if (_paused) _pauseOverlay(),
     ]);
   }
@@ -333,6 +411,18 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
   }
 
   Widget _banner() {
+    final e = s.pendingEvent;
+    if (e != null && !_eventReached) {
+      final kid = useKidBaseCopy(sv.progress.ageMode);
+      return WarnBanner(
+        key: ValueKey('go-${e.id}'),
+        title: kid ? kidEventTitle(e.id, e.title) : e.title,
+        sub: kid ? 'Walk to the glowing building!' : 'Walk to the glowing building, then choose what to do.',
+        color: colorNamed(e.color),
+        icon: Ln.alert,
+        onTap: () => _tapBuilding(_spotForEvent(e.id)),
+      );
+    }
     final w = s.warning;
     return AnimatedSwitcher(
       duration: Motion.normal,
@@ -398,10 +488,11 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
                 t: _t,
                 look: _look,
                 built: _built,
-                alert: () => s.pendingEvent != null ? null : _alertSpot,
+                alert: () => _alertSpot,
                 alertLabel: _alertLabel,
                 banner: _banner(),
-                enabled: s.pendingEvent == null && !_paused,
+                // Keep walking enabled until the event card/mini-action locks the screen.
+                enabled: !_paused && (s.pendingEvent == null || !_eventReached || !_miniDone),
                 showHint: !_moved && s.day <= 2,
                 onSize: (sz) => _viewMetres = sz.width / (26 * sz.height / 340),
                 onBuilding: _tapBuilding,
@@ -547,9 +638,21 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
                         GlowDisc(icon: iconNamed(e.icon), color: color, size: 104),
                         const SizedBox(height: 18),
-                        Text(result == null ? e.title : result.logTitle, textAlign: TextAlign.center, style: T.h1.copyWith(fontSize: result == null ? 32 : 24)),
+                        Text(
+                          result == null
+                              ? (useKidBaseCopy(sv.progress.ageMode) ? kidEventTitle(e.id, e.title) : e.title)
+                              : result.logTitle,
+                          textAlign: TextAlign.center,
+                          style: T.h1.copyWith(fontSize: result == null ? 32 : 24),
+                        ),
                         const SizedBox(height: 10),
-                        Text(result == null ? e.text : result.result, textAlign: TextAlign.center, style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 16)),
+                        Text(
+                          result == null
+                              ? (useKidBaseCopy(sv.progress.ageMode) ? kidEventText(e.id, e.text) : e.text)
+                              : result.result,
+                          textAlign: TextAlign.center,
+                          style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 16),
+                        ),
                         const SizedBox(height: 20),
                         if (result == null) ...[
                           for (var i = 0; i < e.options.length; i++) ...[
@@ -563,6 +666,11 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
                                 setState(() => _choice = i);
                               },
                             ),
+                            if (_hintBest && e.options[i].score >= 3)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: Text('Pip tip: this one keeps the crew safest.', textAlign: TextAlign.center, style: T.bodySmall.copyWith(color: C.cyan)),
+                              ),
                             const SizedBox(height: 10),
                           ],
                           const SizedBox(height: 6),
@@ -600,6 +708,138 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
     setState(() {
       _resultEvent = e;
       _result = o;
+      if (o.score < 2 && sv.progress.ageMode == AgeMode.cadet) _hintBest = true;
+      if (s.pendingEvent == null) {
+        _eventReached = false;
+        _miniDone = false;
+      }
+    });
+  }
+
+  Widget _miniActionOverlay() {
+    final e = s.pendingEvent!;
+    final color = colorNamed(e.color);
+    final kid = useKidBaseCopy(sv.progress.ageMode);
+    return Positioned.fill(
+      child: ColoredBox(
+        color: const Color(0xB3050A1E),
+        child: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 22),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: ModalCard(
+                  edge: color,
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    GlowDisc(icon: iconNamed(e.icon), color: color, size: 88),
+                    const SizedBox(height: 14),
+                    Text(kid ? kidEventTitle(e.id, e.title) : e.title, textAlign: TextAlign.center, style: T.h1.copyWith(fontSize: 28)),
+                    const SizedBox(height: 8),
+                    Text(_miniPrompt(e.id, kid), textAlign: TextAlign.center, style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85))),
+                    const SizedBox(height: 18),
+                    ..._miniBody(e.id),
+                  ]),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _miniPrompt(String id, bool kid) => switch (id) {
+        'dust' => kid ? 'Hold to brush the panels clean! 🧹' : 'Hold to brush the dusty panels.',
+        'leak' => kid ? 'Tap the hissing spot! 💨' : 'Find the leak — tap the right spot.',
+        'clog' => kid ? 'Tap the steps in order! 💧' : 'Put the filter steps in order.',
+        _ => 'Fix it!',
+      };
+
+  List<Widget> _miniBody(String id) {
+    if (id == 'dust') {
+      return [
+        Text('${(_miniHold * 100).round()}%', style: T.h2.copyWith(fontSize: 28, color: C.cyan)),
+        const SizedBox(height: 10),
+        KitBar(frac: _miniHold, color: C.cyan, track: C.panel, height: 12),
+        const SizedBox(height: 16),
+        Listener(
+          onPointerDown: (_) => _tickHold(true),
+          onPointerUp: (_) => _tickHold(false),
+          onPointerCancel: (_) => _tickHold(false),
+          child: KitButton('Hold to brush', onTap: () {}),
+        ),
+      ];
+    }
+    if (id == 'leak') {
+      const spots = ['Window seal', 'Door ring', 'Floor vent'];
+      const answer = 1;
+      return [
+        for (var i = 0; i < spots.length; i++) ...[
+          ChoiceCard(
+            letter: String.fromCharCode(65 + i),
+            title: spots[i],
+            selected: _miniProbe == i,
+            onTap: () {
+              sv.audio.tap();
+              setState(() => _miniProbe = i);
+              if (i == answer) {
+                sv.audio.play(Sfx.success, volume: 0.5);
+                setState(() => _miniDone = true);
+              } else {
+                sv.audio.play(Sfx.fail, volume: 0.4);
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+        ],
+      ];
+    }
+    // clog: simple 3-step order
+    const steps = ['Open the filter hatch', 'Swap the dirty filter', 'Close and test'];
+    final done = (_miniProbe ?? -1) + 1;
+    return [
+      Text('Step ${done.clamp(0, 3) + 1} of 3', style: T.bodySmall.copyWith(color: C.muted)),
+      const SizedBox(height: 10),
+      for (var i = 0; i < steps.length; i++) ...[
+        ChoiceCard(
+          letter: '${i + 1}',
+          title: steps[i],
+          selected: (_miniProbe ?? -1) >= i,
+          onTap: () {
+            if ((_miniProbe ?? -1) + 1 != i) {
+              sv.audio.play(Sfx.fail, volume: 0.35);
+              return;
+            }
+            sv.audio.tap();
+            setState(() {
+              _miniProbe = i;
+              if (i == steps.length - 1) {
+                _miniDone = true;
+                sv.audio.play(Sfx.success, volume: 0.5);
+              }
+            });
+          },
+        ),
+        const SizedBox(height: 8),
+      ],
+    ];
+  }
+
+  Timer? _holdTimer;
+  void _tickHold(bool down) {
+    _holdTimer?.cancel();
+    if (!down) return;
+    _holdTimer = Timer.periodic(const Duration(milliseconds: 50), (_) {
+      if (!mounted) return;
+      setState(() {
+        _miniHold = (_miniHold + 0.04).clamp(0.0, 1.0);
+        if (_miniHold >= 1) {
+          _holdTimer?.cancel();
+          _miniDone = true;
+          sv.audio.play(Sfx.success, volume: 0.5);
+        }
+      });
     });
   }
 
@@ -858,10 +1098,10 @@ class _ModuleSheetState extends State<_ModuleSheet> {
             const Row(children: [
               IconBox(Ln.droplet, color: C.water, size: 40, on: C.raised),
               SizedBox(width: 12),
-              const Expanded(
-                child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('Melt crater ice', style: T.h3),
-                  const Text('Drill ice from the dark crater: +14% water for 12% battery.', style: T.bodySmall),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('Melt crater ice', style: T.h3),
+                  Text('Drill ice from the dark crater: +14% water for 12% battery.', style: T.bodySmall),
                 ]),
               ),
             ]),

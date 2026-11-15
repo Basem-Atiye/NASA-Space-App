@@ -43,10 +43,7 @@ final engineerTasks = <StoryTask>[
     days: 0.5,
     scene: const SceneSpec(props: {'lander', 'habitat', 'pad', 'rocket', 'antenna'}, startX: 110),
     steps: [
-      _talk('e1_brief', 'Mission brief', [
-        const Line(_c, 'Engineer, the crew transfer vehicle on the pad must meet Gateway. You have the numbers.'),
-        const Line(_n, 'Phase error under 5°, Δv under 1 900 m/s. Let\'s run them.'),
-      ]),
+      _talk('e1_brief', 'Mission brief', [const Line(_c, 'Pad vehicle must meet Gateway. Check the numbers at the pad.')]),
       const StoryStep(id: 'e1_walk', kind: StepKind.goTo, objective: 'Inspect the ascent vehicle', target: 'pad', useLabel: 'INSPECT'),
       _sim('e1_window', 'Find the launch window', 'LAUNCH WINDOW', 'Choose the launch delay and the burn time. Both outputs must be green.', 'launch_window',
           'Phase error = |180 − delay| × 0.1°. Burn time 430 s is the Δv-optimal value.', skill: Skill.resourceMath),
@@ -95,7 +92,7 @@ final engineerTasks = <StoryTask>[
     days: 2,
     scene: const SceneSpec(props: {..._camp, 'crate'}, showWhen: {'panels': 'panelsUp'}, hideWhen: {'crate': 'panelsUp'}, startX: 84),
     steps: [
-      _talk('e2_brief', 'Brief', [const Line(_c, 'Base load is 4 to 6 kW. The longest dark period at your site: about 100 hours.'), const Line(_n, 'So the battery must carry the base through 4 days with no Sun.')]),
+      _talk('e2_brief', 'Brief', [const Line(_c, 'Longest dark stretch: ~100 hours. Size power for the night.')]),
       const StoryStep(id: 'e2_crate', kind: StepKind.goTo, objective: 'Deploy the new solar array', target: 'crate', useLabel: 'DEPLOY', effect: Effect(flags: {'panelsUp'})),
       const StoryStep(
         id: 'e2_aim',
@@ -137,7 +134,8 @@ final engineerTasks = <StoryTask>[
     days: 2,
     scene: const SceneSpec(props: _camp, startX: 66),
     steps: [
-      _talk('e3_brief', 'Brief', [const Line(_l, 'Four of us now. Each person: 0.84 kg O₂, 2.37 kg water and 1 kg CO₂ per day.'), const Line(_n, 'Then the machines have to keep up with four people.')]),
+      _talk('e3_brief', 'Brief', [const Line(_l, 'Crew of four. Balance O₂ and water at Life Support.')]),
+      const StoryStep(id: 'e3_walk', kind: StepKind.goTo, objective: 'Walk to the habitat life-support rack', target: 'habitat', useLabel: 'OPEN RACK'),
       _sim('e3_balance', 'Balance air and water', 'LIFE SUPPORT', 'Set the O₂ generator and the water recovery rate for the crew.', 'life_support',
           'O₂: 4 × 0.84 = 3.36 kg/day. Water lost = 4 × 2.37 × (1 − recovery) must be ≤ 0.6.', skill: Skill.resourceMath),
       const StoryStep(
@@ -183,7 +181,8 @@ final engineerTasks = <StoryTask>[
     days: 3,
     scene: const SceneSpec(props: {..._camp, 'rover'}, startX: 72),
     steps: [
-      _talk('e4_brief', 'Brief', [const Line(_l, 'NASA\'s career limit is 600 mSv. A 180-day stay on the surface could use a big part of that.'), const Line(_n, 'Then we bury the habitat. How deep?')]),
+      _talk('e4_brief', 'Brief', [const Line(_l, 'Career limit 600 mSv. Bury the habitat — how deep?')]),
+      const StoryStep(id: 'e4_walk', kind: StepKind.goTo, objective: 'Survey the habitat berm site', target: 'habitat', useLabel: 'SURVEY'),
       _sim('e4_shield', 'Choose the shielding depth', 'REGOLITH SHIELD', 'Choose the regolith cover and mission length. Dose ≤ 150 mSv, regolith ≤ 400 t.', 'radiation',
           'Dose × 0.87^(cm/10). One metre of cover keeps about 25% of the dose.', skill: Skill.resourceMath),
       const StoryStep(
@@ -276,9 +275,9 @@ final engineerTasks = <StoryTask>[
     scene: const SceneSpec(props: {..._camp, 'rover', 'rim'}, pickups: ['battpack'], startX: 96),
     steps: [
       const StoryStep(id: 'e6_pack', kind: StepKind.collect, objective: 'Pick up the spare battery', items: ['battpack']),
+      const StoryStep(id: 'e6_board', kind: StepKind.goTo, objective: 'Board the rover', target: 'rover', useLabel: 'DRIVE'),
       _sim('e6_route', 'Plan speed and distance', 'ROUTE PLANNER', 'Choose speed and distance. Stay inside the 20% reserve, the 6-hour suit limit and the walk-back limit.', 'rover_route',
           'kWh/km = 0.25 + 0.012 × v². At 6 km/h that is 0.68 kWh/km.', skill: Skill.resourceMath),
-      const StoryStep(id: 'e6_board', kind: StepKind.goTo, objective: 'Board the rover', target: 'rover', useLabel: 'DRIVE'),
       const StoryStep(
         id: 'e6_drive',
         kind: StepKind.game,
@@ -312,7 +311,7 @@ final engineerTasks = <StoryTask>[
     days: 1,
     scene: const SceneSpec(props: _camp, pickups: ['camera'], startX: 76),
     steps: [
-      _talk('e7_brief', 'Video is breaking up', [const Line(_c, 'Shackleton, your HD feed keeps freezing. Ground needs 50 Mbps for the science stream.')]),
+      _talk('e7_brief', 'Video is breaking up', [const Line(_c, 'HD feed freezing. Need 50 Mbps — check the dish.')]),
       const StoryStep(id: 'e7_dish', kind: StepKind.goTo, objective: 'Inspect the antenna', target: 'antenna', useLabel: 'INSPECT'),
       const StoryStep(
         id: 'e7_fault',
@@ -347,7 +346,8 @@ final engineerTasks = <StoryTask>[
     days: 1,
     scene: const SceneSpec(props: _camp, startX: 60),
     steps: [
-      _talk('e8_brief', 'Heater failure', [const Line(_a, 'Habitat heater 2 offline. Cabin 17 °C and falling.'), const Line(_n, 'Let\'s not just swap it. Find out why.')]),
+      _talk('e8_brief', 'Heater failure', [const Line(_a, 'Heater 2 offline. Cabin 17 °C — diagnose at the habitat.')]),
+      const StoryStep(id: 'e8_walk', kind: StepKind.goTo, objective: 'Open the heater bay', target: 'habitat', useLabel: 'OPEN BAY'),
       const StoryStep(
         id: 'e8_meter',
         kind: StepKind.game,
@@ -409,7 +409,8 @@ final engineerTasks = <StoryTask>[
     days: 2,
     scene: const SceneSpec(props: _camp, startX: 66),
     steps: [
-      _talk('e9_brief', 'Too hot by day, too cold by night', [const Line(_l, 'Cabin hit 31 °C this afternoon and 10 °C at night. Nobody slept.')]),
+      _talk('e9_brief', 'Thermal swing', [const Line(_l, 'Cabin hit 31 °C by day and 10 °C at night. Fix it at the habitat.')]),
+      const StoryStep(id: 'e9_walk', kind: StepKind.goTo, objective: 'Check habitat thermal loops', target: 'habitat', useLabel: 'OPEN LOOPS'),
       _sim('e9_thermal', 'Size the radiator and heater', 'THERMAL BALANCE', 'Keep the cabin between 16 and 27 °C both by day and by night.', 'thermal',
           'Radiator ≈ 0.33 kW/m². 9 kW by day needs ~27 m². The night heater then makes up the loss.', skill: Skill.systems),
       const StoryStep(
@@ -490,7 +491,8 @@ final engineerTasks = <StoryTask>[
     scene: const SceneSpec(props: _camp, pickups: ['sensor'], startX: 70),
     steps: [
       const StoryStep(id: 'e11_seis', kind: StepKind.collect, objective: 'Install the seismometer', items: ['sensor']),
-      _talk('e11_data', 'The data', [const Line(_t, 'The seismometer already caught a magnitude 3.9. The module joints swayed 5 cm.')]),
+      _talk('e11_data', 'The data', [const Line(_t, 'Magnitude 3.9. Joints swayed 5 cm. Design the anchors.')]),
+      const StoryStep(id: 'e11_walk', kind: StepKind.goTo, objective: 'Inspect habitat footings', target: 'habitat', useLabel: 'INSPECT'),
       _sim('e11_design', 'Anchors and joints', 'QUAKE DESIGN', 'Choose anchor depth and joint flexibility: sway ≤ 3 cm, joint stress ≤ 60%.', 'quake',
           'Deeper anchors cut sway; flexible joints take the strain. Try 2.5 m and 60%.', skill: Skill.systems),
       const StoryStep(
@@ -523,7 +525,8 @@ final engineerTasks = <StoryTask>[
     days: 2,
     scene: const SceneSpec(props: _camp, pickups: ['filter'], startX: 86, dust: 0.5),
     steps: [
-      _talk('e12_brief', 'Dust everywhere', [const Line(_l, 'Two of us have sore eyes, and panel output is down 18%.'), const Line(_n, 'Dust. Time for a real plan.')]),
+      _talk('e12_brief', 'Dust everywhere', [const Line(_l, 'Sore eyes, panels −18%. Walk the panels and plan.')]),
+      const StoryStep(id: 'e12_walk', kind: StepKind.goTo, objective: 'Inspect dusty panels', target: 'panels', useLabel: 'INSPECT'),
       const StoryStep(
         id: 'e12_source',
         kind: StepKind.game,
@@ -572,7 +575,8 @@ final engineerTasks = <StoryTask>[
     days: 1,
     scene: const SceneSpec(props: _camp, pickups: ['aid'], startX: 64),
     steps: [
-      _talk('e13_hit', 'Accident', [const Line(_j, 'Tomas fell in the airlock! He hit his head and his arm is bleeding.', Mood.scared), const Line(_n, 'Lina, you\'re the medical officer. I\'m on comms with the surgeon.')]),
+      _talk('e13_hit', 'Accident', [const Line(_j, 'Tomas fell in the airlock — head and arm. Get to him!', Mood.scared)]),
+      const StoryStep(id: 'e13_walk', kind: StepKind.goTo, objective: 'Reach Tomas at the airlock', target: 'habitat', useLabel: 'HELP'),
       const StoryStep(id: 'e13_kit', kind: StepKind.collect, objective: 'Grab the medical kit', items: ['aid']),
       const StoryStep(
         id: 'e13_triage',
@@ -631,7 +635,8 @@ final engineerTasks = <StoryTask>[
     days: 4,
     scene: const SceneSpec(props: {..._camp, 'greenhouse', 'rover', 'pad'}, startX: 92),
     steps: [
-      _talk('e14_brief', 'The big one', [const Line(_c, 'Engineer, the agency wants your design for the permanent station. 60 tonnes, three cargo landers.')]),
+      _talk('e14_brief', 'The big one', [const Line(_c, 'Design the permanent station: 60 t, three cargo landers.')]),
+      const StoryStep(id: 'e14_walk', kind: StepKind.goTo, objective: 'Survey the station site', target: 'pad', useLabel: 'SURVEY'),
       _sim('e14_design', 'Design the station', 'STATION DESIGN', 'Modules, panels, shielding, crew. Every requirement must be green within 60 t.', 'base_design',
           'Try 4 modules, 60 m² panels, 60 cm shielding, 6 crew. Then improve it.', skill: Skill.systems),
       const StoryStep(
@@ -679,7 +684,8 @@ final engineerTasks = <StoryTask>[
     days: 2,
     scene: const SceneSpec(props: {..._camp, 'greenhouse', 'pad', 'rocket'}, startX: 100),
     steps: [
-      _talk('e15_brief', 'The next step', [const Line(_c, 'Engineer, the Mars team wants your lessons. Start with the hardest one: communication.')]),
+      _talk('e15_brief', 'The next step', [const Line(_c, 'Mars team wants your hardest lesson: communication delay.')]),
+      const StoryStep(id: 'e15_walk', kind: StepKind.goTo, objective: 'Open the dish link model at the antenna', target: 'antenna', useLabel: 'OPEN MODEL'),
       _sim('e15_delay', 'Light-time to Mars', 'MARS DELAY', 'Find the delay and set how much the crew must decide alone.', 'mars_delay',
           'Delay = distance ÷ c. At 225 million km it is 12.5 minutes one way. Most decisions must be the crew\'s.', skill: Skill.systems),
       const StoryStep(
