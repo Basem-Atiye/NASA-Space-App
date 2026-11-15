@@ -84,11 +84,24 @@ Tests: `flutter test`
 
 Science numbers and scenarios draw on public NASA and mission data, including:
 
-- Life support rates (NASA NTRS, e.g. 20040142395, 20100036823); ISS water recovery ~98% (NASA 2023)
-- Lunar surface radiation (Chang’e 4 LND, *Science Advances*, 2020)
-- Polar ice (LCROSS — Colaprete et al., *Science* 2010)
-- Solar storms (NASA **DONKI**); moonquakes (Apollo Passive Seismic Experiment)
-- Artemis / south-pole operations concepts for habitat, power, and surface ops
+1. DONKI – Space Weather Database (NASA)
+https://ccmc.gsfc.nasa.gov/tools/DONKI/
+
+
+2. NASA Open Science Data Repository (OSDR)
+https://osdr.nasa.gov/bio/repo/
+Provides spaceflight research about astronaut health. Relevant to the crew-health and survival systems.
+
+3. RadLab – Radiation Dosimetry Database (NASA)
+https://visualization.osdr.nasa.gov/radlab/gui/overview/
+
+
+4. Canadian Space Agency – Food Production on the Moon
+https://www.asc-csa.gc.ca/eng/youth-educators/toolkits/food-production/
+
+
+5. Canadian Space Agency – STEM Resources
+https://www.asc-csa.gc.ca/eng/youth-educators/resources-stem-and-youth-organizations.asp
 
 ---
 
