@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../main.dart';
 import '../ui/theme.dart';
@@ -112,15 +113,15 @@ class _AccountScreenState extends State<AccountScreen> {
               _asTeacher = false;
               _error = null;
             }),
-            child: const Text('Create an account'),
+            child: const GameText('Create an account'),
           ),
           TextButton(
             onPressed: () => sv.nav.openTeacher(sv),
-            child: const Text('Teacher demo'),
+            child: const GameText('Teacher demo'),
           ),
           TextButton(
             onPressed: () => sv.nav.resetTo(Screen.title),
-            child: Text('Continue as guest', style: T.body.copyWith(color: C.muted)),
+            child: GameText('Continue as guest', style: T.body.copyWith(color: C.muted)),
           ),
         ]);
       case _Mode.signIn:
@@ -144,7 +145,7 @@ class _AccountScreenState extends State<AccountScreen> {
               _asTeacher = false;
               _error = null;
             }),
-            child: const Text('Need an account? Create one'),
+            child: const GameText('Need an account? Create one'),
           ),
           _back(),
         ]);
@@ -228,7 +229,7 @@ class _AccountScreenState extends State<AccountScreen> {
         height: 42,
         alignment: Alignment.center,
         decoration: BoxDecoration(color: on ? C.sapphire : Colors.transparent, borderRadius: BorderRadius.circular(12)),
-        child: Text(label.toUpperCase(), style: T.label.copyWith(color: on ? Colors.white : C.muted, fontSize: 11)),
+        child: GameText(label.toUpperCase(), style: T.label.copyWith(color: on ? Colors.white : C.muted, fontSize: 11)),
       ),
     );
   }
@@ -257,7 +258,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 const Icon(Icons.check_circle_rounded, color: C.cyan, size: 22),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
+                  child: GameText(
                     p.className == null ? 'Welcome aboard, ${s.name}. Join a class below, or head back to the Station.' : 'Welcome back, ${s.name}.',
                     style: T.body.copyWith(color: C.frozen, fontSize: 14),
                   ),
@@ -283,15 +284,15 @@ class _AccountScreenState extends State<AccountScreen> {
                 color: C.cyan.withValues(alpha: 0.18),
                 border: Border.all(color: C.cyan.withValues(alpha: 0.55), width: 1.4),
               ),
-              child: Text(initial, style: T.h2.copyWith(color: C.cyan, fontSize: 28)),
+              child: GameText(initial, style: T.h2.copyWith(color: C.cyan, fontSize: 28)),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(s.name, style: T.h2.copyWith(fontSize: 22)),
+                GameText(s.name, style: T.h2.copyWith(fontSize: 22)),
                 if ((s.auth.email ?? '').isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(s.auth.email!, style: T.bodySmall.copyWith(color: C.muted)),
+                  GameText(s.auth.email!, style: T.bodySmall.copyWith(color: C.muted)),
                 ],
                 const SizedBox(height: 8),
                 Container(
@@ -301,7 +302,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(color: C.cyan.withValues(alpha: 0.35)),
                   ),
-                  child: Text(s.isTeacher ? 'TEACHER' : 'PLAYER', style: T.label.copyWith(fontSize: 10, color: C.cyan)),
+                  child: GameText(s.isTeacher ? 'TEACHER' : 'PLAYER', style: T.label.copyWith(fontSize: 10, color: C.cyan)),
                 ),
               ]),
             ),
@@ -316,16 +317,16 @@ class _AccountScreenState extends State<AccountScreen> {
           GlassPanel(
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('MY CLASS', style: T.label.copyWith(fontSize: 11)),
+              GameText('MY CLASS', style: T.label.copyWith(fontSize: 11)),
               const SizedBox(height: 8),
               if (p.className != null) ...[
-                Text(p.className!, style: T.h2.copyWith(fontSize: 20)),
+                GameText(p.className!, style: T.h2.copyWith(fontSize: 20)),
                 if ((p.teacherName ?? '').isNotEmpty)
-                  Padding(padding: const EdgeInsets.only(top: 4), child: Text('Teacher: ${p.teacherName}', style: T.bodySmall)),
+                  Padding(padding: const EdgeInsets.only(top: 4), child: GameText('Teacher: ${p.teacherName}', style: T.bodySmall)),
                 const SizedBox(height: 8),
-                Text('Campaign: ${p.campaign.title}', style: T.body.copyWith(color: C.muted)),
+                GameText('Campaign: ${p.campaign.title}', style: T.body.copyWith(color: C.muted)),
               ] else ...[
-                Text('Not in a class yet. Try demo code MOON7B.', style: T.body.copyWith(color: C.muted)),
+                GameText('Not in a class yet. Try demo code MOON7B.', style: T.body.copyWith(color: C.muted)),
                 const SizedBox(height: 12),
                 _field(_join, 'Class code', hint: 'MOON7B', icon: Icons.groups_rounded, max: 6, caps: true),
                 _status(),
@@ -343,7 +344,7 @@ class _AccountScreenState extends State<AccountScreen> {
             child: Row(children: [
               Icon(Icons.phone_android_rounded, color: C.cyan),
               SizedBox(width: 10),
-              Expanded(child: Text('Progress is saved on this device while you play.', style: T.body)),
+              Expanded(child: GameText('Progress is saved on this device while you play.', style: T.body)),
             ]),
           ),
           const SizedBox(height: 12),
@@ -389,8 +390,8 @@ class _AccountScreenState extends State<AccountScreen> {
               const SizedBox(width: 14),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(title, style: T.h3.copyWith(fontSize: 16)),
-                  Text(sub, style: T.bodySmall),
+                  GameText(title, style: T.h3.copyWith(fontSize: 16)),
+                  GameText(sub, style: T.bodySmall),
                 ]),
               ),
               const Icon(Icons.chevron_right_rounded, color: C.dim),
@@ -451,7 +452,7 @@ class _AccountScreenState extends State<AccountScreen> {
             ? const SizedBox(width: double.infinity)
             : Padding(
                 padding: const EdgeInsets.only(top: 4, bottom: 10),
-                child: Text(_error ?? _info!, style: T.body.copyWith(color: _error != null ? C.red : C.cyan)),
+                child: GameText(_error ?? _info!, style: T.body.copyWith(color: _error != null ? C.red : C.cyan)),
               ),
       );
 
@@ -462,7 +463,7 @@ class _AccountScreenState extends State<AccountScreen> {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: C.cyan.withValues(alpha: 0.28)),
         ),
-        child: Text(s, style: T.bodySmall.copyWith(color: C.muted, fontSize: 12)),
+        child: GameText(s, style: T.bodySmall.copyWith(color: C.muted, fontSize: 12)),
       );
 
   Widget _back({_Mode to = _Mode.choose}) => TextButton(
@@ -471,6 +472,6 @@ class _AccountScreenState extends State<AccountScreen> {
           _error = null;
           _showPass = false;
         }),
-        child: const Text('Back'),
+        child: const GameText('Back'),
       );
 }

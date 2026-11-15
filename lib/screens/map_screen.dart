@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../main.dart';
 import '../story/story_model.dart' show AgeModeInfo;
@@ -195,7 +196,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                   borderRadius: BorderRadius.circular(14),
                                   boxShadow: seasonNew ? [BoxShadow(color: C.sapphire.withValues(alpha: 0.45), blurRadius: 16)] : null,
                                 ),
-                                child: Text(
+                                child: GameText(
                                   seasonNew ? '${s.name.toUpperCase()} · NEW' : s.name.toUpperCase(),
                                   style: T.label.copyWith(fontSize: 10, letterSpacing: 1.6, color: seasonNew ? C.frozen : C.muted),
                                 ),
@@ -268,12 +269,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(camp.title.toUpperCase(), style: T.label.copyWith(fontSize: 11, letterSpacing: 2.4), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      GameText(camp.title.toUpperCase(), style: T.label.copyWith(fontSize: 11, letterSpacing: 2.4), maxLines: 1, overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 2),
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
-                        child: Text(camp.dayLabel(current), style: T.h2.copyWith(fontSize: 22)),
+                        child: GameText(camp.dayLabel(current), style: T.h2.copyWith(fontSize: 22)),
                       ),
                     ]),
                   ),
@@ -285,7 +286,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
                       const LineIcon(Ln.star, size: 17, color: C.yellow),
                       const SizedBox(width: 7),
-                      Text('${p.storyTotalStars()} / ${n * 3}', style: T.h3.copyWith(fontSize: 15)),
+                      GameText('${p.storyTotalStars()} / ${n * 3}', style: T.h3.copyWith(fontSize: 15)),
                     ]),
                   ),
                 ]),
@@ -296,7 +297,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       const LineIcon(Ln.users, size: 16, color: C.cyan),
                       const SizedBox(width: 6),
                       Expanded(
-                        child: Text('${p.className}${(p.teacherName ?? '').isEmpty ? '' : ' · ${p.teacherName}'} · ${camp.mode.title} level',
+                        child: GameText('${p.className}${(p.teacherName ?? '').isEmpty ? '' : ' · ${p.teacherName}'} · ${camp.mode.title} level',
                             style: T.bodySmall.copyWith(color: C.frozen), maxLines: 1, overflow: TextOverflow.ellipsis),
                       ),
                     ]),
@@ -336,12 +337,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                           const SizedBox(width: 8),
                           const LineIcon(Ln.clock, size: 14, color: C.muted),
                           const SizedBox(width: 4),
-                          Flexible(child: Text('about $mins min', style: T.bodySmall.copyWith(fontSize: 12.5), overflow: TextOverflow.ellipsis)),
+                          Flexible(child: GameText('about $mins min', style: T.bodySmall.copyWith(fontSize: 12.5), overflow: TextOverflow.ellipsis)),
                           const Spacer(),
                           if (p.storyStars(_selected) > 0) StarRow(stars: p.storyStars(_selected), size: 15),
                         ]),
                         const SizedBox(height: 8),
-                        Text(task.title, style: T.h2.copyWith(fontSize: 23), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        GameText(task.title, style: T.h2.copyWith(fontSize: 23), maxLines: 2, overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 8),
                         Row(children: [
                           Container(
@@ -351,12 +352,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                             child: Row(mainAxisSize: MainAxisSize.min, children: [
                               Icon(moodIcon(selTheme), size: 14, color: selTheme.accent),
                               const SizedBox(width: 6),
-                              Text(selTheme.name.toUpperCase(), style: T.label.copyWith(color: selTheme.accent, fontSize: 10.5, letterSpacing: 1.6)),
+                              GameText(selTheme.name.toUpperCase(), style: T.label.copyWith(color: selTheme.accent, fontSize: 10.5, letterSpacing: 1.6)),
                             ]),
                           ),
                         ]),
                         const SizedBox(height: 10),
-                        Text(info.brief, style: T.body.copyWith(color: C.muted, fontSize: 14, height: 1.4), maxLines: 3, overflow: TextOverflow.ellipsis),
+                        GameText(info.brief, style: T.body.copyWith(color: C.muted, fontSize: 14, height: 1.4), maxLines: 3, overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 12),
                         Wrap(spacing: 8, runSpacing: 8, children: [
                           for (final g in info.games) _chip(g, C.panelDeep, C.text),
@@ -373,7 +374,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                               const IconBox(Ln.bulb, color: C.yellow, size: 34),
                               const SizedBox(width: 10),
                               Expanded(
-                                child: Text(
+                                child: GameText(
                                   showPre ? 'Take the short readiness check before Level 1 (about 2 min).' : 'Campaign complete! Finish the final readiness check.',
                                   style: T.body.copyWith(fontSize: 13.5, color: C.frozen),
                                 ),
@@ -408,7 +409,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         padding: const EdgeInsets.symmetric(horizontal: 12),
         alignment: Alignment.center,
         decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(15)),
-        child: Text(text, style: T.body.copyWith(fontSize: 12.5, color: fg, fontWeight: FontWeight.w700, height: 1.1)),
+        child: GameText(text, style: T.body.copyWith(fontSize: 12.5, color: fg, fontWeight: FontWeight.w700, height: 1.1)),
       );
 
   Widget _node(int n, Offset at, int current) {
@@ -484,7 +485,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 boxShadow: isCurrent || selected ? [BoxShadow(color: (isCurrent ? C.cyan : mood).withValues(alpha: 0.55), blurRadius: 24)] : null,
               ),
               child: unlocked || done
-                  ? Text('$n', style: T.h3.copyWith(fontSize: isCurrent || selected ? 23 : 19, color: ink, height: 1))
+                  ? GameText('$n', style: T.h3.copyWith(fontSize: isCurrent || selected ? 23 : 19, color: ink, height: 1))
                   : LineIcon(Ln.lock, size: 18, color: ink),
             ),
             // the mission's mood, as a little badge
@@ -519,7 +520,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(color: C.yellow, borderRadius: BorderRadius.circular(11)),
-                  child: Text('WOW', style: T.label.copyWith(color: C.ink, fontSize: 10, letterSpacing: 1.4)),
+                  child: GameText('WOW', style: T.label.copyWith(color: C.ink, fontSize: 10, letterSpacing: 1.4)),
                 ),
               ),
             if (done)

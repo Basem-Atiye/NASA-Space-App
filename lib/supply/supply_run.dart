@@ -5,6 +5,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
@@ -174,12 +175,12 @@ class _SupplyRunScreenState extends State<SupplyRunScreen> with SingleTickerProv
                         child: Row(mainAxisSize: MainAxisSize.min, children: [
                           const LineIcon(Ln.star, size: 15, color: C.yellow),
                           const SizedBox(width: 6),
-                          Text('BONUS ROUND', style: T.label.copyWith(color: C.yellow, fontSize: 12)),
+                          GameText('BONUS ROUND', style: T.label.copyWith(color: C.yellow, fontSize: 12)),
                         ]),
                       ),
                     ),
-                    Positioned(left: 0, top: 40, child: Text('Supply Run', style: T.hero.copyWith(fontSize: 46))),
-                    Positioned(left: 0, top: 96, child: Text('Fly from Earth to your\nMoon base', style: T.body.copyWith(fontSize: 16.5, color: C.frozen.withValues(alpha: 0.85)))),
+                    Positioned(left: 0, top: 40, child: GameText('Supply Run', style: T.hero.copyWith(fontSize: 46))),
+                    Positioned(left: 0, top: 96, child: GameText('Fly from Earth to your\nMoon base', style: T.body.copyWith(fontSize: 16.5, color: C.frozen.withValues(alpha: 0.85)))),
                   ]),
                 ),
                 KitCard(
@@ -198,8 +199,8 @@ class _SupplyRunScreenState extends State<SupplyRunScreen> with SingleTickerProv
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(title, style: T.h3.copyWith(fontSize: 17)),
-                            Text(sub, style: T.body.copyWith(fontSize: 14, color: C.frozen.withValues(alpha: 0.8))),
+                            GameText(title, style: T.h3.copyWith(fontSize: 17)),
+                            GameText(sub, style: T.body.copyWith(fontSize: 14, color: C.frozen.withValues(alpha: 0.8))),
                           ]),
                         ),
                       ]),
@@ -223,7 +224,7 @@ class _SupplyRunScreenState extends State<SupplyRunScreen> with SingleTickerProv
                   sv.nav.resetTo(Screen.missionSelect);
                 }
               },
-              child: Text('Skip the bonus round', style: T.body.copyWith(color: C.muted, fontSize: 14)),
+              child: GameText('Skip the bonus round', style: T.body.copyWith(color: C.muted, fontSize: 14)),
             ),
           ]),
         ),
@@ -259,9 +260,9 @@ class _SupplyRunScreenState extends State<SupplyRunScreen> with SingleTickerProv
                     valueListenable: _frame,
                     builder: (context, _, __) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                       Row(children: [
-                        Text('EARTH', style: T.label.copyWith(color: C.frozen, fontSize: 11.5)),
-                        Expanded(child: Text('${(g.progress * 100).round()}% OF THE WAY', textAlign: TextAlign.center, style: T.label.copyWith(fontSize: 11.5))),
-                        Text('MOON', style: T.label.copyWith(color: C.frozen, fontSize: 11.5)),
+                        GameText('EARTH', style: T.label.copyWith(color: C.frozen, fontSize: 11.5)),
+                        Expanded(child: GameText('${(g.progress * 100).round()}% OF THE WAY', textAlign: TextAlign.center, style: T.label.copyWith(fontSize: 11.5))),
+                        GameText('MOON', style: T.label.copyWith(color: C.frozen, fontSize: 11.5)),
                       ]),
                       const SizedBox(height: 8),
                       LayoutBuilder(
@@ -293,9 +294,9 @@ class _SupplyRunScreenState extends State<SupplyRunScreen> with SingleTickerProv
                         Row(children: [
                           const LineIcon(Ln.zap, size: 16, color: C.orange),
                           const SizedBox(width: 6),
-                          Text('FUEL', style: T.label.copyWith(color: C.frozen, fontSize: 12)),
+                          GameText('FUEL', style: T.label.copyWith(color: C.frozen, fontSize: 12)),
                           const Spacer(),
-                          Text('${g.fuel.round()}%', style: T.h3.copyWith(color: g.fuel < g.fuelNeeded ? C.red : C.orange, fontSize: 18)),
+                          GameText('${g.fuel.round()}%', style: T.h3.copyWith(color: g.fuel < g.fuelNeeded ? C.red : C.orange, fontSize: 18)),
                         ]),
                         const SizedBox(height: 10),
                         KitBar(frac: g.fuel / 100, color: g.fuel < SupplyGame.landFuel + 8 ? C.red : C.orange),
@@ -312,9 +313,9 @@ class _SupplyRunScreenState extends State<SupplyRunScreen> with SingleTickerProv
                         Row(children: [
                           const LineIcon(Ln.wrench, size: 16, color: C.cyan),
                           const SizedBox(width: 6),
-                          Text('CARGO', style: T.label.copyWith(color: C.frozen, fontSize: 12)),
+                          GameText('CARGO', style: T.label.copyWith(color: C.frozen, fontSize: 12)),
                           const Spacer(),
-                          Text('${g.hold.length} / ${SupplyGame.holdSize}', style: T.h3.copyWith(color: C.cyan, fontSize: 18)),
+                          GameText('${g.hold.length} / ${SupplyGame.holdSize}', style: T.h3.copyWith(color: C.cyan, fontSize: 18)),
                         ]),
                         const SizedBox(height: 10),
                         Row(children: [
@@ -369,7 +370,7 @@ class _SupplyRunScreenState extends State<SupplyRunScreen> with SingleTickerProv
                 constraints: const BoxConstraints(maxWidth: 400),
                 child: ModalCard(
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    const Text('Paused', style: T.h1),
+                    const GameText('Paused', style: T.h1),
                     const SizedBox(height: 18),
                     KitButton('Resume', onTap: () => setState(() => _paused = false)),
                     const SizedBox(height: 10),
@@ -412,12 +413,12 @@ class _SupplyRunScreenState extends State<SupplyRunScreen> with SingleTickerProv
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           const TagChip('CARGO HOLD FULL', color: C.yellow, icon: Ln.alert, size: 12.5),
                           const SizedBox(height: 6),
-                          Text('${w.kind.title} pod ahead!', style: T.h2.copyWith(fontSize: 24)),
+                          GameText('${w.kind.title} pod ahead!', style: T.h2.copyWith(fontSize: 24)),
                         ]),
                       ),
                     ]),
                     const SizedBox(height: 14),
-                    Text('Your rocket carries ${SupplyGame.holdSize} pods. Tap one to drop it, or skip this pod.', textAlign: TextAlign.center, style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 15.5)),
+                    GameText('Your rocket carries ${SupplyGame.holdSize} pods. Tap one to drop it, or skip this pod.', textAlign: TextAlign.center, style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 15.5)),
                     const SizedBox(height: 14),
                     Container(
                       padding: const EdgeInsets.all(10),
@@ -456,9 +457,9 @@ class _SupplyRunScreenState extends State<SupplyRunScreen> with SingleTickerProv
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text('Heavier rocket = more fuel', style: T.h3.copyWith(color: C.orange, fontSize: 17)),
+                            GameText('Heavier rocket = more fuel', style: T.h3.copyWith(color: C.orange, fontSize: 17)),
                             const SizedBox(height: 4),
-                            Text('A full hold uses 2× fuel per second. You need about ${need.round()}% to land — you have ${g.fuel.round()}%.', style: T.body.copyWith(fontSize: 14.5)),
+                            GameText('A full hold uses 2× fuel per second. You need about ${need.round()}% to land — you have ${g.fuel.round()}%.', style: T.body.copyWith(fontSize: 14.5)),
                           ]),
                         ),
                       ]),
@@ -519,7 +520,7 @@ class _SupplyRunScreenState extends State<SupplyRunScreen> with SingleTickerProv
                 SizedBox(height: 150, child: CustomPaint(painter: _DeliveredArt())),
                 Center(child: TagChip(g.roughLanding ? 'ROUGH LANDING' : 'SUPPLY RUN COMPLETE', color: g.roughLanding ? C.yellow : C.green, icon: Ln.rocket, on: C.bg, size: 13)),
                 const SizedBox(height: 14),
-                Text(rows.isEmpty ? 'Nothing delivered' : 'Supplies delivered!', textAlign: TextAlign.center, style: T.h1),
+                GameText(rows.isEmpty ? 'Nothing delivered' : 'Supplies delivered!', textAlign: TextAlign.center, style: T.h1),
                 const SizedBox(height: 14),
                 Center(child: KitStars(stars: g.stars, size: 44, animate: true)),
                 const SizedBox(height: 18),
@@ -528,17 +529,17 @@ class _SupplyRunScreenState extends State<SupplyRunScreen> with SingleTickerProv
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Overline('Added to your Moon base', size: 11.5),
                     const SizedBox(height: 10),
-                    if (rows.isEmpty) Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('Grab pods on the way next time!', style: T.body.copyWith(color: C.muted))),
+                    if (rows.isEmpty) Padding(padding: const EdgeInsets.only(bottom: 10), child: GameText('Grab pods on the way next time!', style: T.body.copyWith(color: C.muted))),
                     for (final k in rows) ...[
                       Row(children: [
                         SizedBox(width: 38, height: 38, child: CustomPaint(painter: _PodPainter(k))),
                         const SizedBox(width: 12),
-                        Expanded(child: Text('${k.title}  ×${g.count(k)}', style: T.h3.copyWith(fontSize: 17))),
+                        Expanded(child: GameText('${k.title}  ×${g.count(k)}', style: T.h3.copyWith(fontSize: 17))),
                         TagChip(gain(k), color: podColor(k), icon: Ln.up, size: 13.5),
                       ]),
                       const SizedBox(height: 10),
                     ],
-                    if (g.lostOnLanding.isNotEmpty) Padding(padding: const EdgeInsets.only(bottom: 10), child: Text('${g.lostOnLanding.length} pods broke in the hard landing (not enough fuel).', style: T.bodySmall.copyWith(color: C.yellow))),
+                    if (g.lostOnLanding.isNotEmpty) Padding(padding: const EdgeInsets.only(bottom: 10), child: GameText('${g.lostOnLanding.length} pods broke in the hard landing (not enough fuel).', style: T.bodySmall.copyWith(color: C.yellow))),
                   ]),
                 ),
                 const SizedBox(height: 12),

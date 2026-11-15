@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../game_helper.dart';
 
 import '../../main.dart';
 import '../../data/messages.dart';
@@ -101,12 +102,12 @@ class GaugeColumn extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(g.label, style: T.label.copyWith(fontSize: 9.5, color: C.muted)),
+                        GameText(g.label, style: T.label.copyWith(fontSize: 9.5, color: C.muted)),
                         const Spacer(),
-                        if (g.sub != null) Text(g.sub!, style: T.monoSmall.copyWith(fontSize: 9.5, color: g.color)),
+                        if (g.sub != null) GameText(g.sub!, style: T.monoSmall.copyWith(fontSize: 9.5, color: g.color)),
                       ],
                     ),
-                    Text(g.value, style: T.mono.copyWith(fontSize: 12.5)),
+                    GameText(g.value, style: T.mono.copyWith(fontSize: 12.5)),
                   ],
                 ),
               ),
@@ -147,11 +148,11 @@ class GaugeStrip extends StatelessWidget {
                   Row(children: [
                     Icon(g.icon, size: 12, color: g.color),
                     const SizedBox(width: 4),
-                    Expanded(child: Text(g.label, style: T.label.copyWith(fontSize: 9.5, letterSpacing: 1, color: g.color), overflow: TextOverflow.ellipsis)),
+                    Expanded(child: GameText(g.label, style: T.label.copyWith(fontSize: 9.5, letterSpacing: 1, color: g.color), overflow: TextOverflow.ellipsis)),
                   ]),
                   const SizedBox(height: 3),
-                  FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(g.value, style: T.h3.copyWith(fontSize: 14))),
-                  if (g.sub != null) Text(g.sub!, style: T.bodySmall.copyWith(fontSize: 10, color: C.dim), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: GameText(g.value, style: T.h3.copyWith(fontSize: 14))),
+                  if (g.sub != null) GameText(g.sub!, style: T.bodySmall.copyWith(fontSize: 10, color: C.dim), maxLines: 1, overflow: TextOverflow.ellipsis),
                 ]),
               ),
             ),
@@ -183,7 +184,7 @@ class TopBar extends StatelessWidget {
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Icon(icon, size: 13, color: c),
             const SizedBox(width: 5),
-            Text(text, style: T.label.copyWith(color: c, fontSize: 10)),
+            GameText(text, style: T.label.copyWith(color: c, fontSize: 10)),
           ]),
         );
 
@@ -199,9 +200,9 @@ class TopBar extends StatelessWidget {
       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text('MISSION ${s.mission.id} · ${s.mission.title.toUpperCase()}', style: T.label.copyWith(fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+            GameText('MISSION ${s.mission.id} · ${s.mission.title.toUpperCase()}', style: T.label.copyWith(fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 2),
-            Text(missionClock(s.hour), style: T.h1.copyWith(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: 24, letterSpacing: 1)),
+            GameText(missionClock(s.hour), style: T.h1.copyWith(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: 24, letterSpacing: 1)),
             const SizedBox(height: 4),
             Row(children: [
               SizedBox(
@@ -212,7 +213,7 @@ class TopBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text('${s.hoursLeft} h left', style: T.bodySmall.copyWith(fontSize: 12)),
+              GameText('${s.hoursLeft} h left', style: T.bodySmall.copyWith(fontSize: 12)),
             ]),
           ]),
         ),
@@ -252,7 +253,7 @@ class TopBar extends StatelessWidget {
         ),
         child: icon != null
             ? Icon(icon, size: 18, color: active ? Colors.white : C.muted)
-            : Text(label ?? '', style: T.h3.copyWith(fontSize: 12.5, color: active ? Colors.white : C.muted)),
+            : GameText(label ?? '', style: T.h3.copyWith(fontSize: 12.5, color: active ? Colors.white : C.muted)),
       ),
     );
   }
@@ -374,12 +375,12 @@ class _CrewCardState extends State<CrewCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('CMDR. NOVA HADDAD', style: T.h3.copyWith(fontSize: 12.5)),
+                    GameText('CMDR. NOVA HADDAD', style: T.h3.copyWith(fontSize: 12.5)),
                     const SizedBox(height: 2),
-                    Text(status, style: T.bodySmall.copyWith(color: C.cyan, fontSize: 11.5), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    GameText(status, style: T.bodySmall.copyWith(color: C.cyan, fontSize: 11.5), maxLines: 1, overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 5),
                     Row(children: [
-                      Text('FATIGUE', style: T.label.copyWith(fontSize: 8.5)),
+                      GameText('FATIGUE', style: T.label.copyWith(fontSize: 8.5)),
                       const SizedBox(width: 6),
                       Expanded(
                         child: ClipRRect(
@@ -395,7 +396,7 @@ class _CrewCardState extends State<CrewCard> {
                       if (s.crew > 1) ...[
                         const SizedBox(width: 8),
                         const Icon(Icons.groups_rounded, size: 14, color: C.muted),
-                        Text(' ${s.crew}', style: T.monoSmall),
+                        GameText(' ${s.crew}', style: T.monoSmall),
                       ],
                     ]),
                   ],
@@ -419,10 +420,10 @@ class _CrewCardState extends State<CrewCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      Text(speakerName(last.message.speaker, characterName: Services.of(context).session.characterName).toUpperCase(),
+                      GameText(speakerName(last.message.speaker, characterName: Services.of(context).session.characterName).toUpperCase(),
                           style: T.label.copyWith(fontSize: 9, color: speakerColor(last.message.speaker))),
                       const Spacer(),
-                      Text('LOG ${g.feed.length}', style: T.monoSmall.copyWith(fontSize: 9)),
+                      GameText('LOG ${g.feed.length}', style: T.monoSmall.copyWith(fontSize: 9)),
                       const Icon(Icons.chevron_right_rounded, size: 14, color: C.muted),
                     ]),
                     const SizedBox(height: 3),
@@ -466,8 +467,8 @@ class ObjectivesStrip extends StatelessWidget {
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Icon(done ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded, size: 14, color: done ? C.green : C.muted),
             const SizedBox(width: 5),
-            Text('$label ', style: T.label.copyWith(fontSize: 9.5, color: done ? C.green : C.muted)),
-            Text(value, style: T.mono.copyWith(fontSize: 11)),
+            GameText('$label ', style: T.label.copyWith(fontSize: 9.5, color: done ? C.green : C.muted)),
+            GameText(value, style: T.mono.copyWith(fontSize: 11)),
           ]),
         );
     if (m.iceGoal > 0) items.add(item('ICE', s.iceMined >= m.iceGoal, '${s.iceMined.toStringAsFixed(0)}/${m.iceGoal.toStringAsFixed(0)} kg'));
@@ -560,7 +561,7 @@ class _EventBannerState extends State<EventBanner> with SingleTickerProviderStat
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   Icon(i.icon, color: i.color, size: 20),
                   const SizedBox(width: 10),
-                  Text(i.text, style: T.h2.copyWith(color: C.text, letterSpacing: 2.5, fontSize: 17, shadows: [
+                  GameText(i.text, style: T.h2.copyWith(color: C.text, letterSpacing: 2.5, fontSize: 17, shadows: [
                     Shadow(color: i.color, blurRadius: 12),
                   ])),
                 ]),
@@ -613,8 +614,8 @@ class _MessageModalState extends State<MessageModal> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(speakerName(m.speaker, characterName: Services.of(context).session.characterName).toUpperCase(), style: T.h3.copyWith(color: color == C.text ? C.text : color)),
-                      Text(speakerRole(m.speaker), style: T.bodySmall),
+                      GameText(speakerName(m.speaker, characterName: Services.of(context).session.characterName).toUpperCase(), style: T.h3.copyWith(color: color == C.text ? C.text : color)),
+                      GameText(speakerRole(m.speaker), style: T.bodySmall),
                     ]),
                   ),
                   const Icon(Icons.wifi_tethering_rounded, color: C.muted, size: 18),
@@ -684,9 +685,9 @@ class CargoModal extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('CARGO LANDER: CHOOSE ONE CRATE', style: T.h2),
+              const GameText('CARGO LANDER: CHOOSE ONE CRATE', style: T.h2),
               const SizedBox(height: 4),
-              const Text('There is room for only one. What does the base need most right now?', style: T.bodySmall, textAlign: TextAlign.center),
+              const GameText('There is room for only one. What does the base need most right now?', style: T.bodySmall, textAlign: TextAlign.center),
               const SizedBox(height: 14),
               Row(
                 children: [
@@ -706,7 +707,7 @@ class CargoModal extends StatelessWidget {
                             child: Column(children: [
                               Icon(_icon(o), color: C.cyan, size: 30),
                               const SizedBox(height: 8),
-                              Text(cargoName(o), style: T.h3.copyWith(fontSize: 12.5), textAlign: TextAlign.center),
+                              GameText(cargoName(o), style: T.h3.copyWith(fontSize: 12.5), textAlign: TextAlign.center),
                             ]),
                           ),
                         ),

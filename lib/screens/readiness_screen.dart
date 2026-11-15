@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../data/catalogue.dart';
 import '../data/readiness.dart';
@@ -102,7 +103,7 @@ class _ReadinessScreenState extends State<ReadinessScreen> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Row(children: [
         IconButton(onPressed: () => sv.nav.back(), icon: const Icon(Icons.close_rounded, color: C.frozen)),
-        Expanded(child: Text(_post ? 'FINAL READINESS CHECK' : 'READINESS CHECK', style: T.label, textAlign: TextAlign.center)),
+        Expanded(child: GameText(_post ? 'FINAL READINESS CHECK' : 'READINESS CHECK', style: T.label, textAlign: TextAlign.center)),
         const SizedBox(width: 48),
       ]),
       const SizedBox(height: 8),
@@ -119,11 +120,11 @@ class _ReadinessScreenState extends State<ReadinessScreen> {
         ],
       ]),
       const SizedBox(height: 20),
-      Text('Question ${_i + 1} of ${_qs.length} · ${q.skill.title}', style: T.bodySmall),
+      GameText('Question ${_i + 1} of ${_qs.length} · ${q.skill.title}', style: T.bodySmall),
       const SizedBox(height: 8),
       AnimatedSwitcher(
         duration: Motion.normal,
-        child: Text(q.text, key: ValueKey(_i), style: T.h1.copyWith(fontSize: 23, height: 1.3)),
+        child: GameText(q.text, key: ValueKey(_i), style: T.h1.copyWith(fontSize: 23, height: 1.3)),
       ),
       const SizedBox(height: 20),
       for (final o in order)
@@ -141,7 +142,7 @@ class _ReadinessScreenState extends State<ReadinessScreen> {
               child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 PipFigure(size: 34, eye: _answers[_i] == q.answer ? PipEye.happy : PipEye.thinking),
                 const SizedBox(width: 8),
-                Expanded(child: Text(q.why, style: T.body.copyWith(fontSize: 14))),
+                Expanded(child: GameText(q.why, style: T.body.copyWith(fontSize: 14))),
               ]),
             ),
             const SizedBox(height: 12),
@@ -149,7 +150,7 @@ class _ReadinessScreenState extends State<ReadinessScreen> {
           ]),
         )
       else
-        Text(_post ? 'Pick an answer to see the explanation.' : 'There is no time limit, and this is not a test of you: it shows where you start.', style: T.bodySmall, textAlign: TextAlign.center),
+        GameText(_post ? 'Pick an answer to see the explanation.' : 'There is no time limit, and this is not a test of you: it shows where you start.', style: T.bodySmall, textAlign: TextAlign.center),
     ]);
   }
 
@@ -174,7 +175,7 @@ class _ReadinessScreenState extends State<ReadinessScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
         decoration: BoxDecoration(color: fill, borderRadius: BorderRadius.circular(16), border: Border.all(color: border, width: 1.5)),
         child: Row(children: [
-          Expanded(child: Text(q.options[o], style: T.h3.copyWith(fontSize: 15.5))),
+          Expanded(child: GameText(q.options[o], style: T.h3.copyWith(fontSize: 15.5))),
           if (_revealed && right) const Icon(Icons.check_circle_rounded, color: C.cyan),
           if (_revealed && picked && !right) const Icon(Icons.cancel_rounded, color: C.red),
         ]),
@@ -191,25 +192,25 @@ class _ReadinessScreenState extends State<ReadinessScreen> {
       const Spacer(),
       Center(child: PipFigure(size: 90, eye: score >= _qs.length * 0.6 ? PipEye.happy : PipEye.normal)),
       const SizedBox(height: 16),
-      Text(_post ? 'Final check done' : 'Ready for launch', style: T.hero.copyWith(fontSize: 34), textAlign: TextAlign.center),
+      GameText(_post ? 'Final check done' : 'Ready for launch', style: T.hero.copyWith(fontSize: 34), textAlign: TextAlign.center),
       const SizedBox(height: 10),
-      Text('$score of ${_qs.length} right', style: T.h2, textAlign: TextAlign.center),
+      GameText('$score of ${_qs.length} right', style: T.h2, textAlign: TextAlign.center),
       if (gain != null) ...[
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(color: C.cyan.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(18), border: Border.all(color: C.cyan.withValues(alpha: 0.5))),
           child: Column(children: [
-            Text('BEFORE → AFTER', style: T.label.copyWith(fontSize: 11)),
+            GameText('BEFORE → AFTER', style: T.label.copyWith(fontSize: 11)),
             const SizedBox(height: 6),
-            Text('$pre% → $post%', style: T.hero.copyWith(fontSize: 36, color: C.cyan)),
-            Text(gain >= 0 ? '+$gain points. That is what you learned on this mission.' : 'Keep practising: replay a level and try again.', style: T.body.copyWith(color: C.muted), textAlign: TextAlign.center),
+            GameText('$pre% → $post%', style: T.hero.copyWith(fontSize: 36, color: C.cyan)),
+            GameText(gain >= 0 ? '+$gain points. That is what you learned on this mission.' : 'Keep practising: replay a level and try again.', style: T.body.copyWith(color: C.muted), textAlign: TextAlign.center),
           ]),
         ),
       ] else
         Padding(
           padding: const EdgeInsets.only(top: 12),
-          child: Text('You will take the same check at the end of the campaign to see how much you learned.', style: T.body.copyWith(color: C.muted), textAlign: TextAlign.center),
+          child: GameText('You will take the same check at the end of the campaign to see how much you learned.', style: T.body.copyWith(color: C.muted), textAlign: TextAlign.center),
         ),
       const Spacer(),
       PrimaryButton(label: _post ? 'See my skills' : 'Start level 1', icon: _post ? Icons.radar_rounded : Icons.play_arrow_rounded, onTap: () {

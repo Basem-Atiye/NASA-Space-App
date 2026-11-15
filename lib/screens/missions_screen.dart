@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../data/missions.dart';
 import '../engine/mission.dart';
@@ -47,7 +48,7 @@ class _MissionsScreenState extends State<MissionsScreen> {
                 const Spacer(),
                 const SparkleStar(size: 16),
                 const SizedBox(width: 6),
-                Text('${p.totalStars} / ${missions.length * 3}', style: T.h3),
+                GameText('${p.totalStars} / ${missions.length * 3}', style: T.h3),
               ]),
             ),
           ),
@@ -55,11 +56,11 @@ class _MissionsScreenState extends State<MissionsScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 4, 24, 14),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('FLIGHT DIRECTOR', style: T.label.copyWith(letterSpacing: 3)),
+                GameText('FLIGHT DIRECTOR', style: T.label.copyWith(letterSpacing: 3)),
                 const SizedBox(height: 6),
-                Text('Survival', style: T.hero.copyWith(fontSize: 36)),
+                GameText('Survival', style: T.hero.copyWith(fontSize: 36)),
                 const SizedBox(height: 8),
-                Text('Keep the base running for days at a time, using real NASA daily rates: 0.84 kg oxygen, 2.37 kg water and 0.62 kg food per astronaut.', style: T.body.copyWith(color: C.muted)),
+                GameText('Keep the base running for days at a time, using real NASA daily rates: 0.84 kg oxygen, 2.37 kg water and 0.62 kg food per astronaut.', style: T.body.copyWith(color: C.muted)),
               ]),
             ),
           ),
@@ -94,14 +95,14 @@ class _ChapterCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            Text('CHAPTER ${chapter.number}', style: T.label.copyWith(color: unlocked ? C.cyan : C.dim)),
+            GameText('CHAPTER ${chapter.number}', style: T.label.copyWith(color: unlocked ? C.cyan : C.dim)),
             const Spacer(),
             if (p.quizBadges.contains(chapter.number))
               const Tooltip(message: 'Quiz badge earned', child: Icon(Icons.workspace_premium_rounded, color: C.gold, size: 18)),
           ]),
           const SizedBox(height: 4),
-          Text(chapter.title.toUpperCase(), style: T.h2.copyWith(color: unlocked ? C.text : C.dim)),
-          Text(chapter.theme, style: T.bodySmall),
+          GameText(chapter.title.toUpperCase(), style: T.h2.copyWith(color: unlocked ? C.text : C.dim)),
+          GameText(chapter.theme, style: T.bodySmall),
           const HudDivider(),
           for (final m in ms) _MissionTile(m: m),
         ],
@@ -143,20 +144,20 @@ class _MissionTile extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(shape: BoxShape.circle, color: open ? C.sapphire : Colors.transparent, border: Border.all(color: open ? C.sapphire : C.dim)),
               child: open
-                  ? Text('${m.id}', style: T.h3.copyWith(color: Colors.white))
+                  ? GameText('${m.id}', style: T.h3.copyWith(color: Colors.white))
                   : const Icon(Icons.lock_rounded, size: 16, color: C.dim),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
-                  Flexible(child: Text(m.title, style: T.h3.copyWith(color: open ? C.text : C.dim), overflow: TextOverflow.ellipsis)),
+                  Flexible(child: GameText(m.title, style: T.h3.copyWith(color: open ? C.text : C.dim), overflow: TextOverflow.ellipsis)),
                   if (m.isBoss) ...[
                     const SizedBox(width: 6),
-                    Text('BOSS', style: T.label.copyWith(color: C.amber, fontSize: 8.5)),
+                    GameText('BOSS', style: T.label.copyWith(color: C.amber, fontSize: 8.5)),
                   ],
                 ]),
-                Text(m.subtitle, style: T.bodySmall, maxLines: 2, overflow: TextOverflow.ellipsis),
+                GameText(m.subtitle, style: T.bodySmall, maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 3),
                 StarRow(stars: stars, size: 14),
               ]),

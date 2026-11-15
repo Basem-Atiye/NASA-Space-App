@@ -3,6 +3,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../base/ui/base_screens.dart';
 import '../main.dart';
@@ -85,7 +86,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _row('Reset progress', color: C.red, onTap: () => _reset(context)),
                   ]),
                   const SizedBox(height: 18),
-                  Center(child: Text('Level ${p.ageMode.title} · ${p.ageMode.ages}', style: T.bodySmall)),
+                  Center(child: GameText('Level ${p.ageMode.title} · ${p.ageMode.ages}', style: T.bodySmall)),
                 ]),
               ),
             ),
@@ -103,14 +104,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           constraints: const BoxConstraints(minHeight: 66),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
           child: Row(children: [
-            Expanded(child: Text(label, style: T.h3.copyWith(fontSize: 17.5, color: color))),
+            Expanded(child: GameText(label, style: T.h3.copyWith(fontSize: 17.5, color: color))),
             if (trailing != null) trailing,
           ]),
         ),
       );
 
   Widget _value(String v) => Row(mainAxisSize: MainAxisSize.min, children: [
-        Text(v, style: T.body.copyWith(color: C.muted, fontSize: 16)),
+        GameText(v, style: T.body.copyWith(color: C.muted, fontSize: 16)),
         const SizedBox(width: 8),
         _chev(),
       ]);
@@ -119,7 +120,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _note(BuildContext context, String text) => ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, backgroundColor: C.raised, content: Text(text, style: T.body)));
+    ..showSnackBar(SnackBar(behavior: SnackBarBehavior.floating, backgroundColor: C.raised, content: GameText(text, style: T.body)));
 
   void _about(BuildContext context) {
     showModalBottomSheet<void>(
@@ -131,9 +132,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           const SheetHandle(),
           const SizedBox(height: 18),
-          const Text('Mission Trainer', style: T.h1),
+          const GameText('Mission Trainer', style: T.h1),
           const SizedBox(height: 8),
-          Text(
+          GameText(
             'Made for the NASA Space Apps Challenge 2026: Build a Junior Astronaut Mission Trainer (Beirut).\n\n'
             'Life support numbers: NASA. Lunar radiation: Chang\'e 4. Solar storms: NASA DONKI. Moonquakes: Apollo seismometers. '
             'Polar ice: LCROSS.\n\nFonts: Fredoka and Nunito (SIL Open Font License). Icons in the style of Lucide (ISC). Sounds made for this game.',
@@ -157,9 +158,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             const GlowDisc(icon: Ln.refresh, color: C.red, size: 80),
             const SizedBox(height: 14),
-            const Text('Reset everything?', style: T.h2),
+            const GameText('Reset everything?', style: T.h2),
             const SizedBox(height: 8),
-            Text('All stars, badges and saved games on this phone will be deleted.', textAlign: TextAlign.center, style: T.body.copyWith(color: C.muted)),
+            GameText('All stars, badges and saved games on this phone will be deleted.', textAlign: TextAlign.center, style: T.body.copyWith(color: C.muted)),
             const SizedBox(height: 18),
             Row(children: [
               Expanded(child: KitButton('Cancel', style: KitButtonStyle.secondary, onTap: () => Navigator.pop(ctx, false))),

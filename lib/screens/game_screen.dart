@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../engine/simulation.dart';
 import '../game/game_controller.dart';
@@ -99,7 +100,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
             child: GlassPanel(
               padding: const EdgeInsets.all(18),
               child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                const Text('MISSION PAUSED', style: T.h2, textAlign: TextAlign.center),
+                const GameText('MISSION PAUSED', style: T.h2, textAlign: TextAlign.center),
                 const SizedBox(height: 14),
                 HudButton(label: 'RESUME', icon: Icons.play_arrow_rounded, filled: true, onTap: () => Navigator.of(ctx).pop('resume')),
                 const SizedBox(height: 8),
@@ -174,7 +175,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                         bottom: 10,
                         left: 0,
                         right: 0,
-                        child: IgnorePointer(child: Center(child: Text('PAUSED · tap 1x to resume', style: T.label.copyWith(color: C.frozen, fontSize: 12)))),
+                        child: IgnorePointer(child: Center(child: GameText('PAUSED · tap 1x to resume', style: T.label.copyWith(color: C.frozen, fontSize: 12)))),
                       ),
                   ]),
                 ),
@@ -234,7 +235,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Icon(icon, color: enabled ? C.cyan : C.dim, size: 22),
                     const SizedBox(height: 4),
-                    Text(label, style: T.h3.copyWith(fontSize: 12, letterSpacing: 1, color: enabled ? C.text : C.dim), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    GameText(label, style: T.h3.copyWith(fontSize: 12, letterSpacing: 1, color: enabled ? C.text : C.dim), maxLines: 1, overflow: TextOverflow.ellipsis),
                   ]),
                 ),
                 if (badge != null)
@@ -244,7 +245,7 @@ class _GameScreenState extends State<GameScreen> with SingleTickerProviderStateM
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
                       decoration: BoxDecoration(color: C.red, borderRadius: BorderRadius.circular(9)),
-                      child: Text(badge, style: T.h3.copyWith(color: Colors.white, fontSize: 11)),
+                      child: GameText(badge, style: T.h3.copyWith(color: Colors.white, fontSize: 11)),
                     ),
                   ),
               ]),
@@ -278,7 +279,7 @@ class _FinishFlash extends StatelessWidget {
           scale: 0.9 + 0.1 * v,
           child: Opacity(
             opacity: v,
-            child: Text(
+            child: GameText(
               won ? 'Mission complete' : 'Mission failed',
               textAlign: TextAlign.center,
               style: T.hero.copyWith(fontSize: 38, color: c, shadows: [Shadow(color: c, blurRadius: 24)]),

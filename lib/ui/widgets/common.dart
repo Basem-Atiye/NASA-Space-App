@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
+import '../game_helper.dart';
 import 'package:flutter/services.dart';
 
 import '../kit.dart';
@@ -147,7 +148,7 @@ class HudButton extends StatelessWidget {
           child: Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.center, children: [
             if (icon != null) Icon(icon, size: compact ? 17 : 19, color: fg),
             if (icon != null && label.isNotEmpty) const SizedBox(width: 8),
-            if (label.isNotEmpty) Flexible(child: Text(label, style: T.h3.copyWith(color: fg, fontSize: compact ? 14 : 16.5), overflow: TextOverflow.ellipsis)),
+            if (label.isNotEmpty) Flexible(child: GameText(label, style: T.h3.copyWith(color: fg, fontSize: compact ? 14 : 16.5), overflow: TextOverflow.ellipsis)),
           ]),
         ),
         if (badge != null)
@@ -157,7 +158,7 @@ class HudButton extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(color: C.red, borderRadius: BorderRadius.circular(8)),
-              child: Text(badge!, style: T.monoSmall.copyWith(color: Colors.white, fontSize: 10)),
+              child: GameText(badge!, style: T.monoSmall.copyWith(color: Colors.white, fontSize: 10)),
             ),
           ),
       ]),
@@ -225,7 +226,7 @@ class GaugeBar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
         decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withValues(alpha: 0.45))),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-          Text(label.toUpperCase(), style: T.label.copyWith(fontSize: 10, letterSpacing: 1.2, color: color)),
+          GameText(label.toUpperCase(), style: T.label.copyWith(fontSize: 10, letterSpacing: 1.2, color: color)),
           const SizedBox(height: 5),
           Row(children: [
             Expanded(
@@ -240,7 +241,7 @@ class GaugeBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Text(value, style: T.h3.copyWith(fontSize: 12.5)),
+            GameText(value, style: T.h3.copyWith(fontSize: 12.5)),
           ]),
         ]),
       ),
@@ -386,7 +387,7 @@ class SectionLabel extends StatelessWidget {
   const SectionLabel(this.text, {super.key, this.color = C.muted});
 
   @override
-  Widget build(BuildContext context) => Text(text.toUpperCase(), style: T.label.copyWith(color: color));
+  Widget build(BuildContext context) => GameText(text.toUpperCase(), style: T.label.copyWith(color: color));
 }
 
 /// Hairline divider.

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../data/encyclopedia.dart';
 import '../base/base_badges.dart';
@@ -142,10 +143,10 @@ class _TitleScreenState extends State<TitleScreen> with SingleTickerProviderStat
                       EnterAnim(
                         delayMs: _playIntro ? 500 : 0,
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          const Text('Open', style: T.hero),
-                          Text('Bounds', style: T.hero.copyWith(color: _accent)),
+                          const GameText('Open', style: T.hero),
+                          GameText('Bounds', style: T.hero.copyWith(color: _accent)),
                           const SizedBox(height: 10),
-                          Text(camp.tagline, style: T.body.copyWith(color: C.muted, fontSize: 15)),
+                          GameText(camp.tagline, style: T.body.copyWith(color: C.muted, fontSize: 15)),
                         ]),
                       ),
                       const SizedBox(height: 14),
@@ -224,7 +225,7 @@ class _TitleScreenState extends State<TitleScreen> with SingleTickerProviderStat
                     builder: (context, v, _) => SizedBox(width: 18, height: 18, child: CustomPaint(painter: StarLogoPainter(v))),
                   ),
                   const SizedBox(width: 8),
-                  Text('SOUTH POLE', style: T.label.copyWith(color: C.frozen, fontSize: 11.5, letterSpacing: 2.4)),
+                  GameText('SOUTH POLE', style: T.label.copyWith(color: C.frozen, fontSize: 11.5, letterSpacing: 2.4)),
                 ])),
                 const Spacer(),
                 Flexible(
@@ -236,11 +237,11 @@ class _TitleScreenState extends State<TitleScreen> with SingleTickerProviderStat
                     child: _pill(Row(mainAxisSize: MainAxisSize.min, children: [
                       const LineIcon(Ln.star, size: 18, color: C.yellow),
                       const SizedBox(width: 6),
-                      Text('${p.storyTotalStars()}', style: T.h3.copyWith(fontSize: 15)),
+                      GameText('${p.storyTotalStars()}', style: T.h3.copyWith(fontSize: 15)),
                       const SizedBox(width: 8),
                       Container(width: 1, height: 16, color: C.line),
                       const SizedBox(width: 8),
-                      Flexible(child: Text(p.rankChosen ? p.ageMode.title : 'Age group', style: T.body.copyWith(fontSize: 13.5, color: C.muted), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      Flexible(child: GameText(p.rankChosen ? p.ageMode.title : 'Age group', style: T.body.copyWith(fontSize: 13.5, color: C.muted), maxLines: 1, overflow: TextOverflow.ellipsis)),
                     ])),
                   ),
                 ),
@@ -276,24 +277,24 @@ class _TitleScreenState extends State<TitleScreen> with SingleTickerProviderStat
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(color: C.ink, borderRadius: BorderRadius.circular(12)),
-            child: Text(started ? 'CONTINUE' : 'START', style: T.label.copyWith(fontSize: 11, letterSpacing: 2)),
+            child: GameText(started ? 'CONTINUE' : 'START', style: T.label.copyWith(fontSize: 11, letterSpacing: 2)),
           ),
           const SizedBox(width: 10),
-          Expanded(child: Text(p.campaign.title.toUpperCase(), style: T.label.copyWith(fontSize: 10.5, color: C.muted, letterSpacing: 1.4), maxLines: 1, overflow: TextOverflow.ellipsis)),
+          Expanded(child: GameText(p.campaign.title.toUpperCase(), style: T.label.copyWith(fontSize: 10.5, color: C.muted, letterSpacing: 1.4), maxLines: 1, overflow: TextOverflow.ellipsis)),
         ]),
         const SizedBox(height: 12),
-        Text('Level $next · $title', style: T.h1.copyWith(fontSize: 24, height: 1.15)),
+        GameText('Level $next · $title', style: T.h1.copyWith(fontSize: 24, height: 1.15)),
         const SizedBox(height: 6),
         Row(children: [
           const LineIcon(Ln.calendar, size: 15, color: C.muted),
           const SizedBox(width: 6),
-          Expanded(child: Text(p.campaign.dayLabel(next), style: T.body.copyWith(color: C.muted, fontSize: 13.5), maxLines: 1, overflow: TextOverflow.ellipsis)),
+          Expanded(child: GameText(p.campaign.dayLabel(next), style: T.body.copyWith(color: C.muted, fontSize: 13.5), maxLines: 1, overflow: TextOverflow.ellipsis)),
         ]),
         const SizedBox(height: 8),
         Row(children: [
           Container(width: 8, height: 8, decoration: BoxDecoration(color: _accent, shape: BoxShape.circle, boxShadow: [BoxShadow(color: _accent, blurRadius: 8)])),
           const SizedBox(width: 8),
-          Expanded(child: Text('NEXT MISSION: $_themeName', style: T.label.copyWith(color: _accent, fontSize: 10.5, letterSpacing: 1.8), maxLines: 1, overflow: TextOverflow.ellipsis)),
+          Expanded(child: GameText('NEXT MISSION: $_themeName', style: T.label.copyWith(color: _accent, fontSize: 10.5, letterSpacing: 1.8), maxLines: 1, overflow: TextOverflow.ellipsis)),
         ]),
         const SizedBox(height: 14),
         Row(children: [
@@ -352,7 +353,7 @@ class _TitleScreenState extends State<TitleScreen> with SingleTickerProviderStat
                 Icon(live ? Icons.sensors_rounded : Icons.mark_email_unread_rounded, color: C.frozen),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
+                  child: GameText(
                     live
                         ? 'Live lesson: your teacher started level $level · ${sv.progress.campaign.task(level).title}. Tap to join.'
                         : 'A message from your teacher. Tap to read it.',
@@ -395,7 +396,7 @@ class _TitleScreenState extends State<TitleScreen> with SingleTickerProviderStat
                 const SizedBox(width: 8),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 220),
-                  child: Text(label, style: T.bodySmall.copyWith(fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  child: GameText(label, style: T.bodySmall.copyWith(fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
               ]),
             ),
@@ -419,9 +420,9 @@ class _TitleScreenState extends State<TitleScreen> with SingleTickerProviderStat
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           IconBox(icon, color: color, size: 38),
           const Spacer(),
-          Text(title, style: T.h3.copyWith(fontSize: 15.5, height: 1.1), maxLines: 1, overflow: TextOverflow.ellipsis),
+          GameText(title, style: T.h3.copyWith(fontSize: 15.5, height: 1.1), maxLines: 1, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 3),
-          Text(sub, style: T.bodySmall.copyWith(fontSize: 12, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
+          GameText(sub, style: T.bodySmall.copyWith(fontSize: 12, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
         ]),
       ),
     );
@@ -430,7 +431,7 @@ class _TitleScreenState extends State<TitleScreen> with SingleTickerProviderStat
   Widget _link(String label, VoidCallback onTap) => TextButton(
         onPressed: onTap,
         style: TextButton.styleFrom(foregroundColor: C.muted, minimumSize: const Size(44, 48)),
-        child: Text(label, style: T.h3.copyWith(fontSize: 13.5, color: C.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
+        child: GameText(label, style: T.h3.copyWith(fontSize: 13.5, color: C.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
       );
 }
 

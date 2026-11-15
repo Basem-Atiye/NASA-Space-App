@@ -5,6 +5,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../game_helper.dart';
 
 import '../theme.dart';
 
@@ -72,7 +73,7 @@ class _RingMeterState extends State<RingMeter> with SingleTickerProviderStateMix
                     child: Center(
                       child: widget.icon != null
                           ? Icon(widget.icon, size: 15, color: col)
-                          : Text(
+                          : GameText(
                               widget.text,
                               style: T.mono.copyWith(fontSize: widget.text.length > 2 ? 9 : 10.5, fontWeight: FontWeight.w700, color: C.frozen),
                             ),
@@ -82,7 +83,7 @@ class _RingMeterState extends State<RingMeter> with SingleTickerProviderStateMix
               ),
             ),
           ),
-          Text(
+          GameText(
             widget.label,
             style: T.label.copyWith(fontSize: 7, height: 1, letterSpacing: 0.4, color: C.muted),
             textHeightBehavior: const TextHeightBehavior(applyHeightToFirstAscent: false, applyHeightToLastDescent: false),
@@ -232,7 +233,7 @@ class _FloatingStickState extends State<FloatingStick> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(color: C.sapphire, borderRadius: BorderRadius.circular(8)),
-                      child: Text('SPRINT', style: T.label.copyWith(color: C.frozen, fontSize: 10, letterSpacing: 1.4)),
+                      child: GameText('SPRINT', style: T.label.copyWith(color: C.frozen, fontSize: 10, letterSpacing: 1.4)),
                     ),
                   ),
                 ),
@@ -315,7 +316,7 @@ class ActionDisc extends StatelessWidget {
             border: Border.all(color: C.frozen.withValues(alpha: onTap == null ? 0.15 : 0.35), width: 1.5),
             boxShadow: onTap == null ? null : [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 26)],
           ),
-          child: Text(
+          child: GameText(
             words.length > 1 && label.length > 7 ? words.join('\n') : label,
             textAlign: TextAlign.center,
             style: T.button.copyWith(fontSize: label.length > 7 ? 12 : 13.5, height: 1.15, letterSpacing: 1, color: onTap == null ? C.dim : textColor),

@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
@@ -78,7 +79,7 @@ class _SortGameState extends State<SortGame> {
       status: _status,
       statusColor: _wrongBin != null ? C.amber : C.green,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(s.label.isEmpty ? 'WHERE DOES IT GO?' : s.label, style: T.label),
+        GameText(s.label.isEmpty ? 'WHERE DOES IT GO?' : s.label, style: T.label),
         const SizedBox(height: 10),
         AnimatedSwitcher(
           duration: Motion.normal,
@@ -94,11 +95,11 @@ class _SortGameState extends State<SortGame> {
               border: Border.all(color: C.cyan.withValues(alpha: 0.7), width: 1.4),
               boxShadow: [BoxShadow(color: C.cyan.withValues(alpha: 0.12), blurRadius: 24)],
             ),
-            child: Text(item == null ? 'Done!' : s.items[item], style: T.h2.copyWith(fontSize: 21), textAlign: TextAlign.center),
+            child: GameText(item == null ? 'Done!' : s.items[item], style: T.h2.copyWith(fontSize: 21), textAlign: TextAlign.center),
           ),
         ),
         const SizedBox(height: 8),
-        Text('${_placed.length} of ${s.items.length} sorted', style: T.bodySmall, textAlign: TextAlign.center),
+        GameText('${_placed.length} of ${s.items.length} sorted', style: T.bodySmall, textAlign: TextAlign.center),
         const SizedBox(height: 14),
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           for (var b = 0; b < s.bins.length; b++) ...[
@@ -133,12 +134,12 @@ class _SortGameState extends State<SortGame> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Icon(Icons.move_to_inbox_rounded, color: c, size: 26),
           const SizedBox(height: 4),
-          Text(s.bins[b], style: T.h3.copyWith(fontSize: 13.5, color: c), textAlign: TextAlign.center),
+          GameText(s.bins[b], style: T.h3.copyWith(fontSize: 13.5, color: c), textAlign: TextAlign.center),
           const SizedBox(height: 8),
           for (final t in inBin)
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
-              child: Text('• $t', style: T.bodySmall.copyWith(fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
+              child: GameText('• $t', style: T.bodySmall.copyWith(fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
             ),
         ]),
       ),
@@ -281,7 +282,7 @@ class _JumpGameState extends State<JumpGame> with SingleTickerProviderStateMixin
               alignment: Alignment.topRight,
               child: Padding(
                 padding: const EdgeInsets.all(10),
-                child: Text('$_cleared/${_craters.length}', style: T.mono.copyWith(fontSize: 16, color: C.frozen)),
+                child: GameText('$_cleared/${_craters.length}', style: T.mono.copyWith(fontSize: 16, color: C.frozen)),
               ),
             ),
           ),
@@ -503,7 +504,7 @@ class _DriveGameState extends State<DriveGame> with SingleTickerProviderStateMix
         Row(children: [
           Expanded(child: GaugeBar(label: 'BATTERY', value: '${_battery.round()}%', frac: _battery / 100, color: _battery < 30 ? C.red : C.cyan)),
           const SizedBox(width: 12),
-          Text('${math.min(_passed, _goal)}/$_goal', style: T.mono.copyWith(fontSize: 15)),
+          GameText('${math.min(_passed, _goal)}/$_goal', style: T.mono.copyWith(fontSize: 15)),
         ]),
         const SizedBox(height: 10),
         Expanded(
@@ -699,7 +700,7 @@ class _FitnessGameState extends State<FitnessGame> with SingleTickerProviderStat
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: C.line),
               ),
-              child: Text(_list[i], style: T.label.copyWith(color: C.frozen, fontSize: 10, letterSpacing: 0.5)),
+              child: GameText(_list[i], style: T.label.copyWith(color: C.frozen, fontSize: 10, letterSpacing: 0.5)),
             ),
         ]),
         const SizedBox(height: 10),
@@ -728,8 +729,8 @@ class _FitnessGameState extends State<FitnessGame> with SingleTickerProviderStat
                           painter: _NovaExercise(t: _beat.value, move: _exercise),
                         ),
                       ),
-                      Text('${math.min(_reps, _target)} / $_target', style: T.mono.copyWith(fontSize: 24, fontWeight: FontWeight.w700)),
-                      Text(_done ? 'DONE' : _list[_exercise].toUpperCase(), style: T.label.copyWith(fontSize: 10)),
+                      GameText('${math.min(_reps, _target)} / $_target', style: T.mono.copyWith(fontSize: 24, fontWeight: FontWeight.w700)),
+                      GameText(_done ? 'DONE' : _list[_exercise].toUpperCase(), style: T.label.copyWith(fontSize: 10)),
                     ]),
                   ),
                 );
@@ -963,7 +964,7 @@ class _SimGameState extends State<SimGame> {
       child: SingleChildScrollView(
         physics: const ClampingScrollPhysics(),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(m.title.toUpperCase(), style: T.label),
+        GameText(m.title.toUpperCase(), style: T.label),
         const SizedBox(height: 8),
         // twist the dials; the needles show at once if the design is safe
         Wrap(alignment: WrapAlignment.spaceEvenly, spacing: 4, runSpacing: 10, children: [
@@ -1011,7 +1012,7 @@ class _SimGameState extends State<SimGame> {
             child: TextButton.icon(
               onPressed: () => setState(() => _showFormula = true),
               icon: const Icon(Icons.functions_rounded, size: 18),
-              label: const Text('Show the formula'),
+              label: const GameText('Show the formula'),
             ),
           ),
       ]),

@@ -15,6 +15,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../data/story.dart';
@@ -187,8 +188,8 @@ class _TriageGameState extends State<TriageGame> with SingleTickerProviderStateM
       statusColor: _wrong != null ? C.amber : C.green,
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Row(children: [
-          Expanded(child: Text(s.label.isEmpty ? 'TAP A PROBLEM TO FIX IT · MOST DANGEROUS FIRST' : s.label, style: T.label)),
-          Text('$left LEFT', style: T.label.copyWith(color: left == 0 ? C.green : C.muted)),
+          Expanded(child: GameText(s.label.isEmpty ? 'TAP A PROBLEM TO FIX IT · MOST DANGEROUS FIRST' : s.label, style: T.label)),
+          GameText('$left LEFT', style: T.label.copyWith(color: left == 0 ? C.green : C.muted)),
         ]),
         const SizedBox(height: 10),
         for (final i in _display) _card(i),
@@ -238,7 +239,7 @@ class _TriageGameState extends State<TriageGame> with SingleTickerProviderStateM
                         height: 30,
                         alignment: Alignment.center,
                         decoration: const BoxDecoration(color: C.green, shape: BoxShape.circle),
-                        child: Text('${order + 1}', style: T.h3.copyWith(color: C.ink, fontSize: 14)),
+                        child: GameText('${order + 1}', style: T.h3.copyWith(color: C.ink, fontSize: 14)),
                       ),
                     )
                   : CustomPaint(painter: _HazardPainter(kind, _t + i * 0.7, danger: d, hold: holding ? _hold : 0, color: col)),
@@ -246,7 +247,7 @@ class _TriageGameState extends State<TriageGame> with SingleTickerProviderStateM
             const SizedBox(width: 8),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text(text,
+                GameText(text,
                     style: T.h3.copyWith(fontSize: 14, color: fixed ? C.muted : C.text, decoration: fixed ? TextDecoration.lineThrough : null),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis),
@@ -272,7 +273,7 @@ class _TriageGameState extends State<TriageGame> with SingleTickerProviderStateM
               ]),
             ),
             const SizedBox(width: 12),
-            if (!fixed) Text(critical ? 'CRITICAL' : '${(d * 100).round()}%', style: T.monoSmall.copyWith(color: critical ? C.red : col, fontSize: 11)),
+            if (!fixed) GameText(critical ? 'CRITICAL' : '${(d * 100).round()}%', style: T.monoSmall.copyWith(color: critical ? C.red : col, fontSize: 11)),
             const SizedBox(width: 14),
           ]),
         ),
@@ -461,7 +462,7 @@ class _CargoGameState extends State<CargoGame> {
       statusColor: _done ? C.green : C.amber,
       footer: confirmButton('Confirm the load', _done ? null : _confirm),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('DRAG BAGS ONTO THE ROOF, CRATES INTO THE BAY', style: T.label),
+        const GameText('DRAG BAGS ONTO THE ROOF, CRATES INTO THE BAY', style: T.label),
         const SizedBox(height: 10),
         Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Expanded(
@@ -489,7 +490,7 @@ class _CargoGameState extends State<CargoGame> {
           ),
         ]),
         const SizedBox(height: 8),
-        const Text('Tip: tap a bag to move it to the other side.', style: T.bodySmall),
+        const GameText('Tip: tap a bag to move it to the other side.', style: T.bodySmall),
       ]),
     );
   }
@@ -508,8 +509,8 @@ class _CargoGameState extends State<CargoGame> {
           border: Border.all(color: color.withValues(alpha: cand.isNotEmpty ? 0.9 : 0.35), width: cand.isNotEmpty ? 2 : 1),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          Text(title, style: T.label.copyWith(color: color)),
-          Text(sub, style: T.bodySmall.copyWith(fontSize: 11.5)),
+          GameText(title, style: T.label.copyWith(color: color)),
+          GameText(sub, style: T.bodySmall.copyWith(fontSize: 11.5)),
           const SizedBox(height: 6),
           child,
           const SizedBox(height: 6),
@@ -696,7 +697,7 @@ class _TankGameState extends State<TankGame> with SingleTickerProviderStateMixin
       statusColor: _done ? C.green : C.amber,
       footer: confirmButton('Confirm rations', _done ? null : _confirm),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Text('DRAG UP OR DOWN IN EACH JAR: HOW MUCH PER DAY?', style: T.label),
+        const GameText('DRAG UP OR DOWN IN EACH JAR: HOW MUCH PER DAY?', style: T.label),
         const SizedBox(height: 10),
         Row(children: [
           Expanded(child: _jar('FOOD', _food, 0.3, 0.8, v.daysFood, need, const Color(0xFFFFC27A), (x) => _food = x)),
@@ -704,7 +705,7 @@ class _TankGameState extends State<TankGame> with SingleTickerProviderStateMixin
           Expanded(child: _jar('WATER', _water, 1.5, 3.0, v.daysWater, need, const Color(0xFF6FC8FF), (x) => _water = x)),
         ]),
         const SizedBox(height: 10),
-        Text('Needed: $rescueDays days + 10% reserve = ${need.toStringAsFixed(1)} days', style: T.bodySmall),
+        GameText('Needed: $rescueDays days + 10% reserve = ${need.toStringAsFixed(1)} days', style: T.bodySmall),
       ]),
     );
   }
@@ -726,7 +727,7 @@ class _TankGameState extends State<TankGame> with SingleTickerProviderStateMixin
       return GestureDetector(
         onVerticalDragUpdate: (d) => drag(d.delta.dy),
         child: Column(children: [
-          Text(label, style: T.label.copyWith(color: color)),
+          GameText(label, style: T.label.copyWith(color: color)),
           const SizedBox(height: 6),
           SizedBox(
             height: h,
@@ -734,11 +735,11 @@ class _TankGameState extends State<TankGame> with SingleTickerProviderStateMixin
             child: AnimatedBuilder(animation: _wave, builder: (context, _) => CustomPaint(painter: _JarPainter(f, color, _wave.value))),
           ),
           const SizedBox(height: 6),
-          Text('${value.toStringAsFixed(2)} kg/day', style: T.h3.copyWith(fontSize: 15)),
+          GameText('${value.toStringAsFixed(2)} kg/day', style: T.h3.copyWith(fontSize: 15)),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             Icon(ok ? Icons.check_circle_rounded : Icons.error_outline_rounded, size: 15, color: ok ? C.green : C.red),
             const SizedBox(width: 4),
-            Text('lasts ${lasts.isFinite ? lasts.toStringAsFixed(1) : '∞'} d', style: T.bodySmall.copyWith(color: ok ? C.green : C.red)),
+            GameText('lasts ${lasts.isFinite ? lasts.toStringAsFixed(1) : '∞'} d', style: T.bodySmall.copyWith(color: ok ? C.green : C.red)),
           ]),
         ]),
       );
@@ -861,8 +862,8 @@ class Knob extends StatelessWidget {
         }),
       ]),
       const SizedBox(height: 4),
-      Text(text, style: T.mono.copyWith(color: color, fontSize: 13)),
-      Text(label, style: T.bodySmall.copyWith(fontSize: 11), textAlign: TextAlign.center, maxLines: 2),
+      GameText(text, style: T.mono.copyWith(color: color, fontSize: 13)),
+      GameText(label, style: T.bodySmall.copyWith(fontSize: 11), textAlign: TextAlign.center, maxLines: 2),
     ]);
   }
 
@@ -924,8 +925,8 @@ class _GaugeState extends State<Gauge> with SingleTickerProviderStateMixin {
           height: widget.size * 0.6,
           child: AnimatedBuilder(animation: _needle, builder: (context, _) => CustomPaint(painter: _GaugePainter(_needle.value, info: widget.ok == null))),
         ),
-        Text(widget.text, style: T.mono.copyWith(color: col, fontSize: 12.5), maxLines: 1, overflow: TextOverflow.ellipsis),
-        Text(widget.label, style: T.bodySmall.copyWith(fontSize: 10.5), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+        GameText(widget.text, style: T.mono.copyWith(color: col, fontSize: 12.5), maxLines: 1, overflow: TextOverflow.ellipsis),
+        GameText(widget.label, style: T.bodySmall.copyWith(fontSize: 10.5), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
       ]),
     );
   }

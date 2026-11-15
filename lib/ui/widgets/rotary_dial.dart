@@ -5,6 +5,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../game_helper.dart';
 import 'package:flutter/services.dart';
 
 import '../theme.dart';
@@ -311,7 +312,7 @@ class DialNudges extends StatelessWidget {
         chip(Icons.remove_rounded, onMinus),
         if (label != null) ...[
           const SizedBox(width: 12),
-          Text(label!, style: T.mono.copyWith(fontSize: 13, color: C.muted)),
+          GameText(label!, style: T.mono.copyWith(fontSize: 13, color: C.muted)),
           const SizedBox(width: 12),
         ] else
           const SizedBox(width: 16),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../data/content.dart';
 import '../data/messages.dart';
@@ -112,9 +113,9 @@ class _DebriefScreenState extends State<DebriefScreen> {
                 padding: const EdgeInsets.all(16),
                 child: _Plain(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('MISSION ${m.id} · ${m.title.toUpperCase()}', style: T.label),
+                    GameText('MISSION ${m.id} · ${m.title.toUpperCase()}', style: T.label),
                     const SizedBox(height: 4),
-                    Text(won ? 'Mission complete' : 'Mission failed', style: T.hero.copyWith(fontSize: 32, color: won ? C.frozen : C.red)),
+                    GameText(won ? 'Mission complete' : 'Mission failed', style: T.hero.copyWith(fontSize: 32, color: won ? C.frozen : C.red)),
                     const SizedBox(height: 8),
                     Row(children: [
                       for (int i = 0; i < 3; i++)
@@ -127,12 +128,12 @@ class _DebriefScreenState extends State<DebriefScreen> {
                     ]),
                     const SizedBox(height: 6),
                     if (!won) ...[
-                      Text(lossText(s.lossReason), style: T.body),
+                      GameText(lossText(s.lossReason), style: T.body),
                       const SizedBox(height: 8),
                       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         const Icon(Icons.lightbulb_rounded, color: C.amber, size: 18),
                         const SizedBox(width: 6),
-                        Expanded(child: Text(lossTip(s.lossReason), style: T.bodySmall.copyWith(color: C.text))),
+                        Expanded(child: GameText(lossTip(s.lossReason), style: T.bodySmall.copyWith(color: C.text))),
                       ]),
                     ] else ...[
                       _starLine(1, true, 'Mission complete'),
@@ -201,7 +202,7 @@ class _DebriefScreenState extends State<DebriefScreen> {
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           const SectionLabel('Real NASA fact', color: C.cyan),
                           const SizedBox(height: 3),
-                          Text(debriefFacts[m.id] ?? '', style: T.body),
+                          GameText(debriefFacts[m.id] ?? '', style: T.body),
                         ]),
                       ),
                     ]),
@@ -217,8 +218,8 @@ class _DebriefScreenState extends State<DebriefScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text(n.title, style: T.h3),
-                                Text(n.body, style: T.bodySmall.copyWith(color: C.text)),
+                                GameText(n.title, style: T.h3),
+                                GameText(n.body, style: T.bodySmall.copyWith(color: C.text)),
                               ]),
                             ),
                           ]),
@@ -232,7 +233,7 @@ class _DebriefScreenState extends State<DebriefScreen> {
                         if (sv.progress.quizBadges.contains(m.chapter))
                           Row(children: [
                             const Icon(Icons.workspace_premium_rounded, color: C.gold, size: 16),
-                            Text(' BADGE EARNED', style: T.label.copyWith(color: C.gold, fontSize: 9)),
+                            GameText(' BADGE EARNED', style: T.label.copyWith(color: C.gold, fontSize: 9)),
                           ]),
                       ]),
                       const SizedBox(height: 6),
@@ -245,11 +246,11 @@ class _DebriefScreenState extends State<DebriefScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 2),
                         child: Row(children: [
-                          SizedBox(width: 92, child: Text(missionClock(e.hour), style: T.monoSmall.copyWith(fontSize: 10.5))),
-                          Expanded(child: Text(e.text, style: T.bodySmall.copyWith(color: C.text))),
+                          SizedBox(width: 92, child: GameText(missionClock(e.hour), style: T.monoSmall.copyWith(fontSize: 10.5))),
+                          Expanded(child: GameText(e.text, style: T.bodySmall.copyWith(color: C.text))),
                         ]),
                       ),
-                    if (s.log.isEmpty) const Text('A quiet mission.', style: T.bodySmall),
+                    if (s.log.isEmpty) const GameText('A quiet mission.', style: T.bodySmall),
                   ]),
                 ),
               ),
@@ -282,15 +283,15 @@ class _DebriefScreenState extends State<DebriefScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('CHAPTER ${ch.number} REPORT CARD', style: T.label.copyWith(color: C.gold)),
-            Text('${ch.title}: ${ch.theme}', style: T.h3),
+            GameText('CHAPTER ${ch.number} REPORT CARD', style: T.label.copyWith(color: C.gold)),
+            GameText('${ch.title}: ${ch.theme}', style: T.h3),
             const SizedBox(height: 6),
-            Text('Flight Director rating: ${'★' * g.stars}${'☆' * (3 - g.stars)}', style: T.mono.copyWith(color: C.gold)),
+            GameText('Flight Director rating: ${'★' * g.stars}${'☆' * (3 - g.stars)}', style: T.mono.copyWith(color: C.gold)),
             const SizedBox(height: 6),
             for (final b in best.take(3))
-              Row(children: [const Icon(Icons.check_rounded, size: 14, color: C.green), const SizedBox(width: 6), Expanded(child: Text(b, style: T.bodySmall.copyWith(color: C.text)))]),
+              Row(children: [const Icon(Icons.check_rounded, size: 14, color: C.green), const SizedBox(width: 6), Expanded(child: GameText(b, style: T.bodySmall.copyWith(color: C.text)))]),
             const SizedBox(height: 6),
-            Text('Take a screenshot to share your report card.', style: T.bodySmall.copyWith(fontSize: 11)),
+            GameText('Take a screenshot to share your report card.', style: T.bodySmall.copyWith(fontSize: 11)),
           ]),
         ),
       ]),
@@ -302,7 +303,7 @@ class _DebriefScreenState extends State<DebriefScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('${qi + 1}. ${q.question}', style: T.h3),
+        GameText('${qi + 1}. ${q.question}', style: T.h3),
         const SizedBox(height: 6),
         Wrap(spacing: 6, runSpacing: 6, children: [
           for (int oi = 0; oi < q.options.length; oi++)
@@ -330,13 +331,13 @@ class _DebriefScreenState extends State<DebriefScreen> {
                     color: answered == null ? C.line : (oi == q.correct ? C.green : (answered == oi ? C.red : C.lineSoft)),
                   ),
                 ),
-                child: Text(q.options[oi], style: T.bodySmall.copyWith(color: C.text)),
+                child: GameText(q.options[oi], style: T.bodySmall.copyWith(color: C.text)),
               ),
             ),
         ]),
         if (answered != null) ...[
           const SizedBox(height: 5),
-          Text(q.why, style: T.bodySmall.copyWith(color: answered == q.correct ? C.green : C.amber)),
+          GameText(q.why, style: T.bodySmall.copyWith(color: answered == q.correct ? C.green : C.amber)),
         ],
       ]),
     );
@@ -347,13 +348,13 @@ class _DebriefScreenState extends State<DebriefScreen> {
         child: Row(children: [
           Icon(ok ? Icons.check_circle_rounded : Icons.cancel_rounded, size: 14, color: ok ? C.green : C.dim),
           const SizedBox(width: 6),
-          Expanded(child: Text(label, style: T.bodySmall.copyWith(color: ok ? C.text : C.muted))),
+          Expanded(child: GameText(label, style: T.bodySmall.copyWith(color: ok ? C.text : C.muted))),
         ]),
       );
 
   Widget _kv(String k, String v) => Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        Text(k, style: T.label.copyWith(fontSize: 9)),
-        Text(v, style: T.mono.copyWith(fontSize: 12)),
+        GameText(k, style: T.label.copyWith(fontSize: 9)),
+        GameText(v, style: T.mono.copyWith(fontSize: 12)),
       ]);
 }
 

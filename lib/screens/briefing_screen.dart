@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../data/missions.dart';
 import '../engine/mission.dart';
@@ -60,16 +61,16 @@ class _BriefingScreenState extends State<BriefingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('CHAPTER ${ch.number} · ${ch.title.toUpperCase()}  ·  MISSION ${m.id}${m.isBoss ? '  ·  BOSS' : ''}',
+                      GameText('CHAPTER ${ch.number} · ${ch.title.toUpperCase()}  ·  MISSION ${m.id}${m.isBoss ? '  ·  BOSS' : ''}',
                           style: T.label.copyWith(color: m.isBoss ? C.amber : C.cyan)),
                       const SizedBox(height: 10),
-                      Text(m.title, style: T.hero.copyWith(fontSize: 32)),
-                      Text(m.subtitle, style: T.bodySmall.copyWith(fontSize: 13)),
+                      GameText(m.title, style: T.hero.copyWith(fontSize: 32)),
+                      GameText(m.subtitle, style: T.bodySmall.copyWith(fontSize: 13)),
                       const HudDivider(),
                       Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         const AstronautAvatar(mood: Mood.calm, size: 46),
                         const SizedBox(width: 10),
-                        Expanded(child: Text(m.goalText, style: T.body.copyWith(fontSize: 15))),
+                        Expanded(child: GameText(m.goalText, style: T.body.copyWith(fontSize: 15))),
                       ]),
                       const SizedBox(height: 10),
                       Container(
@@ -82,7 +83,7 @@ class _BriefingScreenState extends State<BriefingScreen> {
                         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           const Icon(Icons.lightbulb_outline_rounded, color: C.cyan, size: 18),
                           const SizedBox(width: 8),
-                          Expanded(child: Text('NEW: ${m.newThisMission}', style: T.bodySmall.copyWith(color: C.text))),
+                          Expanded(child: GameText('NEW: ${m.newThisMission}', style: T.bodySmall.copyWith(color: C.text))),
                         ]),
                       ),
                       const SizedBox(height: 12),
@@ -95,12 +96,12 @@ class _BriefingScreenState extends State<BriefingScreen> {
                         _kv('DOSE LIMIT', '${m.doseLimit.toStringAsFixed(0)} mSv'),
                       ]),
                       const HudDivider(),
-                      Row(children: [const StarRow(stars: 2, size: 13), const SizedBox(width: 6), Expanded(child: Text(m.star2.label, style: T.bodySmall))]),
+                      Row(children: [const StarRow(stars: 2, size: 13), const SizedBox(width: 6), Expanded(child: GameText(m.star2.label, style: T.bodySmall))]),
                       const SizedBox(height: 3),
-                      Row(children: [const StarRow(stars: 3, size: 13), const SizedBox(width: 6), Expanded(child: Text(m.star3.label, style: T.bodySmall))]),
+                      Row(children: [const StarRow(stars: 3, size: 13), const SizedBox(width: 6), Expanded(child: GameText(m.star3.label, style: T.bodySmall))]),
                       if (best > 0) ...[
                         const SizedBox(height: 8),
-                        Row(children: [Text('YOUR BEST  ', style: T.label.copyWith(fontSize: 9)), StarRow(stars: best, size: 14)]),
+                        Row(children: [GameText('YOUR BEST  ', style: T.label.copyWith(fontSize: 9)), StarRow(stars: best, size: 14)]),
                       ],
                     ],
                   ),
@@ -127,7 +128,7 @@ class _BriefingScreenState extends State<BriefingScreen> {
   }
 
   Widget _kv(String k, String v) => Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        Text(k, style: T.label.copyWith(fontSize: 10.5)),
-        Text(v, style: T.h3.copyWith(fontSize: 16)),
+        GameText(k, style: T.label.copyWith(fontSize: 10.5)),
+        GameText(v, style: T.h3.copyWith(fontSize: 16)),
       ]);
 }

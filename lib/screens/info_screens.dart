@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../data/content.dart';
@@ -39,9 +40,9 @@ class InfoFrame extends StatelessWidget {
             child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(24, 0, 24, 24 + MediaQuery.of(context).padding.bottom),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(_titleCase(title), style: T.h1),
+                GameText(_titleCase(title), style: T.h1),
                 const SizedBox(height: 6),
-                Text(subtitle, style: T.body.copyWith(color: C.muted)),
+                GameText(subtitle, style: T.body.copyWith(color: C.muted)),
                 const SizedBox(height: 18),
                 child,
               ]),
@@ -79,10 +80,10 @@ class MissionDataScreen extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.only(bottom: 6),
                 child: Row(children: [
-                  Expanded(flex: 3, child: Text('QUANTITY', style: T.label)),
-                  Expanded(flex: 4, child: Text('REAL VALUE', style: T.label)),
-                  Expanded(flex: 4, child: Text('IN THE GAME', style: T.label)),
-                  Expanded(flex: 4, child: Text('SOURCE', style: T.label)),
+                  Expanded(flex: 3, child: GameText('QUANTITY', style: T.label)),
+                  Expanded(flex: 4, child: GameText('REAL VALUE', style: T.label)),
+                  Expanded(flex: 4, child: GameText('IN THE GAME', style: T.label)),
+                  Expanded(flex: 4, child: GameText('SOURCE', style: T.label)),
                 ]),
               ),
             for (final d in missionData)
@@ -91,15 +92,15 @@ class MissionDataScreen extends StatelessWidget {
                 decoration: const BoxDecoration(border: Border(top: BorderSide(color: C.lineSoft))),
                 child: wide
                     ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Expanded(flex: 3, child: Text(d.quantity, style: T.h3)),
-                        Expanded(flex: 4, child: Text(d.realValue, style: T.mono.copyWith(fontSize: 12, color: C.cyan))),
-                        Expanded(flex: 4, child: Text(d.inGame, style: T.bodySmall.copyWith(color: C.text))),
+                        Expanded(flex: 3, child: GameText(d.quantity, style: T.h3)),
+                        Expanded(flex: 4, child: GameText(d.realValue, style: T.mono.copyWith(fontSize: 12, color: C.cyan))),
+                        Expanded(flex: 4, child: GameText(d.inGame, style: T.bodySmall.copyWith(color: C.text))),
                         Expanded(flex: 4, child: _SourceLink(d.source, d.url)),
                       ])
                     : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(d.quantity, style: T.h3),
-                        Text(d.realValue, style: T.mono.copyWith(fontSize: 12, color: C.cyan)),
-                        Text(d.inGame, style: T.bodySmall.copyWith(color: C.text)),
+                        GameText(d.quantity, style: T.h3),
+                        GameText(d.realValue, style: T.mono.copyWith(fontSize: 12, color: C.cyan)),
+                        GameText(d.inGame, style: T.bodySmall.copyWith(color: C.text)),
                         _SourceLink(d.source, d.url),
                       ]),
               ),
@@ -112,8 +113,8 @@ class MissionDataScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 3),
             child: Row(children: [
-              SizedBox(width: 60, child: Text(st.flareClass, style: T.mono.copyWith(color: st.flareClass.startsWith('X') ? C.red : C.amber))),
-              SizedBox(width: 110, child: Text(st.date, style: T.bodySmall.copyWith(color: C.text))),
+              SizedBox(width: 60, child: GameText(st.flareClass, style: T.mono.copyWith(color: st.flareClass.startsWith('X') ? C.red : C.amber))),
+              SizedBox(width: 110, child: GameText(st.date, style: T.bodySmall.copyWith(color: C.text))),
               Expanded(child: _SourceLink('NASA DONKI record', st.url)),
             ]),
           ),
@@ -124,12 +125,12 @@ class MissionDataScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 2),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('•  ', style: T.bodySmall),
-              Expanded(child: Text(g, style: T.bodySmall)),
+              const GameText('•  ', style: T.bodySmall),
+              Expanded(child: GameText(g, style: T.bodySmall)),
             ]),
           ),
         const SizedBox(height: 10),
-        const Text(
+        const GameText(
           'Per crew member per day: O₂ ${Rates.o2PerDay} kg · water ${Rates.drinkWaterPerDay} kg + ${Rates.hygieneWaterPerDay} kg hygiene · food ${Rates.foodPerDay} kg · CO₂ ${Rates.co2PerDay} kg · surface dose ${Rates.surfaceDosePerDay} mSv',
           style: T.monoSmall,
         ),
@@ -148,7 +149,7 @@ class _SourceLink extends StatelessWidget {
     return GestureDetector(
       onTap: () => _openUrl(url),
       child: Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Flexible(child: Text(label, style: T.bodySmall.copyWith(color: C.cyan, decoration: TextDecoration.underline, decorationColor: C.cyan))),
+        Flexible(child: GameText(label, style: T.bodySmall.copyWith(color: C.cyan, decoration: TextDecoration.underline, decorationColor: C.cyan))),
         const SizedBox(width: 4),
         const Icon(Icons.open_in_new_rounded, size: 12, color: C.cyan),
       ]),
@@ -175,8 +176,8 @@ class TeacherScreen extends StatelessWidget {
             const SizedBox(width: 10),
             const Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Unlock all missions', style: T.h3),
-                Text('Lets a class jump straight to any chapter.', style: T.bodySmall),
+                GameText('Unlock all missions', style: T.h3),
+                GameText('Lets a class jump straight to any chapter.', style: T.bodySmall),
               ]),
             ),
             Switch(value: sv.progress.unlockAll, onChanged: (v) => sv.progress.setSetting('unlock_all', v)),
@@ -186,8 +187,8 @@ class TeacherScreen extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('Lock the rank: ${sv.progress.ageMode.title}', style: T.h3),
-                const Text('Students can\'t change the age mode on this device.', style: T.bodySmall),
+                GameText('Lock the rank: ${sv.progress.ageMode.title}', style: T.h3),
+                const GameText('Students can\'t change the age mode on this device.', style: T.bodySmall),
               ]),
             ),
             Switch(value: sv.progress.rankLocked, onChanged: (v) => sv.progress.setSetting('rank_locked', v)),
@@ -196,7 +197,7 @@ class TeacherScreen extends StatelessWidget {
           const SectionLabel('Story levels: lessons and NASA links'),
           const SizedBox(height: 8),
           for (final camp in campaigns) ...[
-            Text(camp.title.toUpperCase(), style: T.label.copyWith(letterSpacing: 2, color: C.cyan)),
+            GameText(camp.title.toUpperCase(), style: T.label.copyWith(letterSpacing: 2, color: C.cyan)),
             const SizedBox(height: 8),
             for (final l in camp.infos)
               Container(
@@ -204,7 +205,7 @@ class TeacherScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(18)),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('LEVEL ${l.n} · ${camp.task(l.n).title.toUpperCase()}', style: T.h3.copyWith(color: C.cyan)),
+                  GameText('LEVEL ${l.n} · ${camp.task(l.n).title.toUpperCase()}', style: T.h3.copyWith(color: C.cyan)),
                   const SizedBox(height: 4),
                   _line('Moral lesson', l.moral),
                   _line('What NASA does', l.nasaDoes),
@@ -216,7 +217,7 @@ class TeacherScreen extends StatelessWidget {
           const HudDivider(),
           const SectionLabel('Survival chapters'),
           const SizedBox(height: 8),
-          const Text(
+          const GameText(
             'Each mission takes 3 to 5 minutes. Suggested use: students play a chapter in pairs, then discuss the questions below. '
             'The Mission Data screen lists every real value and its source.',
             style: T.body,
@@ -236,19 +237,19 @@ class TeacherScreen extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(18)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('CHAPTER ${t.chapter} · ${ch.title.toUpperCase()}', style: T.h3.copyWith(color: C.cyan)),
-        Text(ms, style: T.bodySmall),
+        GameText('CHAPTER ${t.chapter} · ${ch.title.toUpperCase()}', style: T.h3.copyWith(color: C.cyan)),
+        GameText(ms, style: T.bodySmall),
         const SizedBox(height: 6),
         _line('Learning goal', t.goal),
         _line('The science', t.science),
         const SizedBox(height: 4),
-        Text('DISCUSSION', style: T.label.copyWith(fontSize: 9.5)),
+        GameText('DISCUSSION', style: T.label.copyWith(fontSize: 9.5)),
         for (final q in t.questions)
           Padding(
             padding: const EdgeInsets.only(top: 3),
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('?  ', style: TextStyle(fontFamily: F.mono, color: C.amber)),
-              Expanded(child: Text(q, style: T.body.copyWith(fontSize: 13))),
+              const GameText('?  ', style: TextStyle(fontFamily: F.mono, color: C.amber)),
+              Expanded(child: GameText(q, style: T.body.copyWith(fontSize: 13))),
             ]),
           ),
       ]),

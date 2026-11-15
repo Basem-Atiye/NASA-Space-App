@@ -6,6 +6,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../../ui/game_helper.dart';
 
 import '../../ui/figma_art.dart';
 import '../../ui/kit.dart';
@@ -562,7 +563,7 @@ class BaseWorldView extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                           decoration: BoxDecoration(color: C.ink.withValues(alpha: 0.85), borderRadius: BorderRadius.circular(14)),
-                          child: Text('Drag to walk · push far to sprint', style: T.bodySmall.copyWith(fontSize: 12, color: C.frozen)),
+                          child: GameText('Drag to walk · push far to sprint', style: T.bodySmall.copyWith(fontSize: 12, color: C.frozen)),
                         ),
                       ),
                     ),
@@ -631,7 +632,7 @@ class _UseButton extends StatelessWidget {
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                     LineIcon(s == null ? Ln.up : moduleIcon(moduleOf(s)), size: 22, color: fg, stroke: 2.4),
                     const SizedBox(height: 2),
-                    Text(s == null ? 'JUMP' : 'USE', style: T.button.copyWith(fontSize: 13, color: fg, letterSpacing: 1)),
+                    GameText(s == null ? 'JUMP' : 'USE', style: T.button.copyWith(fontSize: 13, color: fg, letterSpacing: 1)),
                   ]),
                 ),
               ),
@@ -661,7 +662,7 @@ class _EdgeArrow extends StatelessWidget {
         decoration: BoxDecoration(color: C.yellow, borderRadius: BorderRadius.circular(17), boxShadow: [BoxShadow(color: C.yellow.withValues(alpha: 0.45), blurRadius: 14)]),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           if (!right) ...[arrow, const SizedBox(width: 4)],
-          Text(label, style: T.h3.copyWith(fontSize: 13.5, color: C.ink)),
+          GameText(label, style: T.h3.copyWith(fontSize: 13.5, color: C.ink)),
           if (right) ...[const SizedBox(width: 4), arrow],
         ]),
       ),

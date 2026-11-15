@@ -5,6 +5,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../../ui/game_helper.dart';
 
 import '../../main.dart';
 import '../../story/story_model.dart';
@@ -79,7 +80,7 @@ class _MissionSelectScreenState extends State<MissionSelectScreen> {
                   ),
                 ]),
                 const SizedBox(height: 28),
-                Text(mars ? 'Mars Outpost' : 'Moon Crash Landing', style: T.h2.copyWith(fontSize: 21)),
+                GameText(mars ? 'Mars Outpost' : 'Moon Crash Landing', style: T.h2.copyWith(fontSize: 21)),
                 const SizedBox(height: 14),
                 for (final m in list) ...[
                   _MissionRow(
@@ -158,7 +159,7 @@ void _toast(BuildContext context, String text) {
       behavior: SnackBarBehavior.floating,
       backgroundColor: C.raised,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      content: Text(text, style: T.body),
+      content: GameText(text, style: T.body),
       duration: const Duration(seconds: 2),
     ));
 }
@@ -200,9 +201,9 @@ class _PlanetCard extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             SizedBox(width: 64, height: 64, child: CustomPaint(painter: painter)),
             const SizedBox(height: 16),
-            Text(title, style: T.h2.copyWith(fontSize: 22)),
+            GameText(title, style: T.h2.copyWith(fontSize: 22)),
             const SizedBox(height: 2),
-            Text(sub, style: T.bodySmall.copyWith(fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
+            GameText(sub, style: T.bodySmall.copyWith(fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
           ]),
         ),
       );
@@ -242,13 +243,13 @@ class _MissionRow extends StatelessWidget {
               color: cur ? C.ink : (done ? tint(C.cyan, 0.22, C.raised) : (unlocked ? C.panel : const Color(0xFF3F3A6A))),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Text(two(m.n), style: T.h3.copyWith(fontSize: 18, color: cur || done ? C.cyan : (unlocked ? C.frozen : const Color(0xFF8A8FA6)))),
+            child: GameText(two(m.n), style: T.h3.copyWith(fontSize: 18, color: cur || done ? C.cyan : (unlocked ? C.frozen : const Color(0xFF8A8FA6)))),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-              Text(m.title, style: T.h3.copyWith(fontSize: 18, color: fg), maxLines: 1, overflow: TextOverflow.ellipsis),
-              Text(saved ? 'Saved on a day in progress' : (m.n == 5 || m.n == 10 ? m.newThing : 'New: ${m.newThing}'), style: T.body.copyWith(fontSize: 14.5, color: sub, height: 1.25), maxLines: 1, overflow: TextOverflow.ellipsis),
+              GameText(m.title, style: T.h3.copyWith(fontSize: 18, color: fg), maxLines: 1, overflow: TextOverflow.ellipsis),
+              GameText(saved ? 'Saved on a day in progress' : (m.n == 5 || m.n == 10 ? m.newThing : 'New: ${m.newThing}'), style: T.body.copyWith(fontSize: 14.5, color: sub, height: 1.25), maxLines: 1, overflow: TextOverflow.ellipsis),
             ]),
           ),
           if (done)
@@ -283,8 +284,8 @@ class _LinkRow extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: T.h3, maxLines: 1, overflow: TextOverflow.ellipsis),
-              Text(sub, style: T.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+              GameText(title, style: T.h3, maxLines: 1, overflow: TextOverflow.ellipsis),
+              GameText(sub, style: T.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
             ]),
           ),
           const LineIcon(Ln.next, size: 20, color: C.muted),
@@ -323,7 +324,7 @@ class BaseBriefingScreen extends StatelessWidget {
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         const Overline('Your goal', size: 11.5),
                         const SizedBox(height: 4),
-                        Text(m.goal, style: T.h3.copyWith(fontSize: 17.5, height: 1.3)),
+                        GameText(m.goal, style: T.h3.copyWith(fontSize: 17.5, height: 1.3)),
                       ]),
                     ),
                   ]),
@@ -345,7 +346,7 @@ class BaseBriefingScreen extends StatelessWidget {
                   Row(children: [
                     const LineIcon(Ln.rocket, size: 16, color: C.yellow),
                     const SizedBox(width: 6),
-                    Expanded(child: Text('Includes the supplies from your Supply Run.', style: T.bodySmall.copyWith(color: C.yellow))),
+                    Expanded(child: GameText('Includes the supplies from your Supply Run.', style: T.bodySmall.copyWith(color: C.yellow))),
                   ]),
                 ],
                 const SizedBox(height: 18),
@@ -365,13 +366,13 @@ class BaseBriefingScreen extends StatelessWidget {
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         TagChip(m.newTitle, color: C.cyan, on: C.info, size: 12.5),
                         const SizedBox(height: 10),
-                        Text(m.newText, style: T.body.copyWith(fontSize: 15, height: 1.45)),
+                        GameText(m.newText, style: T.body.copyWith(fontSize: 15, height: 1.45)),
                       ]),
                     ),
                   ]),
                 ),
                 const SizedBox(height: 18),
-                Center(child: Text('Level: ${levelName(sv)} · ${m.days} days', style: T.bodySmall)),
+                Center(child: GameText('Level: ${levelName(sv)} · ${m.days} days', style: T.bodySmall)),
               ]),
             ),
             Padding(
@@ -415,8 +416,8 @@ class _Supply extends StatelessWidget {
         child: Column(children: [
           LineIcon(icon, size: 26, color: color),
           const SizedBox(height: 8),
-          Text(pct(math.min(100, value)), style: T.h2.copyWith(fontSize: 21)),
-          Text(label, style: T.body.copyWith(fontSize: 14, color: C.muted)),
+          GameText(pct(math.min(100, value)), style: T.h2.copyWith(fontSize: 21)),
+          GameText(label, style: T.body.copyWith(fontSize: 14, color: C.muted)),
         ]),
       );
 }
@@ -470,7 +471,7 @@ class _BaseArtCardState extends State<_BaseArtCard> with SingleTickerProviderSta
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 const LineIcon(Ln.calendar, size: 16, color: C.frozen),
                 const SizedBox(width: 8),
-                Text('${m.mars ? 'MARS' : 'MOON'} · ${m.mars ? 'SOL' : 'DAY'} 1 OF ${m.days}', style: T.label.copyWith(color: C.frozen, fontSize: 12.5, letterSpacing: 1.6)),
+                GameText('${m.mars ? 'MARS' : 'MOON'} · ${m.mars ? 'SOL' : 'DAY'} 1 OF ${m.days}', style: T.label.copyWith(color: C.frozen, fontSize: 12.5, letterSpacing: 1.6)),
               ]),
             ),
           ),
@@ -504,9 +505,9 @@ class HowToPlayScreen extends StatelessWidget {
             ScreenHeader(title: 'How to Play', onBack: () => sv.nav.back()),
             Expanded(
               child: ListView(padding: const EdgeInsets.fromLTRB(24, 8, 24, 16), children: [
-                Text('Keep your crew alive', style: T.h2.copyWith(fontSize: 21)),
+                GameText('Keep your crew alive', style: T.h2.copyWith(fontSize: 21)),
                 const SizedBox(height: 6),
-                Text('You run a base on the Moon. Your job is to keep everyone safe until the last day.', style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 15.5)),
+                GameText('You run a base on the Moon. Your job is to keep everyone safe until the last day.', style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 15.5)),
                 const SizedBox(height: 18),
                 _Step(
                   n: 1,
@@ -544,13 +545,13 @@ class _Step extends StatelessWidget {
   Widget build(BuildContext context) => KitCard(
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(width: 44, height: 44, alignment: Alignment.center, decoration: const BoxDecoration(color: C.cyan, shape: BoxShape.circle), child: Text('$n', style: T.h3.copyWith(color: C.ink))),
+          Container(width: 44, height: 44, alignment: Alignment.center, decoration: const BoxDecoration(color: C.cyan, shape: BoxShape.circle), child: GameText('$n', style: T.h3.copyWith(color: C.ink))),
           const SizedBox(width: 16),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: T.h3.copyWith(fontSize: 18)),
+              GameText(title, style: T.h3.copyWith(fontSize: 18)),
               const SizedBox(height: 4),
-              Text(text, style: T.body.copyWith(fontSize: 14.5, color: C.frozen.withValues(alpha: 0.8))),
+              GameText(text, style: T.body.copyWith(fontSize: 14.5, color: C.frozen.withValues(alpha: 0.8))),
               if (extra != null) ...[const SizedBox(height: 10), extra!],
             ]),
           ),
@@ -588,7 +589,7 @@ class BadgesScreen extends StatelessWidget {
                         child: Column(children: [
                           LayoutBuilder(builder: (context, box) => BadgeMedal(icon: iconNamed(b.icon), color: colorNamed(b.color), earned: earned.contains(b.id), size: (box.maxWidth * 0.8).clamp(64.0, 96.0))),
                           const SizedBox(height: 8),
-                          Text(b.title, textAlign: TextAlign.center, maxLines: 2, style: T.body.copyWith(fontSize: 14.5, fontWeight: FontWeight.w700, color: earned.contains(b.id) ? C.frozen : C.muted, height: 1.25)),
+                          GameText(b.title, textAlign: TextAlign.center, maxLines: 2, style: T.body.copyWith(fontSize: 14.5, fontWeight: FontWeight.w700, color: earned.contains(b.id) ? C.frozen : C.muted, height: 1.25)),
                         ]),
                       ),
                   ],
@@ -604,9 +605,9 @@ class BadgesScreen extends StatelessWidget {
                         const SizedBox(width: 14),
                         Expanded(
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text('Next badge: ${next.title}', style: T.h3),
+                            GameText('Next badge: ${next.title}', style: T.h3),
                             const SizedBox(height: 4),
-                            Text(next.how, style: T.body.copyWith(fontSize: 14.5, color: C.muted)),
+                            GameText(next.how, style: T.body.copyWith(fontSize: 14.5, color: C.muted)),
                           ]),
                         ),
                       ]),

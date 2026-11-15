@@ -5,6 +5,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 import 'package:flutter/services.dart';
 
 import '../ui/theme.dart';
@@ -111,7 +112,7 @@ class _CutsceneState extends State<Cutscene> with SingleTickerProviderStateMixin
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(17), border: Border.all(color: Colors.white.withValues(alpha: 0.4))),
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Text('Skip', style: T.h3.copyWith(fontSize: 13)),
+                        GameText('Skip', style: T.h3.copyWith(fontSize: 13)),
                         const SizedBox(width: 6),
                         const Icon(Icons.fast_forward_rounded, size: 16, color: C.frozen),
                       ]),
@@ -155,35 +156,35 @@ class _CutsceneState extends State<Cutscene> with SingleTickerProviderStateMixin
       final alt = (1240 * math.pow(1 - k, 1.6)).round();
       final vs = t < 8 ? (-18 - 6 * k) : 0;
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('DAY 1 · POWERED DESCENT', style: T.label.copyWith(letterSpacing: 3)),
+        GameText('DAY 1 · POWERED DESCENT', style: T.label.copyWith(letterSpacing: 3)),
         const SizedBox(height: 4),
-        Text(t < 8 ? 'Touchdown in ${math.max(0, (8 - t) * 11).round()} s' : 'Contact', style: T.h1.copyWith(fontFamily: F.display, fontSize: 24, letterSpacing: 1)),
+        GameText(t < 8 ? 'Touchdown in ${math.max(0, (8 - t) * 11).round()} s' : 'Contact', style: T.h1.copyWith(fontFamily: F.display, fontSize: 24, letterSpacing: 1)),
         const SizedBox(height: 8),
         Row(children: [
-          const Text('ALT ', style: T.bodySmall),
-          Text('${_thousands(alt)} m', style: T.h3.copyWith(fontSize: 13, color: Colors.white)),
+          const GameText('ALT ', style: T.bodySmall),
+          GameText('${_thousands(alt)} m', style: T.h3.copyWith(fontSize: 13, color: Colors.white)),
           const SizedBox(width: 14),
-          const Text('V/S ', style: T.bodySmall),
-          Text('${vs.toStringAsFixed(0)} m/s', style: T.h3.copyWith(fontSize: 13, color: t > 3.6 && t < 8 ? C.red : C.cyan)),
+          const GameText('V/S ', style: T.bodySmall),
+          GameText('${vs.toStringAsFixed(0)} m/s', style: T.h3.copyWith(fontSize: 13, color: t > 3.6 && t < 8 ? C.red : C.cyan)),
           if (t > 3.6 && t < 8) ...[
             const SizedBox(width: 14),
-            Text('RADAR FAULT', style: T.label.copyWith(color: C.red)),
+            GameText('RADAR FAULT', style: T.label.copyWith(color: C.red)),
           ],
         ]),
       ]);
     }
     final alt = t < 2 ? 0 : (0.5 * 9 * math.pow(t - 2, 2.2)).round();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('DAY 12 · LIFT-OFF', style: T.label.copyWith(letterSpacing: 3)),
+      GameText('DAY 12 · LIFT-OFF', style: T.label.copyWith(letterSpacing: 3)),
       const SizedBox(height: 4),
-      Text('Going home', style: T.h1.copyWith(fontSize: 26)),
+      GameText('Going home', style: T.h1.copyWith(fontSize: 26)),
       const SizedBox(height: 8),
       Row(children: [
-        const Text('ALT ', style: T.bodySmall),
-        Text('${_thousands(alt)} m', style: T.h3.copyWith(fontSize: 13, color: Colors.white)),
+        const GameText('ALT ', style: T.bodySmall),
+        GameText('${_thousands(alt)} m', style: T.h3.copyWith(fontSize: 13, color: Colors.white)),
         const SizedBox(width: 14),
-        const Text('TO GATEWAY ', style: T.bodySmall),
-        Text('GO', style: T.h3.copyWith(fontSize: 13, color: C.cyan)),
+        const GameText('TO GATEWAY ', style: T.bodySmall),
+        GameText('GO', style: T.h3.copyWith(fontSize: 13, color: C.cyan)),
       ]),
     ]);
   }

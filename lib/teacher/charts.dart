@@ -5,6 +5,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../ui/theme.dart';
 
@@ -136,8 +137,8 @@ class ProgressRing extends StatelessWidget {
             painter: _RingPainter(v, color),
             child: Center(
               child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Text(center, style: TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: size * 0.24, color: TC.ink)),
-                if (sub.isNotEmpty) Text(sub, style: const TextStyle(fontFamily: F.body, fontWeight: FontWeight.w600, fontSize: 11.5, color: TC.sub), textAlign: TextAlign.center),
+                GameText(center, style: TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: size * 0.24, color: TC.ink)),
+                if (sub.isNotEmpty) GameText(sub, style: const TextStyle(fontFamily: F.body, fontWeight: FontWeight.w600, fontSize: 11.5, color: TC.sub), textAlign: TextAlign.center),
               ]),
             ),
           ),
@@ -181,7 +182,7 @@ class HBar extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 5),
         child: Row(children: [
-          SizedBox(width: 104, child: Text(label, style: const TextStyle(fontFamily: F.body, fontWeight: FontWeight.w700, fontSize: 12.5, color: TC.ink), maxLines: 1, overflow: TextOverflow.ellipsis)),
+          SizedBox(width: 104, child: GameText(label, style: const TextStyle(fontFamily: F.body, fontWeight: FontWeight.w700, fontSize: 12.5, color: TC.ink), maxLines: 1, overflow: TextOverflow.ellipsis)),
           Expanded(
             child: LayoutBuilder(builder: (context, b) {
               return Stack(clipBehavior: Clip.none, children: [
@@ -201,7 +202,7 @@ class HBar extends StatelessWidget {
               ]);
             }),
           ),
-          SizedBox(width: 44, child: Text(text, textAlign: TextAlign.right, style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, fontSize: 12.5, color: TC.ink))),
+          SizedBox(width: 44, child: GameText(text, textAlign: TextAlign.right, style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, fontSize: 12.5, color: TC.ink))),
         ]),
       );
 }
@@ -233,8 +234,8 @@ class GainBars extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Text(v == null ? '—' : '$v%', style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 20, color: TC.ink)),
-            Text(label, style: const TextStyle(fontFamily: F.body, fontWeight: FontWeight.w600, fontSize: 12, color: TC.sub)),
+            GameText(v == null ? '—' : '$v%', style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 20, color: TC.ink)),
+            GameText(label, style: const TextStyle(fontFamily: F.body, fontWeight: FontWeight.w600, fontSize: 12, color: TC.sub)),
           ]),
         );
     final gain = before != null && after != null ? after! - before! : null;
@@ -243,8 +244,8 @@ class GainBars extends StatelessWidget {
       bar('After', after, TC.blue),
       Expanded(
         child: Column(children: [
-          Text(gain == null ? '—' : '${gain >= 0 ? '+' : ''}$gain', style: TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 40, color: gain == null ? TC.faint : (gain >= 0 ? TC.good : TC.bad))),
-          const Text('points gained', style: TextStyle(fontFamily: F.body, fontWeight: FontWeight.w600, fontSize: 12, color: TC.sub)),
+          GameText(gain == null ? '—' : '${gain >= 0 ? '+' : ''}$gain', style: TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 40, color: gain == null ? TC.faint : (gain >= 0 ? TC.good : TC.bad))),
+          const GameText('points gained', style: TextStyle(fontFamily: F.body, fontWeight: FontWeight.w600, fontSize: 12, color: TC.sub)),
           const SizedBox(height: 22),
         ]),
       ),
@@ -278,7 +279,7 @@ class LevelBars extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text('${i + 1}', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w500, fontSize: 10, color: TC.sub)),
+                  GameText('${i + 1}', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w500, fontSize: 10, color: TC.sub)),
                 ]),
               ),
             ),

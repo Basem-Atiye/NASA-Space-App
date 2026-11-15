@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../services/audio.dart';
 import '../ui/theme.dart';
@@ -80,7 +81,7 @@ class _RulesGameState extends State<RulesGame> with SingleTickerProviderStateMix
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         _rules(running || _passed),
         const SizedBox(height: 8),
-        Text('SIMULATION · 2 HOURS PER TEST', style: T.label.copyWith(color: C.muted)),
+        GameText('SIMULATION · 2 HOURS PER TEST', style: T.label.copyWith(color: C.muted)),
         const SizedBox(height: 8),
         _charts(),
       ]),
@@ -94,12 +95,12 @@ class _RulesGameState extends State<RulesGame> with SingleTickerProviderStateMix
           decoration: BoxDecoration(color: C.panelSolid, borderRadius: BorderRadius.circular(14), border: Border.all(color: c.withValues(alpha: 0.45))),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Text(title, style: T.label.copyWith(color: c)),
+              GameText(title, style: T.label.copyWith(color: c)),
               const Spacer(),
-              Text(actuator, style: T.monoSmall.copyWith(fontSize: 10)),
+              GameText(actuator, style: T.monoSmall.copyWith(fontSize: 10)),
             ]),
             const SizedBox(height: 4),
-            Text(text, style: T.mono.copyWith(fontSize: 12.5)),
+            GameText(text, style: T.mono.copyWith(fontSize: 12.5)),
             SizedBox(height: 36, child: slider),
           ]),
         );
@@ -162,7 +163,7 @@ class _RulesGameState extends State<RulesGame> with SingleTickerProviderStateMix
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(color: C.lineSoft)),
         child: const Padding(
           padding: EdgeInsets.all(16),
-          child: Text('Set your rules above, then run the tests.\nEach test simulates 2 hours of habitat life.', style: T.bodySmall, textAlign: TextAlign.center),
+          child: GameText('Set your rules above, then run the tests.\nEach test simulates 2 hours of habitat life.', style: T.bodySmall, textAlign: TextAlign.center),
         ),
       );
     }
@@ -183,12 +184,12 @@ class _RulesGameState extends State<RulesGame> with SingleTickerProviderStateMix
       decoration: BoxDecoration(color: C.panelDeep, borderRadius: BorderRadius.circular(14), border: Border.all(color: c.withValues(alpha: 0.5))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(t.title, style: T.h3.copyWith(fontSize: 13), overflow: TextOverflow.ellipsis)),
+          Expanded(child: GameText(t.title, style: T.h3.copyWith(fontSize: 13), overflow: TextOverflow.ellipsis)),
           if (done) Icon(t.passed ? Icons.check_circle_rounded : Icons.cancel_rounded, color: c, size: 16),
         ]),
         const SizedBox(height: 3),
         SizedBox(height: 44, child: CustomPaint(size: Size.infinite, painter: _ChartPainter(t, p))),
-        if (done) Text(t.verdict, style: T.bodySmall.copyWith(fontSize: 12, color: t.passed ? C.muted : C.red)),
+        if (done) GameText(t.verdict, style: T.bodySmall.copyWith(fontSize: 12, color: t.passed ? C.muted : C.red)),
       ]),
     );
   }
@@ -439,7 +440,7 @@ class _CascadeGameState extends State<CascadeGame> with SingleTickerProviderStat
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(failed ? Icons.power_off_rounded : Icons.bolt_rounded, size: 14, color: c),
           const SizedBox(width: 4),
-          Flexible(child: Text(n.label, style: T.h3.copyWith(fontSize: 11.5), textAlign: TextAlign.center, maxLines: 2)),
+          Flexible(child: GameText(n.label, style: T.h3.copyWith(fontSize: 11.5), textAlign: TextAlign.center, maxLines: 2)),
         ]),
       ),
     );
