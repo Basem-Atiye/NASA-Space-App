@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import '../../ui/game_helper.dart';
 
 import '../../main.dart';
 import '../../ui/astro_art.dart';
@@ -61,7 +62,7 @@ class _NewBadges extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Overline(ids.length == 1 ? 'New badge' : 'New badges', color: C.yellow, size: 11.5),
-              Text(ids.map((i) => badgeById(i).title).join(', '), style: T.h3.copyWith(fontSize: 17)),
+              GameText(ids.map((i) => badgeById(i).title).join(', '), style: T.h3.copyWith(fontSize: 17)),
             ]),
           ),
         ]),
@@ -93,9 +94,9 @@ class _Complete extends StatelessWidget {
                 const SizedBox(height: 4),
                 Center(child: TagChip('MISSION ${two(n)} COMPLETE', color: C.green, icon: Ln.rocket, on: C.bg, size: 13)),
                 const SizedBox(height: 14),
-                Text(r.headline, textAlign: TextAlign.center, style: T.h1),
+                GameText(r.headline, textAlign: TextAlign.center, style: T.h1),
                 const SizedBox(height: 8),
-                Text(r.subline, textAlign: TextAlign.center, style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 16)),
+                GameText(r.subline, textAlign: TextAlign.center, style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 16)),
                 const SizedBox(height: 16),
                 Center(child: KitStars(stars: r.stars, size: 50, animate: !sv.progress.reducedMotion)),
                 const SizedBox(height: 18),
@@ -110,9 +111,9 @@ class _Complete extends StatelessWidget {
                           Row(mainAxisSize: MainAxisSize.min, children: [
                             const LineIcon(Ln.star, size: 13, color: C.yellow),
                             const SizedBox(width: 2),
-                            Text('${e.value}/5', style: T.h3.copyWith(fontSize: 17)),
+                            GameText('${e.value}/5', style: T.h3.copyWith(fontSize: 17)),
                           ]),
-                          Text(e.key, style: T.body.copyWith(fontSize: 13, color: C.muted)),
+                          GameText(e.key, style: T.body.copyWith(fontSize: 13, color: C.muted)),
                         ]),
                       ),
                   ]),
@@ -178,7 +179,7 @@ class _Insight extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Overline(title, color: color, size: 11.5),
               const SizedBox(height: 4),
-              Text(text, style: T.body.copyWith(fontSize: 15, height: 1.4)),
+              GameText(text, style: T.body.copyWith(fontSize: 15, height: 1.4)),
             ]),
           ),
         ]),
@@ -207,11 +208,11 @@ class _Failed extends StatelessWidget {
               child: ListView(padding: const EdgeInsets.fromLTRB(24, 24, 24, 16), children: [
                 Center(child: GlowDisc(icon: icon, color: C.red, size: 92)),
                 const SizedBox(height: 18),
-                Text(r.headline, textAlign: TextAlign.center, style: T.h1),
+                GameText(r.headline, textAlign: TextAlign.center, style: T.h1),
                 const SizedBox(height: 8),
-                Text(r.subline, textAlign: TextAlign.center, style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 16)),
+                GameText(r.subline, textAlign: TextAlign.center, style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 16)),
                 const SizedBox(height: 22),
-                const Text('What happened?', style: T.h2),
+                const GameText('What happened?', style: T.h2),
                 const SizedBox(height: 12),
                 for (var i = 0; i < steps.length; i++) ...[
                   _WhatCard(entry: steps[i], last: i == steps.length - 1),
@@ -229,7 +230,7 @@ class _Failed extends StatelessWidget {
                   tilePadding: EdgeInsets.zero,
                   collapsedIconColor: C.muted,
                   iconColor: C.muted,
-                  title: Text('See the whole mission log', style: T.h3.copyWith(fontSize: 16, color: C.muted)),
+                  title: GameText('See the whole mission log', style: T.h3.copyWith(fontSize: 16, color: C.muted)),
                   children: [for (final e in state.log.reversed) LogRow(entry: e)],
                 ),
               ]),
@@ -268,7 +269,7 @@ class _WhatCard extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Overline('Day ${entry.day}', color: color, size: 11.5),
             const SizedBox(height: 2),
-            Text(entry.title, style: T.h3.copyWith(fontSize: 17, height: 1.3)),
+            GameText(entry.title, style: T.h3.copyWith(fontSize: 17, height: 1.3)),
           ]),
         ),
       ]),

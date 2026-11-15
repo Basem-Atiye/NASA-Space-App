@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../cloud/models.dart';
 import '../data/catalogue.dart';
@@ -38,12 +39,12 @@ class SkillsScreen extends StatelessWidget {
               decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(24)),
               child: Column(children: [
                 Row(children: [
-                  Text('SKILLS MAP', style: T.label.copyWith(fontSize: 12)),
+                  GameText('SKILLS MAP', style: T.label.copyWith(fontSize: 12)),
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(color: C.sapphire, borderRadius: BorderRadius.circular(10)),
-                    child: Text(rank.toUpperCase(), style: T.label.copyWith(color: C.frozen, fontSize: 10, letterSpacing: 1.4)),
+                    child: GameText(rank.toUpperCase(), style: T.label.copyWith(color: C.frozen, fontSize: 10, letterSpacing: 1.4)),
                   ),
                 ]),
                 const SizedBox(height: 8),
@@ -51,7 +52,7 @@ class SkillsScreen extends StatelessWidget {
                   height: 270,
                   child: any
                       ? RadarChart(labels: [for (final k in Skill.values) k.short], values: values, dark: true)
-                      : Center(child: Text('Play a level to start your skills map.', style: T.body.copyWith(color: C.muted))),
+                      : Center(child: GameText('Play a level to start your skills map.', style: T.body.copyWith(color: C.muted))),
                 ),
               ]),
             ),
@@ -62,7 +63,7 @@ class SkillsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: C.panelDeep, borderRadius: BorderRadius.circular(20)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('READINESS CHECK', style: T.label.copyWith(fontSize: 12)),
+                GameText('READINESS CHECK', style: T.label.copyWith(fontSize: 12)),
                 const SizedBox(height: 10),
                 Row(children: [
                   Expanded(child: _score('Before', pre)),
@@ -73,7 +74,7 @@ class SkillsScreen extends StatelessWidget {
                 if (pre == null || (post == null && p.campaignComplete()))
                   HudButton(label: pre == null ? 'TAKE THE READINESS CHECK' : 'TAKE THE FINAL CHECK', icon: Icons.quiz_rounded, onTap: () => sv.nav.go(Screen.readiness))
                 else if (post == null)
-                  Text('The final check opens when you finish the campaign (${p.levelsDone()} of ${camp.length} levels done).', style: T.bodySmall),
+                  GameText('The final check opens when you finish the campaign (${p.levelsDone()} of ${camp.length} levels done).', style: T.bodySmall),
               ]),
             ),
           ]),
@@ -92,7 +93,7 @@ class SkillsScreen extends StatelessWidget {
       child: Row(children: [
         const Icon(Icons.mark_email_unread_rounded, color: C.frozen),
         const SizedBox(width: 10),
-        Expanded(child: Text(n.kind.studentText(level), style: T.body.copyWith(fontSize: 14))),
+        Expanded(child: GameText(n.kind.studentText(level), style: T.body.copyWith(fontSize: 14))),
         IconButton(onPressed: () => sv.session.dismissNudge(n), icon: const Icon(Icons.check_rounded, color: C.cyan)),
       ]),
     );
@@ -104,8 +105,8 @@ class SkillsScreen extends StatelessWidget {
           SizedBox(
             width: 128,
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(k.title, style: T.h3.copyWith(fontSize: 13.5)),
-              Text(k.blurb, style: T.bodySmall.copyWith(fontSize: 11), maxLines: 2),
+              GameText(k.title, style: T.h3.copyWith(fontSize: 13.5)),
+              GameText(k.blurb, style: T.bodySmall.copyWith(fontSize: 11), maxLines: 2),
             ]),
           ),
           const SizedBox(width: 10),
@@ -114,8 +115,8 @@ class SkillsScreen extends StatelessWidget {
       );
 
   Widget _score(String label, int? v) => Column(children: [
-        Text(label, style: T.bodySmall),
-        Text(v == null ? '—' : '$v%', style: T.hero.copyWith(fontSize: 32, color: v == null ? C.dim : C.frozen)),
+        GameText(label, style: T.bodySmall),
+        GameText(v == null ? '—' : '$v%', style: T.hero.copyWith(fontSize: 32, color: v == null ? C.dim : C.frozen)),
       ]);
 }
 

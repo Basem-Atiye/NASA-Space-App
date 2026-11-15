@@ -1,3 +1,4 @@
+import 'ui/game_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -300,7 +301,7 @@ class _ShackletonAppState extends State<ShackletonApp> with WidgetsBindingObserv
             builder: (context, _) {
               final own = const [0.9, 1.0, 1.12][widget.progress.textSize.clamp(0, 2)];
               final scaled = TextScaler.linear((mq.textScaler.scale(16) / 16 * own).clamp(0.85, 1.35));
-              return MediaQuery(data: mq.copyWith(textScaler: scaled), child: child!);
+              return MediaQuery(data: mq.copyWith(textScaler: scaled), child: Overlay.wrap(child: GameHelper(reducedMotion: widget.progress.reducedMotion, child: child!)));
             },
           );
         },

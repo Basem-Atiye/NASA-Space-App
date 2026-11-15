@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../main.dart';
 import '../data/messages.dart';
@@ -55,13 +56,13 @@ class _SheetFrame extends StatelessWidget {
           Row(children: [
             Icon(icon, color: C.cyan, size: 20),
             const SizedBox(width: 8),
-            Text(title, style: T.h2),
+            GameText(title, style: T.h2),
             const SizedBox(width: 10),
-            if (subtitle != null) Expanded(child: Text(subtitle!, style: T.bodySmall, overflow: TextOverflow.ellipsis)) else const Spacer(),
+            if (subtitle != null) Expanded(child: GameText(subtitle!, style: T.bodySmall, overflow: TextOverflow.ellipsis)) else const Spacer(),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(borderRadius: BorderRadius.circular(5), border: Border.all(color: C.amber.withValues(alpha: 0.6))),
-              child: Text('PAUSED', style: T.label.copyWith(color: C.amber, fontSize: 9)),
+              child: GameText('PAUSED', style: T.label.copyWith(color: C.amber, fontSize: 9)),
             ),
             const SizedBox(width: 8),
             GestureDetector(onTap: () => Navigator.of(context).pop(), child: const Icon(Icons.close_rounded, color: C.muted)),
@@ -97,9 +98,9 @@ class PowerSheet extends StatelessWidget {
           _PowerBar(gen: gen, load: load),
           const SizedBox(height: 6),
           Row(children: [
-            Text('Battery ${s.battery.toStringAsFixed(1)} / ${s.batteryCap.toStringAsFixed(0)} kWh', style: T.mono.copyWith(fontSize: 12)),
+            GameText('Battery ${s.battery.toStringAsFixed(1)} / ${s.batteryCap.toStringAsFixed(0)} kWh', style: T.mono.copyWith(fontSize: 12)),
             const Spacer(),
-            Text(
+            GameText(
               net >= 0 ? 'Charging +${net.toStringAsFixed(2)} kW' : 'Draining ${net.toStringAsFixed(2)} kW · empty in ${formatHours(s.batteryHoursLeft)}',
               style: T.mono.copyWith(fontSize: 12, color: net >= 0 ? C.green : C.amber),
             ),
@@ -114,7 +115,7 @@ class PowerSheet extends StatelessWidget {
             broken: s.isBroken(SystemId.electrolyzer),
             onChanged: g.setElectrolyzer,
             extra: Row(children: [
-              Text('RATE', style: T.label.copyWith(fontSize: 9)),
+              GameText('RATE', style: T.label.copyWith(fontSize: 9)),
               Expanded(
                 child: Slider(
                   value: s.electrolyzerRate,
@@ -122,7 +123,7 @@ class PowerSheet extends StatelessWidget {
                   onChanged: s.isBroken(SystemId.electrolyzer) ? null : g.setElectrolyzerRate,
                 ),
               ),
-              SizedBox(width: 44, child: Text('${(s.electrolyzerRate * 100).round()}%', style: T.mono.copyWith(fontSize: 12))),
+              SizedBox(width: 44, child: GameText('${(s.electrolyzerRate * 100).round()}%', style: T.mono.copyWith(fontSize: 12))),
             ]),
           ),
           _SystemRow(
@@ -163,7 +164,7 @@ class PowerSheet extends StatelessWidget {
             onChanged: g.setLab,
           ),
           const SizedBox(height: 4),
-          const Text('Life support base load: ${Rates.baseKw} kW (always on). When the battery empties, systems shut down in this order: lab, greenhouse, oxygen generator, recycler, heaters.',
+          const GameText('Life support base load: ${Rates.baseKw} kW (always on). When the battery empties, systems shut down in this order: lab, greenhouse, oxygen generator, recycler, heaters.',
               style: T.bodySmall),
         ],
       ),
@@ -179,7 +180,7 @@ class _PowerBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final maxV = [gen, load, 1.0].reduce((a, b) => a > b ? a : b) * 1.15;
     Widget bar(String label, double v, Color c) => Row(children: [
-          SizedBox(width: 92, child: Text(label, style: T.label.copyWith(fontSize: 9.5))),
+          SizedBox(width: 92, child: GameText(label, style: T.label.copyWith(fontSize: 9.5))),
           Expanded(
             child: Stack(children: [
               Container(height: 12, decoration: BoxDecoration(color: C.lineSoft, borderRadius: BorderRadius.circular(3))),
@@ -189,7 +190,7 @@ class _PowerBar extends StatelessWidget {
               ),
             ]),
           ),
-          SizedBox(width: 64, child: Text('${v.toStringAsFixed(2)} kW', style: T.mono.copyWith(fontSize: 11.5), textAlign: TextAlign.right)),
+          SizedBox(width: 64, child: GameText('${v.toStringAsFixed(2)} kW', style: T.mono.copyWith(fontSize: 11.5), textAlign: TextAlign.right)),
         ]);
     return Column(children: [
       bar('SOLAR IN', gen, C.amber),
@@ -232,15 +233,15 @@ class _SystemRow extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Text(name, style: T.h3),
+                GameText(name, style: T.h3),
                 const SizedBox(width: 8),
                 if (broken)
-                  Text('BROKEN · set Nova\'s task to REPAIR', style: T.label.copyWith(color: C.red, fontSize: 9.5))
+                  GameText('BROKEN · set Nova\'s task to REPAIR', style: T.label.copyWith(color: C.red, fontSize: 9.5))
                 else
-                  Text('${kw.toStringAsFixed(2)} kW', style: T.monoSmall.copyWith(color: on ? C.cyan : C.dim)),
+                  GameText('${kw.toStringAsFixed(2)} kW', style: T.monoSmall.copyWith(color: on ? C.cyan : C.dim)),
               ]),
               const SizedBox(height: 2),
-              Text(detail, style: T.bodySmall),
+              GameText(detail, style: T.bodySmall),
             ]),
           ),
           Switch(value: on && !broken, onChanged: broken ? null : onChanged),
@@ -336,12 +337,12 @@ class _TaskCard extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Text(name, style: T.h3.copyWith(color: enabled ? C.text : C.dim)),
+                GameText(name, style: T.h3.copyWith(color: enabled ? C.text : C.dim)),
                 if (selected) ...[const SizedBox(width: 6), const Icon(Icons.check_circle_rounded, size: 14, color: C.cyan)],
-                if (warn && enabled && !selected) ...[const SizedBox(width: 6), Text('STORM!', style: T.label.copyWith(color: C.amber, fontSize: 9))],
+                if (warn && enabled && !selected) ...[const SizedBox(width: 6), GameText('STORM!', style: T.label.copyWith(color: C.amber, fontSize: 9))],
               ]),
               const SizedBox(height: 2),
-              Text(enabled ? detail : disabledReason!, style: T.bodySmall.copyWith(fontSize: 11.5)),
+              GameText(enabled ? detail : disabledReason!, style: T.bodySmall.copyWith(fontSize: 11.5)),
             ]),
           ),
         ]),
@@ -373,7 +374,7 @@ class _EvaSheetState extends State<EvaSheet> {
         icon: Icons.directions_walk_rounded,
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 16),
-          child: Text('Moonwalks unlock in Chapter 3. For now, Nova stays safely inside the habitat.', style: T.body),
+          child: GameText('Moonwalks unlock in Chapter 3. For now, Nova stays safely inside the habitat.', style: T.body),
         ),
       );
     }
@@ -383,19 +384,19 @@ class _EvaSheetState extends State<EvaSheet> {
         title: 'EVA IN PROGRESS',
         icon: Icons.directions_walk_rounded,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(evaName(s.eva!), style: T.h3),
+          GameText(evaName(s.eva!), style: T.h3),
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(3),
             child: LinearProgressIndicator(value: (total - s.evaLeft) / total, minHeight: 8, backgroundColor: C.lineSoft, color: C.cyan),
           ),
           const SizedBox(height: 6),
-          Text('${s.evaLeft} hours left · dose rate now ${(s.doseRatePerHour * 24).toStringAsFixed(2)} mSv/day', style: T.mono.copyWith(fontSize: 12)),
+          GameText('${s.evaLeft} hours left · dose rate now ${(s.doseRatePerHour * 24).toStringAsFixed(2)} mSv/day', style: T.mono.copyWith(fontSize: 12)),
           const SizedBox(height: 12),
           if (s.storm != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: Text('A solar storm is coming. Recall Nova now and send her to the shelter.', style: T.body.copyWith(color: C.amber)),
+              child: GameText('A solar storm is coming. Recall Nova now and send her to the shelter.', style: T.body.copyWith(color: C.amber)),
             ),
           HudButton(
             label: 'RECALL NOVA',
@@ -408,7 +409,7 @@ class _EvaSheetState extends State<EvaSheet> {
             },
           ),
           const SizedBox(height: 4),
-          const Text('Recalling ends the EVA early without its reward.', style: T.bodySmall),
+          const GameText('Recalling ends the EVA early without its reward.', style: T.bodySmall),
         ]),
       );
     }
@@ -426,10 +427,10 @@ class _EvaSheetState extends State<EvaSheet> {
         if (s.storm != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: Text('Solar storm warning: going outside now is dangerous.', style: T.body.copyWith(color: C.amber)),
+            child: GameText('Solar storm warning: going outside now is dangerous.', style: T.body.copyWith(color: C.amber)),
           ),
         for (final t in targets) _evaRow(g, t.$1, t.$2, t.$3),
-        if (_error != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(_error!, style: T.body.copyWith(color: C.red))),
+        if (_error != null) Padding(padding: const EdgeInsets.only(top: 6), child: GameText(_error!, style: T.body.copyWith(color: C.red))),
       ]),
     );
   }
@@ -448,9 +449,9 @@ class _EvaSheetState extends State<EvaSheet> {
         const SizedBox(width: 10),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(evaName(t), style: T.h3),
-            Text(reward, style: T.bodySmall.copyWith(color: C.green)),
-            Text('$h h · O₂ ${o2.toStringAsFixed(2)} kg · dose ~${dose.toStringAsFixed(2)} mSv (no storm)', style: T.monoSmall.copyWith(fontSize: 10.5)),
+            GameText(evaName(t), style: T.h3),
+            GameText(reward, style: T.bodySmall.copyWith(color: C.green)),
+            GameText('$h h · O₂ ${o2.toStringAsFixed(2)} kg · dose ~${dose.toStringAsFixed(2)} mSv (no storm)', style: T.monoSmall.copyWith(fontSize: 10.5)),
           ]),
         ),
         const SizedBox(width: 8),
@@ -490,20 +491,20 @@ class MissionSheet extends StatelessWidget {
           child: Row(children: [
             StarRow(stars: n, size: 14),
             const SizedBox(width: 8),
-            Expanded(child: Text(r.label, style: T.bodySmall.copyWith(color: s.meetsStar(r) ? C.green : C.muted))),
+            Expanded(child: GameText(r.label, style: T.bodySmall.copyWith(color: s.meetsStar(r) ? C.green : C.muted))),
           ]),
         );
     return _SheetFrame(
       title: 'MISSION ${m.id}: ${m.title.toUpperCase()}',
       icon: Icons.flag_rounded,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(m.goalText, style: T.body),
+        GameText(m.goalText, style: T.body),
         const SizedBox(height: 6),
-        Text(m.newThisMission, style: T.bodySmall),
+        GameText(m.newThisMission, style: T.bodySmall),
         const HudDivider(),
         const SectionLabel('Stars'),
         const SizedBox(height: 4),
-        const Row(children: [StarRow(stars: 1, size: 14), SizedBox(width: 8), Text('Complete the mission', style: T.bodySmall)]),
+        const Row(children: [StarRow(stars: 1, size: 14), SizedBox(width: 8), GameText('Complete the mission', style: T.bodySmall)]),
         star(m.star2, 2),
         star(m.star3, 3),
         const HudDivider(),
@@ -522,8 +523,8 @@ class MissionSheet extends StatelessWidget {
   }
 
   Widget _kv(String k, String v) => Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        Text(k, style: T.label.copyWith(fontSize: 9)),
-        Text(v, style: T.mono),
+        GameText(k, style: T.label.copyWith(fontSize: 9)),
+        GameText(v, style: T.mono),
       ]);
 }
 
@@ -549,12 +550,12 @@ class LogSheet extends StatelessWidget {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
-                    Text(speakerName(f.message.speaker, characterName: Services.of(context).session.characterName).toUpperCase(), style: T.label.copyWith(fontSize: 9.5, color: speakerColor(f.message.speaker))),
+                    GameText(speakerName(f.message.speaker, characterName: Services.of(context).session.characterName).toUpperCase(), style: T.label.copyWith(fontSize: 9.5, color: speakerColor(f.message.speaker))),
                     const Spacer(),
-                    Text(missionClock(f.hour), style: T.monoSmall.copyWith(fontSize: 9.5)),
+                    GameText(missionClock(f.hour), style: T.monoSmall.copyWith(fontSize: 9.5)),
                   ]),
                   const SizedBox(height: 2),
-                  Text(personalizeCharacterName(f.message.text, Services.of(context).session.characterName), style: T.body.copyWith(fontSize: 13)),
+                  GameText(personalizeCharacterName(f.message.text, Services.of(context).session.characterName), style: T.body.copyWith(fontSize: 13)),
                 ]),
               ),
             ]),
@@ -610,6 +611,6 @@ class GaugeInfoSheet extends StatelessWidget {
         title = 'MORALE';
         body = 'Isolation is hard. Rest, science, harvests, successful EVAs and messages from home lift morale. Very low morale slows repairs.';
     }
-    return _SheetFrame(title: title, icon: Icons.info_outline_rounded, child: Text(body, style: T.body));
+    return _SheetFrame(title: title, icon: Icons.info_outline_rounded, child: GameText(body, style: T.body));
   }
 }

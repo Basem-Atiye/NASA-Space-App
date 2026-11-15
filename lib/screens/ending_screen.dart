@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../data/catalogue.dart';
 import '../data/story.dart';
@@ -64,9 +65,9 @@ class _EndingScreenState extends State<EndingScreen> with SingleTickerProviderSt
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 30, 24, 0),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(kicker, style: T.label.copyWith(letterSpacing: 4, fontSize: 12)),
+              GameText(kicker, style: T.label.copyWith(letterSpacing: 4, fontSize: 12)),
               const SizedBox(height: 6),
-              Text(heading, style: T.h1.copyWith(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: 32, letterSpacing: 1.5)),
+              GameText(heading, style: T.h1.copyWith(fontFamily: F.display, fontWeight: FontWeight.w800, fontSize: 32, letterSpacing: 1.5)),
             ]),
           ),
         ),
@@ -82,12 +83,12 @@ class _EndingScreenState extends State<EndingScreen> with SingleTickerProviderSt
               decoration: BoxDecoration(color: C.indigo.withValues(alpha: 0.95), borderRadius: BorderRadius.circular(26)),
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
                 Row(children: [
-                  Text('MISSION COMPLETE', style: T.label.copyWith(letterSpacing: 3, fontSize: 12)),
+                  GameText('MISSION COMPLETE', style: T.label.copyWith(letterSpacing: 3, fontSize: 12)),
                   const Spacer(),
                   StarRow(stars: avg, size: 20),
                 ]),
                 const SizedBox(height: 12),
-                Text(message, style: T.h3.copyWith(fontSize: 17, height: 1.35)),
+                GameText(message, style: T.h3.copyWith(fontSize: 17, height: 1.35)),
                 const SizedBox(height: 14),
                 Row(children: [
                   Expanded(child: _stat('LEVELS', '$upTo')),
@@ -137,9 +138,9 @@ class _EndingScreenState extends State<EndingScreen> with SingleTickerProviderSt
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(color: C.panelDeep.withValues(alpha: 0.8), borderRadius: BorderRadius.circular(14)),
         child: Column(children: [
-          Text(label, style: T.bodySmall.copyWith(fontSize: 12)),
+          GameText(label, style: T.bodySmall.copyWith(fontSize: 12)),
           const SizedBox(height: 2),
-          FittedBox(child: Text(value, style: T.h3.copyWith(fontSize: 17))),
+          FittedBox(child: GameText(value, style: T.h3.copyWith(fontSize: 17))),
         ]),
       );
 }

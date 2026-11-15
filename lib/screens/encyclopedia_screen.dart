@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../data/encyclopedia.dart';
 import '../main.dart';
@@ -35,11 +36,11 @@ class EncyclopediaScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('PIP\'S SCANNER', style: T.label.copyWith(letterSpacing: 3)),
+                GameText('PIP\'S SCANNER', style: T.label.copyWith(letterSpacing: 3)),
                 const SizedBox(height: 6),
-                Text('Moon Encyclopedia', style: T.hero.copyWith(fontSize: 34)),
+                GameText('Moon Encyclopedia', style: T.hero.copyWith(fontSize: 34)),
                 const SizedBox(height: 8),
-                Text('$n of ${encyclopedia.length} facts found. Tap things in the story, or press Scan, and Pip adds what he learns here.', style: T.body.copyWith(color: C.muted)),
+                GameText('$n of ${encyclopedia.length} facts found. Tap things in the story, or press Scan, and Pip adds what he learns here.', style: T.body.copyWith(color: C.muted)),
                 const SizedBox(height: 12),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
@@ -82,9 +83,9 @@ class EncyclopediaScreen extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(unlocked ? f.title : 'Not found yet', style: T.h3.copyWith(color: unlocked ? C.text : C.dim)),
+            GameText(unlocked ? f.title : 'Not found yet', style: T.h3.copyWith(color: unlocked ? C.text : C.dim)),
             const SizedBox(height: 4),
-            Text(unlocked ? f.text : 'Scan more of the Moon with Pip to unlock this fact.', style: T.body.copyWith(fontSize: 13.5, color: unlocked ? C.muted : C.dim)),
+            GameText(unlocked ? f.text : 'Scan more of the Moon with Pip to unlock this fact.', style: T.body.copyWith(fontSize: 13.5, color: unlocked ? C.muted : C.dim)),
           ]),
         ),
       ]),

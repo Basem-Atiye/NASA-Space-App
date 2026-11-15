@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../main.dart';
 import '../story/story_model.dart';
@@ -45,9 +46,9 @@ class _RankScreenState extends State<RankScreen> {
                   const SizedBox(height: 14),
                   Overline(p.rankChosen ? 'Your age group' : 'New crew member', color: C.cyan, size: 11.5),
                   const SizedBox(height: 4),
-                  const Text('Choose your age group', style: T.h1),
+                  const GameText('Choose your age group', style: T.h1),
                   const SizedBox(height: 8),
-                  Text('Same Moon, same missions. Your age group sets how much reading, maths and pressure you get. You can change it any time.', style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 15)),
+                  GameText('Same Moon, same missions. Your age group sets how much reading, maths and pressure you get. You can change it any time.', style: T.body.copyWith(color: C.frozen.withValues(alpha: 0.85), fontSize: 15)),
                   const SizedBox(height: 22),
                   for (final m in AgeMode.values)
                     EnterAnim(
@@ -78,7 +79,7 @@ class _RankScreenState extends State<RankScreen> {
                   child: Row(children: [
                     Icon(locked ? Icons.lock_rounded : Icons.info_outline_rounded, color: C.muted, size: 20),
                     const SizedBox(width: 10),
-                    Expanded(child: Text(locked ? 'Your teacher chose the age group for the class.' : 'Teachers can choose the age group for the whole class.', style: T.body.copyWith(color: C.muted, fontSize: 13.5))),
+                    Expanded(child: GameText(locked ? 'Your teacher chose the age group for the class.' : 'Teachers can choose the age group for the whole class.', style: T.body.copyWith(color: C.muted, fontSize: 13.5))),
                   ]),
                 ),
                 const SizedBox(height: 12),
@@ -130,20 +131,20 @@ class _RankCard extends StatelessWidget {
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, runSpacing: 4, children: [
-                Text(mode.title, style: T.h3.copyWith(fontSize: 20, color: c)),
-                Text(mode.ages, style: T.body.copyWith(color: C.muted, fontSize: 13.5)),
+                GameText(mode.title, style: T.h3.copyWith(fontSize: 20, color: c)),
+                GameText(mode.ages, style: T.body.copyWith(color: C.muted, fontSize: 13.5)),
                 AnimatedOpacity(
                   duration: Motion.fast,
                   opacity: selected ? 1 : 0,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(color: C.cyan, borderRadius: BorderRadius.circular(10)),
-                    child: Text('CHOSEN', style: T.label.copyWith(color: C.ink, fontSize: 10, letterSpacing: 1.6)),
+                    child: GameText('CHOSEN', style: T.label.copyWith(color: C.ink, fontSize: 10, letterSpacing: 1.6)),
                   ),
                 ),
               ]),
               const SizedBox(height: 6),
-              Text(mode.blurb, style: T.body.copyWith(fontSize: 14)),
+              GameText(mode.blurb, style: T.body.copyWith(fontSize: 14)),
             ]),
           ),
         ]),

@@ -13,6 +13,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 import 'package:flutter/services.dart';
 
 import '../cloud/link.dart';
@@ -112,7 +113,7 @@ class _TeacherAppState extends State<TeacherApp> {
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(color: C.yellow.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(10)),
-                        child: Text('SAMPLE CLASS', style: T.label.copyWith(fontSize: 9.5, letterSpacing: 1.2, color: C.yellow)),
+                        child: GameText('SAMPLE CLASS', style: T.label.copyWith(fontSize: 9.5, letterSpacing: 1.2, color: C.yellow)),
                       ),
                     ],
                   ]),
@@ -121,13 +122,13 @@ class _TeacherAppState extends State<TeacherApp> {
                     TapScale(
                       onTap: _pickClass,
                       child: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Flexible(child: Text(_class!.name, style: T.h2.copyWith(fontSize: 21), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        Flexible(child: GameText(_class!.name, style: T.h2.copyWith(fontSize: 21), maxLines: 1, overflow: TextOverflow.ellipsis)),
                         const SizedBox(width: 4),
                         const LineIcon(Ln.down, size: 18, color: C.muted),
                       ]),
                     )
                   else
-                    Text('Your classes', style: T.h2.copyWith(fontSize: 21)),
+                    GameText('Your classes', style: T.h2.copyWith(fontSize: 21)),
                 ]),
               ),
               if (_class != null) ...[const SizedBox(width: 10), _ageChip(_class!.ageMode)],
@@ -154,9 +155,9 @@ class _TeacherAppState extends State<TeacherApp> {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.cloud_off_rounded, size: 40, color: TC.faint),
             const SizedBox(height: 10),
-            Text(_error ?? '', style: const TextStyle(color: TC.sub), textAlign: TextAlign.center),
+            GameText(_error ?? '', style: const TextStyle(color: TC.sub), textAlign: TextAlign.center),
             const SizedBox(height: 12),
-            FilledButton(onPressed: _load, child: const Text('Try again')),
+            FilledButton(onPressed: _load, child: const GameText('Try again')),
           ]),
         ),
       );
@@ -167,8 +168,8 @@ class _TeacherAppState extends State<TeacherApp> {
         alignment: Alignment.center,
         decoration: BoxDecoration(color: C.raised, borderRadius: BorderRadius.circular(16)),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text(m.title, style: T.h3.copyWith(fontSize: 12.5, height: 1.1)),
-          Text(m.ages, style: T.bodySmall.copyWith(fontSize: 10, height: 1.1, color: C.muted)),
+          GameText(m.title, style: T.h3.copyWith(fontSize: 12.5, height: 1.1)),
+          GameText(m.ages, style: T.bodySmall.copyWith(fontSize: 10, height: 1.1, color: C.muted)),
         ]),
       );
 
@@ -194,15 +195,15 @@ class _TeacherAppState extends State<TeacherApp> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           for (final c in _classes)
             ListTile(
-              leading: CircleAvatar(backgroundColor: TC.blue.withValues(alpha: 0.12), child: Text(c.name.characters.first, style: const TextStyle(color: TC.blue))),
-              title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700, color: TC.ink)),
-              subtitle: Text('${c.ageMode.title} · code ${c.joinCode}', style: const TextStyle(color: TC.sub)),
+              leading: CircleAvatar(backgroundColor: TC.blue.withValues(alpha: 0.12), child: GameText(c.name.characters.first, style: const TextStyle(color: TC.blue))),
+              title: GameText(c.name, style: const TextStyle(fontWeight: FontWeight.w700, color: TC.ink)),
+              subtitle: GameText('${c.ageMode.title} · code ${c.joinCode}', style: const TextStyle(color: TC.sub)),
               trailing: c.id == _class?.id ? const Icon(Icons.check_rounded, color: TC.blue) : null,
               onTap: () => Navigator.pop(ctx, c.id),
             ),
           ListTile(
             leading: const Icon(Icons.add_rounded, color: TC.blue),
-            title: const Text('New class', style: TextStyle(fontWeight: FontWeight.w700, color: TC.blue)),
+            title: const GameText('New class', style: TextStyle(fontWeight: FontWeight.w700, color: TC.blue)),
             onTap: () => Navigator.pop(ctx, '+'),
           ),
         ]),
@@ -259,22 +260,22 @@ class _TeacherAppState extends State<TeacherApp> {
         context: context,
         builder: (ctx) => AlertDialog(
           backgroundColor: TC.card,
-          title: Text('${c.name} is ready', style: const TextStyle(color: TC.ink)),
+          title: GameText('${c.name} is ready', style: const TextStyle(color: TC.ink)),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Text('Students who already have an account join with this code:', style: TextStyle(color: TC.sub)),
+            const GameText('Students who already have an account join with this code:', style: TextStyle(color: TC.sub)),
             const SizedBox(height: 14),
             _JoinCode(code: c.joinCode),
             const SizedBox(height: 14),
-            Text('Everyone in this class plays the ${c.ageMode.title} campaign (${c.ageMode.ages}).', style: const TextStyle(color: TC.sub), textAlign: TextAlign.center),
+            GameText('Everyone in this class plays the ${c.ageMode.title} campaign (${c.ageMode.ages}).', style: const TextStyle(color: TC.sub), textAlign: TextAlign.center),
           ]),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Later')),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const GameText('Later')),
             FilledButton(
               onPressed: () {
                 Navigator.pop(ctx);
                 _addStudents(c);
               },
-              child: const Text('Make sign-in cards'),
+              child: const GameText('Make sign-in cards'),
             ),
           ],
         ),
@@ -299,7 +300,7 @@ class _TeacherAppState extends State<TeacherApp> {
     }
   }
 
-  void _snack(String s) => ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: Text(s)));
+  void _snack(String s) => ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: GameText(s)));
 }
 
 ThemeData _teacherTheme() {
@@ -434,9 +435,9 @@ class _Stat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(value, style: T.number.copyWith(fontSize: 28, color: color))),
+        FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: GameText(value, style: T.number.copyWith(fontSize: 28, color: color))),
         const SizedBox(height: 2),
-        Text(label, style: const TextStyle(fontFamily: F.body, fontWeight: FontWeight.w700, fontSize: 12, color: TC.sub)),
+        GameText(label, style: const TextStyle(fontFamily: F.body, fontWeight: FontWeight.w700, fontSize: 12, color: TC.sub)),
       ]);
 }
 
@@ -445,7 +446,7 @@ Widget _avatar(String name, {Color color = TC.blue, double size = 38}) => Contai
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(color: color.withValues(alpha: 0.18), shape: BoxShape.circle),
-      child: Text(name.isEmpty ? '?' : name.characters.first.toUpperCase(), style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: size * 0.42, color: color)),
+      child: GameText(name.isEmpty ? '?' : name.characters.first.toUpperCase(), style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: size * 0.42, color: color)),
     );
 
 String _ago(DateTime? t) {
@@ -488,8 +489,8 @@ class _LoaderState<T> extends State<_Loader<T>> {
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Text('${s.error}', style: const TextStyle(color: TC.sub), textAlign: TextAlign.center),
-                  TextButton(onPressed: _reload, child: const Text('Try again')),
+                  GameText('${s.error}', style: const TextStyle(color: TC.sub), textAlign: TextAlign.center),
+                  TextButton(onPressed: _reload, child: const GameText('Try again')),
                 ]),
               ),
             );
@@ -520,9 +521,9 @@ class _TodayTab extends StatelessWidget {
         final hour = DateTime.now().hour;
         final hello = hour < 12 ? 'Good morning' : (hour < 18 ? 'Good afternoon' : 'Good evening');
         return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 28), children: [
-          Text(hello, style: T.h1.copyWith(fontSize: 28)),
+          GameText(hello, style: T.h1.copyWith(fontSize: 28)),
           const SizedBox(height: 4),
-          Text('${klass.name} · ${camp.title}', style: T.body.copyWith(color: C.muted, fontSize: 14.5)),
+          GameText('${klass.name} · ${camp.title}', style: T.body.copyWith(color: C.muted, fontSize: 14.5)),
           const SizedBox(height: 18),
           _Card(
             child: Row(children: [
@@ -540,9 +541,9 @@ class _TodayTab extends StatelessWidget {
           ),
           _Card(
             title: 'Needs help now',
-            trailing: help.isEmpty ? null : TextButton(onPressed: () => onTab(2), child: const Text('All students')),
+            trailing: help.isEmpty ? null : TextButton(onPressed: () => onTab(2), child: const GameText('All students')),
             child: help.isEmpty
-                ? const Text('Everyone is on track. Nice.', style: TextStyle(color: TC.sub))
+                ? const GameText('Everyone is on track. Nice.', style: TextStyle(color: TC.sub))
                 : Column(children: [for (final s in help.take(5)) _HelpRow(repo: repo, klass: klass, s: s)]),
           ),
           _Card(
@@ -561,18 +562,18 @@ class _TodayTab extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(t.title, style: const TextStyle(fontWeight: FontWeight.w800, color: TC.ink)),
-                        Text(t.body, style: const TextStyle(color: TC.sub, height: 1.35)),
+                        GameText(t.title, style: const TextStyle(fontWeight: FontWeight.w800, color: TC.ink)),
+                        GameText(t.body, style: const TextStyle(color: TC.sub, height: 1.35)),
                         if (t.levelId != null)
                           TextButton.icon(
                             style: TextButton.styleFrom(padding: EdgeInsets.zero, visualDensity: VisualDensity.compact),
                             onPressed: () async {
                               await repo.assign(klass.id, t.levelId!);
-                              if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Assigned ${catalogueEntry(t.levelId!)?.title ?? t.levelId} to the class.')));
+                              if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GameText('Assigned ${catalogueEntry(t.levelId!)?.title ?? t.levelId} to the class.')));
                               reload();
                             },
                             icon: const Icon(Icons.assignment_add, size: 18),
-                            label: Text('Assign ${catalogueEntry(t.levelId!)?.title ?? ''}'),
+                            label: GameText('Assign ${catalogueEntry(t.levelId!)?.title ?? ''}'),
                           ),
                       ]),
                     ),
@@ -588,8 +589,8 @@ class _TodayTab extends StatelessWidget {
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.assignment_rounded, color: TC.blue),
-                    title: Text(catalogueEntry(a.levelId)?.title ?? a.levelId, style: const TextStyle(fontWeight: FontWeight.w700, color: TC.ink)),
-                    subtitle: Text(a.dueAt == null ? 'No due date' : 'Due ${_ago(a.dueAt).replaceAll(' ago', '')}', style: const TextStyle(color: TC.sub)),
+                    title: GameText(catalogueEntry(a.levelId)?.title ?? a.levelId, style: const TextStyle(fontWeight: FontWeight.w700, color: TC.ink)),
+                    subtitle: GameText(a.dueAt == null ? 'No due date' : 'Due ${_ago(a.dueAt).replaceAll(' ago', '')}', style: const TextStyle(color: TC.sub)),
                   ),
               ]),
             ),
@@ -597,7 +598,7 @@ class _TodayTab extends StatelessWidget {
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56), backgroundColor: TC.blue),
             onPressed: () => onTab(4),
             icon: const Icon(Icons.sensors_rounded),
-            label: const Text('Start a live lesson', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+            label: const GameText('Start a live lesson', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           ),
         ]);
       },
@@ -622,8 +623,8 @@ class _HelpRow extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(s.name, style: const TextStyle(fontWeight: FontWeight.w800, color: TC.ink)),
-            Text('${s.reason?.title ?? 'Needs a check-in'}${level == null ? '' : ' · $level'}', style: TextStyle(color: c, fontWeight: FontWeight.w600, fontSize: 12.5)),
+            GameText(s.name, style: const TextStyle(fontWeight: FontWeight.w800, color: TC.ink)),
+            GameText('${s.reason?.title ?? 'Needs a check-in'}${level == null ? '' : ' · $level'}', style: TextStyle(color: c, fontWeight: FontWeight.w600, fontSize: 12.5)),
           ]),
         ),
         IconButton(
@@ -642,7 +643,7 @@ class _HelpRow extends StatelessWidget {
 
   Future<void> _nudge(BuildContext context, NudgeKind k) async {
     await repo.sendNudge(klass.id, s.id, k, levelId: s.stuckLevel);
-    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${k.title} sent to ${s.name}.')));
+    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GameText('${k.title} sent to ${s.name}.')));
   }
 }
 
@@ -668,7 +669,7 @@ class _ClassTab extends StatelessWidget {
             child: Column(children: [
               GainBars(before: o.preAvg, after: o.postAvg),
               const SizedBox(height: 8),
-              const Text('The same 8 questions before and after the campaign, class average.', style: TextStyle(color: TC.sub, fontSize: 12.5)),
+              const GameText('The same 8 questions before and after the campaign, class average.', style: TextStyle(color: TC.sub, fontSize: 12.5)),
             ]),
           ),
           _Card(
@@ -691,15 +692,15 @@ class _ClassTab extends StatelessWidget {
               LevelBars(finished: finished, students: o.students, highlight: stuck?.number),
               const SizedBox(height: 8),
               if (stuck != null)
-                Text('Most students stop at level ${stuck.number}, ${stuck.title}. Average hints there: ${stuck.avgHints?.toStringAsFixed(1) ?? '—'}.', style: const TextStyle(color: TC.sub)),
+                GameText('Most students stop at level ${stuck.number}, ${stuck.title}. Average hints there: ${stuck.avgHints?.toStringAsFixed(1) ?? '—'}.', style: const TextStyle(color: TC.sub)),
             ]),
           ),
           _BaseCard(repo: repo, klass: klass),
           _Card(
             title: 'Class goals',
-            trailing: TextButton.icon(onPressed: () => _addGoal(context, reload), icon: const Icon(Icons.add_rounded, size: 18), label: const Text('Add')),
+            trailing: TextButton.icon(onPressed: () => _addGoal(context, reload), icon: const Icon(Icons.add_rounded, size: 18), label: const GameText('Add')),
             child: goals.isEmpty
-                ? const Text('Set a shared target, for example "Everyone reaches Systems 70".', style: TextStyle(color: TC.sub))
+                ? const GameText('Set a shared target, for example "Everyone reaches Systems 70".', style: TextStyle(color: TC.sub))
                 : Column(children: [
                     for (final g in goals)
                       _goalRow(context, g, skills, levels, o, () async {
@@ -714,13 +715,13 @@ class _ClassTab extends StatelessWidget {
               try {
                 final csv = await repo.reportCsv(klass.id);
                 await Clipboard.setData(ClipboardData(text: csv));
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Class report copied. Paste it into a spreadsheet.')));
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: GameText('Class report copied. Paste it into a spreadsheet.')));
               } catch (e) {
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GameText('$e')));
               }
             },
             icon: const Icon(Icons.table_view_rounded),
-            label: Text('Copy class report (${camp.length} levels, 6 skills)'),
+            label: GameText('Copy class report (${camp.length} levels, 6 skills)'),
           ),
         ]);
       },
@@ -749,20 +750,20 @@ class _ClassTab extends StatelessWidget {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, set) => AlertDialog(
           backgroundColor: TC.card,
-          title: const Text('New class goal'),
+          title: const GameText('New class goal'),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
             DropdownButton<Skill>(
               isExpanded: true,
               value: skill,
-              items: [for (final k in Skill.values) DropdownMenuItem(value: k, child: Text(k.title))],
+              items: [for (final k in Skill.values) DropdownMenuItem(value: k, child: GameText(k.title))],
               onChanged: (v) => set(() => skill = v ?? skill),
             ),
             Slider(value: target, min: 40, max: 100, divisions: 12, label: '${target.round()}', onChanged: (v) => set(() => target = v)),
-            Text('Everyone reaches ${skill.title} ${target.round()}'),
+            GameText('Everyone reaches ${skill.title} ${target.round()}'),
           ]),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Add goal')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const GameText('Cancel')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const GameText('Add goal')),
           ],
         ),
       ),
@@ -815,11 +816,11 @@ class _StudentsTabState extends State<_StudentsTab> {
               ),
             ),
             const SizedBox(width: 8),
-            FilterChip(label: const Text('Needs help'), selected: _helpOnly, onSelected: (v) => setState(() => _helpOnly = v)),
+            FilterChip(label: const GameText('Needs help'), selected: _helpOnly, onSelected: (v) => setState(() => _helpOnly = v)),
           ]),
           const SizedBox(height: 12),
           if (all.isEmpty)
-            const _Card(child: Text('No students yet. Open Me → your class → Make sign-in cards, or share the join code.', style: TextStyle(color: TC.sub))),
+            const _Card(child: GameText('No students yet. Open Me → your class → Make sign-in cards, or share the join code.', style: TextStyle(color: TC.sub))),
           for (final s in list)
             _Card(
               padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
@@ -834,8 +835,8 @@ class _StudentsTabState extends State<_StudentsTab> {
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
-                        Expanded(child: Text(s.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: TC.ink))),
-                        Text('${s.levelsDone}/${camp.length}', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, color: TC.ink)),
+                        Expanded(child: GameText(s.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: TC.ink))),
+                        GameText('${s.levelsDone}/${camp.length}', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, color: TC.ink)),
                       ]),
                       const SizedBox(height: 6),
                       ClipRRect(
@@ -843,7 +844,7 @@ class _StudentsTabState extends State<_StudentsTab> {
                         child: LinearProgressIndicator(value: camp.length == 0 ? 0 : s.levelsDone / camp.length, minHeight: 7, backgroundColor: TC.line, color: TC.blue),
                       ),
                       const SizedBox(height: 6),
-                      Text(
+                      GameText(
                         s.needsHelp ? '${s.reason?.title ?? 'Needs a check-in'} · ${_ago(s.lastActive)}' : '${s.stars} stars · ${_ago(s.lastActive)}${s.gain == null ? '' : ' · gain +${s.gain}'}',
                         style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: s.needsHelp ? _reasonColor(s.reason) : TC.sub),
                       ),
@@ -874,7 +875,7 @@ class StudentPage extends StatelessWidget {
     final camp = campaignFor(klass.ageMode);
     return Scaffold(
       backgroundColor: TC.bg,
-      appBar: AppBar(backgroundColor: TC.card, foregroundColor: TC.ink, title: Text(s.name, style: const TextStyle(fontWeight: FontWeight.w800)), surfaceTintColor: Colors.transparent),
+      appBar: AppBar(backgroundColor: TC.card, foregroundColor: TC.ink, title: GameText(s.name, style: const TextStyle(fontWeight: FontWeight.w800)), surfaceTintColor: Colors.transparent),
       body: _Loader<(List<SkillScore>, List<AttemptRow>)>(
         load: () async => (await repo.studentSkills(s.id, klass.id), await repo.studentAttempts(s.id)),
         builder: (context, d, reload) {
@@ -902,7 +903,7 @@ class StudentPage extends StatelessWidget {
                 child: Row(children: [
                   Icon(Icons.flag_rounded, color: _reasonColor(s.reason)),
                   const SizedBox(width: 10),
-                  Expanded(child: Text('${s.reason?.title ?? 'Needs a check-in'}${s.stuckLevel == null ? '' : ' on ${catalogueEntry(s.stuckLevel!)?.title}'}. ${s.hintsWeek} hints this week.', style: TextStyle(color: _reasonColor(s.reason), fontWeight: FontWeight.w700))),
+                  Expanded(child: GameText('${s.reason?.title ?? 'Needs a check-in'}${s.stuckLevel == null ? '' : ' on ${catalogueEntry(s.stuckLevel!)?.title}'}. ${s.hintsWeek} hints this week.', style: TextStyle(color: _reasonColor(s.reason), fontWeight: FontWeight.w700))),
                 ]),
               ),
             _Card(
@@ -911,13 +912,13 @@ class StudentPage extends StatelessWidget {
                 SizedBox(height: 230, child: RadarChart(labels: [for (final k in skills) k.skill.short], values: [for (final k in skills) k.score / 100], compare: [for (final k in skills) k.classAvg / 100], dark: true)),
                 const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Icon(Icons.circle, size: 10, color: TC.blue),
-                  Text(' Student   ', style: TextStyle(color: TC.sub, fontSize: 12)),
+                  GameText(' Student   ', style: TextStyle(color: TC.sub, fontSize: 12)),
                   Icon(Icons.circle_outlined, size: 10, color: TC.faint),
-                  Text(' Class average', style: TextStyle(color: TC.sub, fontSize: 12)),
+                  GameText(' Class average', style: TextStyle(color: TC.sub, fontSize: 12)),
                 ]),
                 if (weakest.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text('Practise next: ${weakest.first.skill.title}. ${weakest.first.skill.blurb}', style: const TextStyle(color: TC.sub)),
+                  GameText('Practise next: ${weakest.first.skill.title}. ${weakest.first.skill.blurb}', style: const TextStyle(color: TC.sub)),
                 ],
               ]),
             ),
@@ -927,10 +928,10 @@ class StudentPage extends StatelessWidget {
                 for (final k in NudgeKind.values)
                   ActionChip(
                     avatar: Icon(k == NudgeKind.wellDone ? Icons.celebration_rounded : (k == NudgeKind.hint ? Icons.lightbulb_outline : (k == NudgeKind.replay ? Icons.replay : Icons.notifications_none)), size: 18),
-                    label: Text(k.title),
+                    label: GameText(k.title),
                     onPressed: () async {
                       await repo.sendNudge(klass.id, s.id, k, levelId: s.stuckLevel ?? (attempts.isEmpty ? null : attempts.first.levelId));
-                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Sent to ${s.name}: "${k.studentText(null)}"')));
+                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GameText('Sent to ${s.name}: "${k.studentText(null)}"')));
                     },
                   ),
               ]),
@@ -938,7 +939,7 @@ class StudentPage extends StatelessWidget {
             _Card(
               title: 'Recent plays and decisions',
               child: attempts.isEmpty
-                  ? const Text('No plays yet.', style: TextStyle(color: TC.sub))
+                  ? const GameText('No plays yet.', style: TextStyle(color: TC.sub))
                   : Column(children: [
                       for (final a in attempts.take(8))
                         Padding(
@@ -948,15 +949,15 @@ class StudentPage extends StatelessWidget {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text('${catalogueEntry(a.levelId)?.title ?? a.levelId} · ${a.stars ?? 0}★ · ${a.mistakes} mistakes · ${a.hints} hints', style: const TextStyle(fontWeight: FontWeight.w700, color: TC.ink, fontSize: 13.5)),
-                                Text(_ago(a.startedAt), style: const TextStyle(color: TC.sub, fontSize: 12)),
+                                GameText('${catalogueEntry(a.levelId)?.title ?? a.levelId} · ${a.stars ?? 0}★ · ${a.mistakes} mistakes · ${a.hints} hints', style: const TextStyle(fontWeight: FontWeight.w700, color: TC.ink, fontSize: 13.5)),
+                                GameText(_ago(a.startedAt), style: const TextStyle(color: TC.sub, fontSize: 12)),
                                 if (a.decisions.isNotEmpty)
                                   Wrap(spacing: 4, runSpacing: 4, children: [
                                     for (final dd in a.decisions.take(6))
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(color: (dd.good ? TC.good : TC.bad).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
-                                        child: Text('${dd.step.replaceAll('_', ' ')}: ${dd.choice.replaceAll('_', ' ')}', style: TextStyle(fontSize: 11, color: dd.good ? TC.good : TC.bad)),
+                                        child: GameText('${dd.step.replaceAll('_', ' ')}: ${dd.choice.replaceAll('_', ' ')}', style: TextStyle(fontSize: 11, color: dd.good ? TC.good : TC.bad)),
                                       ),
                                   ]),
                               ]),
@@ -972,10 +973,10 @@ class StudentPage extends StatelessWidget {
                       ? null
                       : () async {
                           await repo.assign(klass.id, s.stuckLevel ?? attempts.first.levelId, studentId: s.id);
-                          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Replay assigned.')));
+                          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: GameText('Replay assigned.')));
                         },
                   icon: const Icon(Icons.replay_rounded),
-                  label: const Text('Assign replay'),
+                  label: const GameText('Assign replay'),
                 ),
               ),
               const SizedBox(width: 8),
@@ -987,13 +988,13 @@ class StudentPage extends StatelessWidget {
                           try {
                             final card = await repo.resetPin(klass.id, s.id);
                             if (!context.mounted) return;
-                            await showDialog(context: context, builder: (ctx) => AlertDialog(backgroundColor: TC.card, title: const Text('New PIN'), content: _SignInCard(card: card, klass: klass)));
+                            await showDialog(context: context, builder: (ctx) => AlertDialog(backgroundColor: TC.card, title: const GameText('New PIN'), content: _SignInCard(card: card, klass: klass)));
                           } catch (e) {
-                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: GameText('$e')));
                           }
                         },
                   icon: const Icon(Icons.password_rounded),
-                  label: const Text('New PIN'),
+                  label: const GameText('New PIN'),
                 ),
               ),
             ]),
@@ -1003,11 +1004,11 @@ class StudentPage extends StatelessWidget {
                 final ok = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: Text('Remove ${s.name}?'),
-                    content: const Text('Accounts you created are deleted with all their data. Students who joined with a code just leave the class.'),
+                    title: GameText('Remove ${s.name}?'),
+                    content: const GameText('Accounts you created are deleted with all their data. Students who joined with a code just leave the class.'),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                      FilledButton(style: FilledButton.styleFrom(backgroundColor: TC.bad), onPressed: () => Navigator.pop(ctx, true), child: const Text('Remove')),
+                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const GameText('Cancel')),
+                      FilledButton(style: FilledButton.styleFrom(backgroundColor: TC.bad), onPressed: () => Navigator.pop(ctx, true), child: const GameText('Remove')),
                     ],
                   ),
                 );
@@ -1016,7 +1017,7 @@ class StudentPage extends StatelessWidget {
                 if (context.mounted) Navigator.of(context).pop();
               },
               icon: const Icon(Icons.person_remove_rounded),
-              label: const Text('Remove from class'),
+              label: const GameText('Remove from class'),
             ),
           ]);
         },
@@ -1040,8 +1041,8 @@ class _LessonsTab extends StatelessWidget {
       builder: (context, d, reload) {
         final (levels, assigned, o) = d;
         return ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 28), children: [
-          Text('${camp.title} · ${camp.length} levels', style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 22, color: TC.ink)),
-          Text(camp.tagline, style: const TextStyle(color: TC.sub)),
+          GameText('${camp.title} · ${camp.length} levels', style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 22, color: TC.ink)),
+          GameText(camp.tagline, style: const TextStyle(color: TC.sub)),
           const SizedBox(height: 12),
           for (var n = 1; n <= camp.length; n++) _lesson(context, camp, n, levels.where((l) => l.number == n).firstOrNull, assigned, o.students, reload),
         ]);
@@ -1060,13 +1061,13 @@ class _LessonsTab extends StatelessWidget {
         child: ExpansionTile(
           tilePadding: EdgeInsets.zero,
           childrenPadding: const EdgeInsets.only(right: 8, bottom: 12),
-          leading: CircleAvatar(backgroundColor: TC.blue.withValues(alpha: 0.12), child: Text('$n', style: const TextStyle(color: TC.blue, fontWeight: FontWeight.w800))),
-          title: Text(t.title, style: const TextStyle(fontWeight: FontWeight.w800, color: TC.ink)),
-          subtitle: Text('${info.minutes[camp.mode.index]} min · ${entry?.skills.map((s) => s.short).join(', ') ?? ''}${st == null ? '' : ' · ${st.finished}/$students done'}', style: const TextStyle(color: TC.sub, fontSize: 12.5)),
+          leading: CircleAvatar(backgroundColor: TC.blue.withValues(alpha: 0.12), child: GameText('$n', style: const TextStyle(color: TC.blue, fontWeight: FontWeight.w800))),
+          title: GameText(t.title, style: const TextStyle(fontWeight: FontWeight.w800, color: TC.ink)),
+          subtitle: GameText('${info.minutes[camp.mode.index]} min · ${entry?.skills.map((s) => s.short).join(', ') ?? ''}${st == null ? '' : ' · ${st.finished}/$students done'}', style: const TextStyle(color: TC.sub, fontSize: 12.5)),
           trailing: isAssigned ? const Icon(Icons.assignment_turned_in_rounded, color: TC.good) : null,
           expandedCrossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(info.brief, style: const TextStyle(color: TC.ink, height: 1.4)),
+            GameText(info.brief, style: const TextStyle(color: TC.ink, height: 1.4)),
             const SizedBox(height: 8),
             _kv('Lesson', info.moral),
             _kv('Real NASA', info.nasaDoes),
@@ -1084,7 +1085,7 @@ class _LessonsTab extends StatelessWidget {
                         reload();
                       },
                 icon: const Icon(Icons.assignment_add),
-                label: Text(isAssigned ? 'Assigned' : 'Assign (due in 7 days)'),
+                label: GameText(isAssigned ? 'Assigned' : 'Assign (due in 7 days)'),
               ),
             ]),
           ],
@@ -1194,7 +1195,7 @@ class _LiveTabState extends State<_LiveTab> {
     await _link?.send(_paused ? 'pause' : 'resume', {});
   }
 
-  void _snack(String s) => ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: Text(s)));
+  void _snack(String s) => ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(content: GameText(s)));
 
   @override
   Widget build(BuildContext context) {
@@ -1205,7 +1206,7 @@ class _LiveTabState extends State<_LiveTab> {
         _Card(
           title: 'Live lesson',
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            const Text('Everyone plays the same level at the same time. You see who is on which step, who asked for help, and you can pause the whole class to talk.', style: TextStyle(color: TC.ink, height: 1.4)),
+            const GameText('Everyone plays the same level at the same time. You see who is on which step, who asked for help, and you can pause the whole class to talk.', style: TextStyle(color: TC.ink, height: 1.4)),
             const SizedBox(height: 14),
             InputDecorator(
               decoration: const InputDecoration(labelText: 'Level', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 4)),
@@ -1213,7 +1214,7 @@ class _LiveTabState extends State<_LiveTab> {
                 child: DropdownButton<int>(
                   isExpanded: true,
                   value: _level,
-                  items: [for (var n = 1; n <= camp.length; n++) DropdownMenuItem(value: n, child: Text('$n · ${camp.task(n).title}'))],
+                  items: [for (var n = 1; n <= camp.length; n++) DropdownMenuItem(value: n, child: GameText('$n · ${camp.task(n).title}'))],
                   onChanged: (v) => setState(() => _level = v ?? 1),
                 ),
               ),
@@ -1223,10 +1224,10 @@ class _LiveTabState extends State<_LiveTab> {
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56), backgroundColor: TC.blue),
               onPressed: _connecting ? null : _start,
               icon: _connecting ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.play_circle_fill_rounded),
-              label: const Text('Start live lesson', style: TextStyle(fontWeight: FontWeight.w800)),
+              label: const GameText('Start live lesson', style: TextStyle(fontWeight: FontWeight.w800)),
             ),
             const SizedBox(height: 8),
-            Text(widget.repo.isDemo ? 'Sample class: simulated students will join.' : 'Students in ${widget.klass.name} see a "Join live lesson" banner.', style: const TextStyle(color: TC.sub, fontSize: 12.5)),
+            GameText(widget.repo.isDemo ? 'Sample class: simulated students will join.' : 'Students in ${widget.klass.name} see a "Join live lesson" banner.', style: const TextStyle(color: TC.sub, fontSize: 12.5)),
           ]),
         ),
       ]);
@@ -1241,8 +1242,8 @@ class _LiveTabState extends State<_LiveTab> {
         child: Row(children: [
           Container(width: 10, height: 10, decoration: BoxDecoration(color: _paused ? TC.warn : TC.bad, shape: BoxShape.circle)),
           const SizedBox(width: 8),
-          Expanded(child: Text('${_paused ? 'PAUSED' : 'LIVE'} · Level $_level · ${camp.task(_level).title}', style: const TextStyle(fontWeight: FontWeight.w800, color: TC.ink))),
-          Text('${_students.length} joined', style: const TextStyle(color: TC.sub, fontWeight: FontWeight.w700)),
+          Expanded(child: GameText('${_paused ? 'PAUSED' : 'LIVE'} · Level $_level · ${camp.task(_level).title}', style: const TextStyle(fontWeight: FontWeight.w800, color: TC.ink))),
+          GameText('${_students.length} joined', style: const TextStyle(color: TC.sub, fontWeight: FontWeight.w700)),
         ]),
       ),
       _Card(
@@ -1266,8 +1267,8 @@ class _LiveTabState extends State<_LiveTab> {
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(a.contains('help') ? Icons.back_hand_rounded : Icons.check_circle_rounded, color: a.contains('help') ? TC.warn : TC.good),
-                title: Text(a, style: const TextStyle(color: TC.ink, fontWeight: FontWeight.w600)),
-                trailing: Text(_ago(t), style: const TextStyle(color: TC.sub, fontSize: 11.5)),
+                title: GameText(a, style: const TextStyle(color: TC.ink, fontWeight: FontWeight.w600)),
+                trailing: GameText(_ago(t), style: const TextStyle(color: TC.sub, fontSize: 11.5)),
               ),
           ]),
         ),
@@ -1277,7 +1278,7 @@ class _LiveTabState extends State<_LiveTab> {
           for (final e in _students.entries)
             Chip(
               avatar: Icon(_done.contains(e.key) ? Icons.check_circle_rounded : Icons.circle, size: 14, color: _done.contains(e.key) ? TC.good : TC.blue),
-              label: Text('${e.value['name']} · ${(e.value['step'] as num? ?? 0).toInt()}/$steps'),
+              label: GameText('${e.value['name']} · ${(e.value['step'] as num? ?? 0).toInt()}/$steps'),
             ),
         ]),
       ),
@@ -1287,7 +1288,7 @@ class _LiveTabState extends State<_LiveTab> {
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56), backgroundColor: _paused ? TC.good : TC.warn),
             onPressed: _togglePause,
             icon: Icon(_paused ? Icons.play_arrow_rounded : Icons.pause_rounded),
-            label: Text(_paused ? 'Resume everyone' : 'Pause everyone', style: const TextStyle(fontWeight: FontWeight.w800)),
+            label: GameText(_paused ? 'Resume everyone' : 'Pause everyone', style: const TextStyle(fontWeight: FontWeight.w800)),
           ),
         ),
         const SizedBox(width: 8),
@@ -1304,7 +1305,7 @@ class _LiveTabState extends State<_LiveTab> {
               });
             }
           },
-          child: const Text('End'),
+          child: const GameText('End'),
         ),
       ]),
     ]);
@@ -1333,8 +1334,8 @@ class _MeTab extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(session.isTeacher ? session.name : 'Sample dashboard', style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 20, color: TC.ink)),
-              Text(
+              GameText(session.isTeacher ? session.name : 'Sample dashboard', style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 20, color: TC.ink)),
+              GameText(
                 session.isTeacher
                     ? 'Signed in as a teacher · progress on this device'
                     : 'Browsing the demo classes. Sign in as a teacher to keep your own roster on this device.',
@@ -1350,11 +1351,11 @@ class _MeTab extends StatelessWidget {
           style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56), backgroundColor: TC.blue),
           onPressed: () => sv.nav.go(Screen.account),
           icon: const Icon(Icons.login_rounded),
-          label: const Text('Teacher sign in or sign up', style: TextStyle(fontWeight: FontWeight.w800)),
+          label: const GameText('Teacher sign in or sign up', style: TextStyle(fontWeight: FontWeight.w800)),
         ),
         const SizedBox(height: 8),
         const _Card(
-          child: Text(
+          child: GameText(
             'Demo tip: open Account → Teacher demo, or sign in with the sample teacher emails shown there. Classes below are sample data on this device.',
             style: TextStyle(color: TC.sub, height: 1.35),
           ),
@@ -1362,38 +1363,38 @@ class _MeTab extends StatelessWidget {
       ],
       const SizedBox(height: 12),
       Row(children: [
-        Expanded(child: Text(session.isTeacher ? 'YOUR CLASSES' : 'DEMO CLASSES', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: 11, letterSpacing: 1.6, color: TC.sub))),
-        if (session.isTeacher) TextButton.icon(onPressed: onCreate, icon: const Icon(Icons.add_rounded), label: const Text('New class')),
+        Expanded(child: GameText(session.isTeacher ? 'YOUR CLASSES' : 'DEMO CLASSES', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: 11, letterSpacing: 1.6, color: TC.sub))),
+        if (session.isTeacher) TextButton.icon(onPressed: onCreate, icon: const Icon(Icons.add_rounded), label: const GameText('New class')),
       ]),
       if (classes.isEmpty)
-        const _Card(child: Text('No classes yet. Tap New class to create one on this device.', style: TextStyle(color: TC.sub))),
+        const _Card(child: GameText('No classes yet. Tap New class to create one on this device.', style: TextStyle(color: TC.sub))),
       for (final c in classes)
         _Card(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Expanded(child: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: TC.ink))),
+              Expanded(child: GameText(c.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: TC.ink))),
               IconButton(onPressed: () => onEdit(c), icon: const Icon(Icons.edit_rounded, color: TC.sub)),
             ]),
-            Text('${c.ageMode.title} campaign · ${c.ageMode.ages}${c.lockRank ? ' · age level locked' : ''}', style: const TextStyle(color: TC.sub)),
+            GameText('${c.ageMode.title} campaign · ${c.ageMode.ages}${c.lockRank ? ' · age level locked' : ''}', style: const TextStyle(color: TC.sub)),
             const SizedBox(height: 10),
             _JoinCode(code: c.joinCode, small: true),
             const SizedBox(height: 10),
             Wrap(spacing: 8, runSpacing: 8, children: [
-              FilledButton.tonalIcon(onPressed: () => onCards(c), icon: const Icon(Icons.badge_rounded), label: const Text('Make sign-in cards')),
+              FilledButton.tonalIcon(onPressed: () => onCards(c), icon: const Icon(Icons.badge_rounded), label: const GameText('Make sign-in cards')),
               OutlinedButton.icon(
                 onPressed: () async {
                   await Clipboard.setData(ClipboardData(text: 'Join ${c.name} in Space Bounds: open the app, sign in, tap "Join a class" and enter the code ${c.joinCode}.'));
-                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation copied.')));
+                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: GameText('Invitation copied.')));
                 },
                 icon: const Icon(Icons.copy_rounded),
-                label: const Text('Copy invitation'),
+                label: const GameText('Copy invitation'),
               ),
             ]),
           ]),
         ),
       const _Card(
         title: 'Privacy',
-        child: Text(
+        child: GameText(
           'Students sign in with a username and a 4-digit PIN from a card you print: no emails, no surnames, no photos. '
           'You can only send preset messages, never free text. Deleting a student account deletes all of their data.',
           style: TextStyle(color: TC.ink, height: 1.4),
@@ -1406,9 +1407,9 @@ class _MeTab extends StatelessWidget {
             onChanged(null);
           },
           icon: const Icon(Icons.logout_rounded),
-          label: const Text('Sign out'),
+          label: const GameText('Sign out'),
         ),
-      TextButton.icon(onPressed: () => sv.nav.go(Screen.teacher), icon: const Icon(Icons.description_rounded), label: const Text('Printable lesson guides and classroom settings')),
+      TextButton.icon(onPressed: () => sv.nav.go(Screen.teacher), icon: const Icon(Icons.description_rounded), label: const GameText('Printable lesson guides and classroom settings')),
     ]);
   }
 }
@@ -1423,8 +1424,8 @@ class _JoinCode extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: small ? 8 : 14),
         decoration: BoxDecoration(color: C.panelDeep, borderRadius: BorderRadius.circular(18), border: Border.all(color: TC.blue.withValues(alpha: 0.5), width: 1.5)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text('JOIN CODE  ', style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: small ? 10 : 11, letterSpacing: 1.5, color: TC.sub)),
-          Text(code.split('').join(' '), style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, fontSize: small ? 20 : 32, letterSpacing: 2, color: TC.blue)),
+          GameText('JOIN CODE  ', style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: small ? 10 : 11, letterSpacing: 1.5, color: TC.sub)),
+          GameText(code.split('').join(' '), style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w600, fontSize: small ? 20 : 32, letterSpacing: 2, color: TC.blue)),
         ]),
       );
 }
@@ -1453,11 +1454,11 @@ class _ClassFormState extends State<_ClassForm> {
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + MediaQuery.of(context).viewInsets.bottom),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(widget.initial == null ? 'New class' : 'Edit class', style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 22, color: TC.ink)),
+        GameText(widget.initial == null ? 'New class' : 'Edit class', style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 22, color: TC.ink)),
         const SizedBox(height: 12),
         TextField(controller: _name, maxLength: 40, decoration: const InputDecoration(labelText: 'Class name', hintText: 'Grade 7 Blue', border: OutlineInputBorder())),
         const SizedBox(height: 8),
-        const Text('AGE LEVEL', style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: 11, letterSpacing: 1.6, color: TC.sub)),
+        const GameText('AGE LEVEL', style: TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: 11, letterSpacing: 1.6, color: TC.sub)),
         const SizedBox(height: 6),
         for (final m in AgeMode.values)
           Padding(
@@ -1478,8 +1479,8 @@ class _ClassFormState extends State<_ClassForm> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('${m.title} · ${m.ages}', style: const TextStyle(fontWeight: FontWeight.w800, color: TC.ink)),
-                      Text('${campaignFor(m).title}: ${campaignFor(m).length} levels. ${m.blurb}', style: const TextStyle(color: TC.sub, fontSize: 12.5)),
+                      GameText('${m.title} · ${m.ages}', style: const TextStyle(fontWeight: FontWeight.w800, color: TC.ink)),
+                      GameText('${campaignFor(m).title}: ${campaignFor(m).length} levels. ${m.blurb}', style: const TextStyle(color: TC.sub, fontSize: 12.5)),
                     ]),
                   ),
                 ]),
@@ -1490,8 +1491,8 @@ class _ClassFormState extends State<_ClassForm> {
           contentPadding: EdgeInsets.zero,
           value: _lock,
           onChanged: (v) => setState(() => _lock = v),
-          title: const Text('Lock the age level', style: TextStyle(fontWeight: FontWeight.w700)),
-          subtitle: const Text('Students cannot switch to another campaign on their phone.'),
+          title: const GameText('Lock the age level', style: TextStyle(fontWeight: FontWeight.w700)),
+          subtitle: const GameText('Students cannot switch to another campaign on their phone.'),
         ),
         const SizedBox(height: 6),
         FilledButton(
@@ -1501,7 +1502,7 @@ class _ClassFormState extends State<_ClassForm> {
             if (n.isEmpty) return;
             Navigator.pop(context, (n, _mode, _lock));
           },
-          child: Text(widget.initial == null ? 'Create class' : 'Save'),
+          child: GameText(widget.initial == null ? 'Create class' : 'Save'),
         ),
       ]),
     );
@@ -1530,9 +1531,9 @@ class _NamesFormState extends State<_NamesForm> {
   Widget build(BuildContext context) => Padding(
         padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + MediaQuery.of(context).viewInsets.bottom),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Text('Sign-in cards', style: TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 22, color: TC.ink)),
+          const GameText('Sign-in cards', style: TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 22, color: TC.ink)),
           const SizedBox(height: 4),
-          const Text('Type first names only, one per line. Each student gets a username and a 4-digit PIN.', style: TextStyle(color: TC.sub)),
+          const GameText('Type first names only, one per line. Each student gets a username and a 4-digit PIN.', style: TextStyle(color: TC.sub)),
           const SizedBox(height: 12),
           TextField(
             controller: _c,
@@ -1545,7 +1546,7 @@ class _NamesFormState extends State<_NamesForm> {
           FilledButton(
             style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
             onPressed: _names.isEmpty || _names.length > 40 ? null : () => Navigator.pop(context, _names),
-            child: Text(_names.length > 40 ? 'At most 40 at a time' : 'Make ${_names.length} card${_names.length == 1 ? '' : 's'}'),
+            child: GameText(_names.length > 40 ? 'At most 40 at a time' : 'Make ${_names.length} card${_names.length == 1 ? '' : 's'}'),
           ),
         ]),
       );
@@ -1565,22 +1566,22 @@ class CardsPage extends StatelessWidget {
           backgroundColor: TC.card,
           foregroundColor: TC.ink,
           surfaceTintColor: Colors.transparent,
-          title: Text('${cards.length} sign-in cards'),
+          title: GameText('${cards.length} sign-in cards'),
           actions: [
             IconButton(
               tooltip: 'Copy all',
               onPressed: () async {
                 await Clipboard.setData(ClipboardData(text: [for (final c in cards) '${c.name}\tusername: ${c.username}\tPIN: ${c.pin}'].join('\n')));
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied. Paste into a document to print.')));
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: GameText('Copied. Paste into a document to print.')));
               },
               icon: const Icon(Icons.copy_all_rounded),
             ),
           ],
         ),
         body: ListView(padding: const EdgeInsets.fromLTRB(20, 16, 20, 28), children: [
-          const Text('PINs are shown only now. Copy or screenshot them, then cut out one card per student. A lost PIN can be reset from the student\'s page.', style: TextStyle(color: TC.sub)),
+          const GameText('PINs are shown only now. Copy or screenshot them, then cut out one card per student. A lost PIN can be reset from the student\'s page.', style: TextStyle(color: TC.sub)),
           const SizedBox(height: 12),
-          for (final f in failed) Text('Not created: $f', style: const TextStyle(color: TC.bad)),
+          for (final f in failed) GameText('Not created: $f', style: const TextStyle(color: TC.bad)),
           Wrap(spacing: 10, runSpacing: 10, children: [for (final c in cards) SizedBox(width: (MediaQuery.of(context).size.width - 42) / 2, child: _SignInCard(card: c, klass: klass))]),
         ]),
       );
@@ -1596,15 +1597,15 @@ class _SignInCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(color: C.panel, borderRadius: BorderRadius.circular(18), border: Border.all(color: C.line, width: 1.5)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-          Text('OPEN BOUNDS · ${klass.name.toUpperCase()}', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: 8.5, letterSpacing: 1, color: TC.teal), maxLines: 1, overflow: TextOverflow.ellipsis),
+          GameText('OPEN BOUNDS · ${klass.name.toUpperCase()}', style: const TextStyle(fontFamily: F.display, fontWeight: FontWeight.w700, fontSize: 8.5, letterSpacing: 1, color: TC.teal), maxLines: 1, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 6),
-          Text(card.name, style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 19, color: TC.ink)),
+          GameText(card.name, style: const TextStyle(fontFamily: F.serif, fontWeight: FontWeight.w700, fontSize: 19, color: TC.ink)),
           const SizedBox(height: 6),
-          const Text('Username', style: TextStyle(fontSize: 10.5, color: TC.sub)),
-          Text(card.username, style: const TextStyle(fontFamily: F.mono, fontWeight: FontWeight.w700, fontSize: 13.5, color: TC.ink)),
+          const GameText('Username', style: TextStyle(fontSize: 10.5, color: TC.sub)),
+          GameText(card.username, style: const TextStyle(fontFamily: F.mono, fontWeight: FontWeight.w700, fontSize: 13.5, color: TC.ink)),
           const SizedBox(height: 4),
-          const Text('PIN', style: TextStyle(fontSize: 10.5, color: TC.sub)),
-          Text(card.pin.split('').join(' '), style: const TextStyle(fontFamily: F.mono, fontWeight: FontWeight.w700, fontSize: 22, color: TC.blue)),
+          const GameText('PIN', style: TextStyle(fontSize: 10.5, color: TC.sub)),
+          GameText(card.pin.split('').join(' '), style: const TextStyle(fontFamily: F.mono, fontWeight: FontWeight.w700, fontSize: 22, color: TC.blue)),
         ]),
       );
 }
@@ -1636,12 +1637,12 @@ class _BaseCard extends StatelessWidget {
         builder: (context, snap) {
           final rows = snap.data;
           if (rows == null) return const Padding(padding: EdgeInsets.all(12), child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
-          if (rows.isEmpty) return const Text('No one has played a Base Commander mission yet.', style: TextStyle(color: TC.sub));
+          if (rows.isEmpty) return const GameText('No one has played a Base Commander mission yet.', style: TextStyle(color: TC.sub));
           final students = rows.map((r) => r.studentId).toSet().length;
           return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             for (var m = 1; m <= 5; m++) _missionRow(m, rows.where((r) => r.mission == m).toList(), students),
             const SizedBox(height: 6),
-            Text(_hardest(rows), style: const TextStyle(color: TC.sub)),
+            GameText(_hardest(rows), style: const TextStyle(color: TC.sub)),
           ]);
         },
       ),

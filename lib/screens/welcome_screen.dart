@@ -4,6 +4,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 
 import '../main.dart';
 import '../ui/astro_art.dart';
@@ -147,10 +148,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
                       const Overline('OPEN BOUNDS', color: C.cyan, size: 12),
                       const SizedBox(height: 8),
                       LayoutBuilder(
-                        builder: (context, box) => Text('Mission Trainer', textAlign: TextAlign.center, style: T.hero.copyWith(fontSize: math.min(44, box.maxWidth * 0.12), height: 1.05)),
+                        builder: (context, box) => GameText('Mission Trainer', textAlign: TextAlign.center, style: T.hero.copyWith(fontSize: math.min(44, box.maxWidth * 0.12), height: 1.05)),
                       ),
                       const SizedBox(height: 10),
-                      Text('Run a real Moon base, make smart choices\nand bring your crew home safely.', textAlign: TextAlign.center, style: T.body.copyWith(color: C.muted, fontSize: 15.5, height: 1.45)),
+                      GameText('Run a real Moon base, make smart choices\nand bring your crew home safely.', textAlign: TextAlign.center, style: T.body.copyWith(color: C.muted, fontSize: 15.5, height: 1.45)),
                     ]),
                   ),
                 ),
@@ -282,7 +283,7 @@ class _Bubble extends StatelessWidget {
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 250),
             transitionBuilder: (c, a) => FadeTransition(opacity: a, child: SizeTransition(sizeFactor: a, axis: Axis.horizontal, child: c)),
-            child: Text(text, key: ValueKey(text), style: T.h3.copyWith(color: C.ink, fontSize: 16, height: 1.2)),
+            child: GameText(text, key: ValueKey(text), style: T.h3.copyWith(color: C.ink, fontSize: 16, height: 1.2)),
           ),
         ),
       );
@@ -324,7 +325,7 @@ class _Chip extends StatelessWidget {
               : Row(mainAxisSize: MainAxisSize.min, children: [
                   LineIcon(icon, size: 17, color: C.cyan),
                   const SizedBox(width: 7),
-                  Flexible(child: Text(label!, style: T.h3.copyWith(fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                  Flexible(child: GameText(label!, style: T.h3.copyWith(fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis)),
                 ]),
         ),
       );

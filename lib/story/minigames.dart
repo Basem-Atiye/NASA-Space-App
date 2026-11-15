@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../services/audio.dart';
@@ -123,7 +124,7 @@ class _GameFrameState extends State<GameFrame> with SingleTickerProviderStateMix
               child: const Icon(Icons.engineering_rounded, color: C.cyan, size: 20),
             ),
             const SizedBox(width: 10),
-            Expanded(child: Text(_titleCase(s.title), style: T.h2.copyWith(fontSize: 21))),
+            Expanded(child: GameText(_titleCase(s.title), style: T.h2.copyWith(fontSize: 21))),
             if (s.hint.isNotEmpty)
               Pressable(
                 onTap: () {
@@ -142,17 +143,17 @@ class _GameFrameState extends State<GameFrame> with SingleTickerProviderStateMix
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Icon(Icons.lightbulb_outline_rounded, color: C.cyan, size: 16),
                     const SizedBox(width: 5),
-                    Text('HINT', style: T.label.copyWith(color: C.cyan, fontSize: 11)),
+                    GameText('HINT', style: T.label.copyWith(color: C.cyan, fontSize: 11)),
                   ]),
                 ),
               ),
           ]),
           const SizedBox(height: 10),
-          Text(s.instructions, style: T.body.copyWith(color: C.muted, fontSize: 14)),
+          GameText(s.instructions, style: T.body.copyWith(color: C.muted, fontSize: 14)),
           if (widget.mistakes > 0)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Text('Mistakes: ${widget.mistakes}', style: T.label.copyWith(color: C.violet, letterSpacing: 1)),
+              child: GameText('Mistakes: ${widget.mistakes}', style: T.label.copyWith(color: C.violet, letterSpacing: 1)),
             ),
           AnimatedSize(
             duration: Motion.fast,
@@ -187,7 +188,7 @@ class _GameFrameState extends State<GameFrame> with SingleTickerProviderStateMix
                     color: widget.statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: widget.statusColor.withValues(alpha: 0.4))),
-                child: Text(widget.status!, style: T.body.copyWith(color: widget.statusColor == C.muted ? C.text : widget.statusColor, fontSize: 13.5)),
+                child: GameText(widget.status!, style: T.body.copyWith(color: widget.statusColor == C.muted ? C.text : widget.statusColor, fontSize: 13.5)),
               ),
             ),
           ],
@@ -299,7 +300,7 @@ class _ProbeGameState extends State<ProbeGame> {
           child: Row(children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                const Text('MULTIMETER', style: T.label),
+                const GameText('MULTIMETER', style: T.label),
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
@@ -307,7 +308,7 @@ class _ProbeGameState extends State<ProbeGame> {
                   decoration: BoxDecoration(color: const Color(0xFF0C1A12), borderRadius: BorderRadius.circular(10), border: Border.all(color: C.cyan.withValues(alpha: 0.3))),
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 250),
-                    child: Text(
+                    child: GameText(
                       cur == null ? '— — —' : s.readings[cur],
                       key: ValueKey(cur),
                       style: T.mono.copyWith(fontSize: 20, fontWeight: FontWeight.w700, color: cur == null ? C.dim : C.frozen),
@@ -315,7 +316,7 @@ class _ProbeGameState extends State<ProbeGame> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(cur == null ? 'Tap a part to test it' : s.items[cur], style: T.bodySmall),
+                GameText(cur == null ? 'Tap a part to test it' : s.items[cur], style: T.bodySmall),
               ]),
             ),
             const SizedBox(width: 12),
@@ -323,7 +324,7 @@ class _ProbeGameState extends State<ProbeGame> {
           ]),
         ),
         const SizedBox(height: 10),
-        Text('Probes used ${_probed.length} of ${s.probes}', style: T.label.copyWith(color: C.muted, letterSpacing: 1)),
+        GameText('Probes used ${_probed.length} of ${s.probes}', style: T.label.copyWith(color: C.muted, letterSpacing: 1)),
         const SizedBox(height: 10),
         LayoutBuilder(builder: (context, box) {
           final cw = (box.maxWidth - 10) / 2;
@@ -364,7 +365,7 @@ class _ProbeGameState extends State<ProbeGame> {
           Row(children: [
             Icon(_probed.contains(i) ? Icons.sensors_rounded : Icons.radio_button_unchecked_rounded, size: 16, color: c),
             const SizedBox(width: 6),
-            Expanded(child: Text(s.items[i], style: T.h3.copyWith(fontSize: 13.5), maxLines: 2, overflow: TextOverflow.ellipsis)),
+            Expanded(child: GameText(s.items[i], style: T.h3.copyWith(fontSize: 13.5), maxLines: 2, overflow: TextOverflow.ellipsis)),
           ]),
           const SizedBox(height: 6),
           if (_probed.contains(i))
@@ -378,11 +379,11 @@ class _ProbeGameState extends State<ProbeGame> {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: (marked ? C.red : C.muted).withValues(alpha: 0.7)),
                 ),
-                child: Text(marked ? 'FAULTY ✓' : 'MARK FAULTY', style: T.label.copyWith(color: marked ? C.red : C.muted, fontSize: 11)),
+                child: GameText(marked ? 'FAULTY ✓' : 'MARK FAULTY', style: T.label.copyWith(color: marked ? C.red : C.muted, fontSize: 11)),
               ),
             )
           else
-            SizedBox(height: 34, child: Align(alignment: Alignment.centerLeft, child: Text('Tap to test', style: T.bodySmall.copyWith(color: C.dim)))),
+            SizedBox(height: 34, child: Align(alignment: Alignment.centerLeft, child: GameText('Tap to test', style: T.bodySmall.copyWith(color: C.dim)))),
         ]),
       ),
     );
@@ -513,7 +514,7 @@ class _HoldGameState extends State<HoldGame> with SingleTickerProviderStateMixin
           child: CustomPaint(painter: _DialGauge(value: _v, max: s.max, low: s.low, high: s.high, unit: s.unit)),
         ),
         const SizedBox(height: 8),
-        Text('Release inside the band: ${s.low.toStringAsFixed(s.low % 1 == 0 ? 0 : 1)}–${s.high.toStringAsFixed(s.high % 1 == 0 ? 0 : 1)} ${s.unit}', style: T.bodySmall),
+        GameText('Release inside the band: ${s.low.toStringAsFixed(s.low % 1 == 0 ? 0 : 1)}–${s.high.toStringAsFixed(s.high % 1 == 0 ? 0 : 1)} ${s.unit}', style: T.bodySmall),
         const SizedBox(height: 22),
         GestureDetector(
           onTapDown: (_) => _press(),
@@ -530,11 +531,11 @@ class _HoldGameState extends State<HoldGame> with SingleTickerProviderStateMixin
               boxShadow: [BoxShadow(color: C.sapphire.withValues(alpha: _holding ? 0.6 : 0.25), blurRadius: _holding ? 40 : 16)],
             ),
             alignment: Alignment.center,
-            child: Text(_done ? 'DONE' : 'HOLD', style: T.button.copyWith(fontSize: 22, letterSpacing: 4)),
+            child: GameText(_done ? 'DONE' : 'HOLD', style: T.button.copyWith(fontSize: 22, letterSpacing: 4)),
           ),
         ),
         const SizedBox(height: 10),
-        Text('Press and hold', style: T.bodySmall.copyWith(color: C.dim)),
+        GameText('Press and hold', style: T.bodySmall.copyWith(color: C.dim)),
       ]),
     );
   }
@@ -720,7 +721,7 @@ class _WireGameState extends State<WireGame> with SingleTickerProviderStateMixin
         ),
         child: Row(children: [
           if (!alignRight) ...[dot, const SizedBox(width: 8)],
-          Expanded(child: Text(label, style: T.h3.copyWith(fontSize: 13), textAlign: alignRight ? TextAlign.right : TextAlign.left, maxLines: 2, overflow: TextOverflow.ellipsis)),
+          Expanded(child: GameText(label, style: T.h3.copyWith(fontSize: 13), textAlign: alignRight ? TextAlign.right : TextAlign.left, maxLines: 2, overflow: TextOverflow.ellipsis)),
           if (alignRight) ...[const SizedBox(width: 8), dot],
         ]),
       ),
@@ -871,14 +872,14 @@ class _TuneGameState extends State<TuneGame> {
         ),
         const SizedBox(height: 6),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          TextButton(onPressed: _done ? null : () => _nudge(-5), child: const Text('−5°')),
-          TextButton(onPressed: _done ? null : () => _nudge(5), child: const Text('+5°')),
+          TextButton(onPressed: _done ? null : () => _nudge(-5), child: const GameText('−5°')),
+          TextButton(onPressed: _done ? null : () => _nudge(5), child: const GameText('+5°')),
         ]),
         const SizedBox(height: 8),
         Row(children: [
-          const Text('POWER OUTPUT', style: T.label),
+          const GameText('POWER OUTPUT', style: T.label),
           const Spacer(),
-          Text('${(out * 1.2).toStringAsFixed(2)} kW', style: T.h3.copyWith(fontSize: 18, color: aimed ? C.cyan : null)),
+          GameText('${(out * 1.2).toStringAsFixed(2)} kW', style: T.h3.copyWith(fontSize: 18, color: aimed ? C.cyan : null)),
         ]),
         const SizedBox(height: 8),
         ClipRRect(
@@ -897,7 +898,7 @@ class _TuneGameState extends State<TuneGame> {
           max: 359,
           onChanged: _done ? null : (v) => _setAngle(v),
         ),
-        Text(
+        GameText(
           aimed ? 'On target — lock the panels.' : 'Panel heading ${_angle.round()}°  ·  twist toward the Sun',
           style: T.bodySmall.copyWith(color: aimed ? C.cyan : C.muted),
           textAlign: TextAlign.center,
@@ -1096,8 +1097,8 @@ class _ChecklistGameState extends State<ChecklistGame> {
         const SizedBox(width: 10),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(s.items[i], style: T.h3.copyWith(fontSize: 14)),
-            Text(reading, style: T.bodySmall.copyWith(color: seen ? c : C.dim)),
+            GameText(s.items[i], style: T.h3.copyWith(fontSize: 14)),
+            GameText(reading, style: T.bodySmall.copyWith(color: seen ? c : C.dim)),
           ]),
         ),
         if (seen && bad)
@@ -1108,7 +1109,7 @@ class _ChecklistGameState extends State<ChecklistGame> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(color: C.sapphire, borderRadius: BorderRadius.circular(10)),
-                    child: Text(s.right.isNotEmpty ? 'FIX' : (i == 0 ? 'TRANSFER' : 'RECHARGE'), style: T.label.copyWith(color: Colors.white, fontSize: 11)),
+                    child: GameText(s.right.isNotEmpty ? 'FIX' : (i == 0 ? 'TRANSFER' : 'RECHARGE'), style: T.label.copyWith(color: Colors.white, fontSize: 11)),
                   ),
                 ),
       ]),

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
+import '../ui/game_helper.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../data/catalogue.dart';
@@ -89,9 +90,9 @@ class _StoryScreenState extends State<StoryScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('PAUSED', style: T.label, textAlign: TextAlign.center),
+                  const GameText('PAUSED', style: T.label, textAlign: TextAlign.center),
                   const SizedBox(height: 6),
-                  Text('Level ${c.task.n} · ${c.task.title}', style: T.h2, textAlign: TextAlign.center),
+                  GameText('Level ${c.task.n} · ${c.task.title}', style: T.h2, textAlign: TextAlign.center),
                   const SizedBox(height: 20),
                   PrimaryButton(label: 'Resume', icon: Icons.play_arrow_rounded, onTap: () => Navigator.of(ctx).pop('resume')),
                   const SizedBox(height: 10),
@@ -270,7 +271,7 @@ class _StoryScreenState extends State<StoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
+                GameText(
                   c.task.title,
                   style: T.h3.copyWith(fontSize: 14.5, fontWeight: FontWeight.w800),
                   maxLines: 1,
@@ -537,9 +538,9 @@ class _StoryScreenState extends State<StoryScreen> {
             children: [
               Row(
                 children: [
-                  const Text('DECISION', style: T.label),
+                  const GameText('DECISION', style: T.label),
                   const Spacer(),
-                  if (total > 0) Text('${run.timer.ceil()} s', style: T.h3.copyWith(color: run.timer < 6 ? C.red : C.cyan)),
+                  if (total > 0) GameText('${run.timer.ceil()} s', style: T.h3.copyWith(color: run.timer < 6 ? C.red : C.cyan)),
                 ],
               ),
               if (total > 0) ...[
@@ -550,7 +551,7 @@ class _StoryScreenState extends State<StoryScreen> {
                 ),
               ],
               const SizedBox(height: 10),
-              Text(s.question.isEmpty ? s.objective : s.question, style: T.h2.copyWith(fontSize: 19, height: 1.3)),
+              GameText(s.question.isEmpty ? s.objective : s.question, style: T.h2.copyWith(fontSize: 19, height: 1.3)),
               if (last != null && last.mistake && s.options.contains(last)) ...[
                 const SizedBox(height: 10),
                 Container(
@@ -560,7 +561,7 @@ class _StoryScreenState extends State<StoryScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: C.red.withValues(alpha: 0.4)),
                   ),
-                  child: Text('"${last.label}" didn\'t work. Think again: what keeps Nova safest?', style: T.body.copyWith(fontSize: 13.5)),
+                  child: GameText('"${last.label}" didn\'t work. Think again: what keeps Nova safest?', style: T.body.copyWith(fontSize: 13.5)),
                 ),
               ],
               const SizedBox(height: 14),
@@ -596,7 +597,7 @@ class _StoryScreenState extends State<StoryScreen> {
             children: [
               Row(
                 children: [
-                  Text('LEVEL ${c.task.n} · ${c.task.title.toUpperCase()}', style: T.label.copyWith(fontSize: 10.5)),
+                  GameText('LEVEL ${c.task.n} · ${c.task.title.toUpperCase()}', style: T.label.copyWith(fontSize: 10.5)),
                   const Spacer(),
                   GestureDetector(
                     onTap: _openMenu,
@@ -649,15 +650,15 @@ class _OptionButton extends StatelessWidget {
                 height: 30,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(shape: BoxShape.circle, color: C.sapphire.withValues(alpha: 0.9)),
-                child: Text(String.fromCharCode(65 + index), style: T.h3.copyWith(color: Colors.white, fontSize: 14)),
+                child: GameText(String.fromCharCode(65 + index), style: T.h3.copyWith(color: Colors.white, fontSize: 14)),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(option.label, style: T.h3.copyWith(fontSize: 15)),
-                    if (option.detail.isNotEmpty) ...[const SizedBox(height: 2), Text(option.detail, style: T.bodySmall)],
+                    GameText(option.label, style: T.h3.copyWith(fontSize: 15)),
+                    if (option.detail.isNotEmpty) ...[const SizedBox(height: 2), GameText(option.detail, style: T.bodySmall)],
                   ],
                 ),
               ),
@@ -747,7 +748,7 @@ class _DialogueBoxState extends State<_DialogueBox> with SingleTickerProviderSta
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(speakerName(l.who, characterName: characterName).toUpperCase(), style: T.label.copyWith(color: color, fontSize: 10)),
+                  GameText(speakerName(l.who, characterName: characterName).toUpperCase(), style: T.label.copyWith(color: color, fontSize: 10)),
                   const SizedBox(height: 3),
                   Expanded(
                     child: SingleChildScrollView(
@@ -767,7 +768,7 @@ class _DialogueBoxState extends State<_DialogueBox> with SingleTickerProviderSta
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('Tap to continue', style: T.bodySmall.copyWith(fontSize: 11.5, color: C.dim)),
+                          GameText('Tap to continue', style: T.bodySmall.copyWith(fontSize: 11.5, color: C.dim)),
                           const Icon(Icons.chevron_right_rounded, color: C.cyan, size: 18),
                         ],
                       ),
@@ -976,17 +977,17 @@ class _DebriefOverlayState extends State<_DebriefOverlay> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
                 children: [
-                  Text(
+                  GameText(
                     won ? 'LEVEL ${c.task.n} COMPLETE' : 'LEVEL ${c.task.n} · MISSION FAILED',
                     style: T.label.copyWith(letterSpacing: 4, color: won ? C.cyan : C.red),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  Text(won ? info.winTitle : 'Try again, Commander', style: T.hero.copyWith(fontSize: 36), textAlign: TextAlign.center),
+                  GameText(won ? info.winTitle : 'Try again, Commander', style: T.hero.copyWith(fontSize: 36), textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   if (won) Center(child: _PopStars(stars: run.stars)),
                   const SizedBox(height: 12),
-                  Text(
+                  GameText(
                     won ? '${run.mistakes} mistake${run.mistakes == 1 ? '' : 's'} · Health ${run.carry.health.round()} · Spare parts ${run.carry.spares}' : run.failReason,
                     style: T.body.copyWith(color: C.muted),
                     textAlign: TextAlign.center,
@@ -994,7 +995,7 @@ class _DebriefOverlayState extends State<_DebriefOverlay> {
                   if (won && run.hintsUsed > 0 && !mode.hintsFree)
                     const Padding(
                       padding: EdgeInsets.only(top: 4),
-                      child: Text('A hint was used: one star less.', style: T.bodySmall, textAlign: TextAlign.center),
+                      child: GameText('A hint was used: one star less.', style: T.bodySmall, textAlign: TextAlign.center),
                     ),
                   const SizedBox(height: 20),
                   EnterAnim(delayMs: 200, child: _lesson(info, mode)),
@@ -1086,12 +1087,12 @@ class _DebriefOverlayState extends State<_DebriefOverlay> {
             children: [
               const Icon(Icons.favorite_border_rounded, color: C.cyan, size: 22),
               const SizedBox(width: 10),
-              Text('LESSON', style: T.label.copyWith(fontSize: 12, letterSpacing: 3)),
+              GameText('LESSON', style: T.label.copyWith(fontSize: 12, letterSpacing: 3)),
             ],
           ),
           const SizedBox(height: 10),
-          Text(info.moral, style: T.h3.copyWith(fontSize: 19, height: 1.3)),
-          if (mode != AgeMode.cadet) ...[const SizedBox(height: 8), Text(info.moralBody, style: T.body.copyWith(color: C.muted))],
+          GameText(info.moral, style: T.h3.copyWith(fontSize: 19, height: 1.3)),
+          if (mode != AgeMode.cadet) ...[const SizedBox(height: 8), GameText(info.moralBody, style: T.body.copyWith(color: C.muted))],
         ],
       ),
     );
@@ -1108,9 +1109,9 @@ class _DebriefOverlayState extends State<_DebriefOverlay> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: T.label.copyWith(color: c, letterSpacing: 2.2)),
+          GameText(label, style: T.label.copyWith(color: c, letterSpacing: 2.2)),
           const SizedBox(height: 8),
-          Text(text, style: T.body.copyWith(fontSize: 14, height: 1.45)),
+          GameText(text, style: T.body.copyWith(fontSize: 14, height: 1.45)),
         ],
       ),
     );
@@ -1187,9 +1188,9 @@ class _TeacherPause extends StatelessWidget {
               children: [
                 const PipFigure(size: 80, eye: PipEye.normal),
                 const SizedBox(height: 16),
-                Text('Eyes on your teacher', style: T.hero.copyWith(fontSize: 30), textAlign: TextAlign.center),
+                GameText('Eyes on your teacher', style: T.hero.copyWith(fontSize: 30), textAlign: TextAlign.center),
                 const SizedBox(height: 8),
-                Text(
+                GameText(
                   'Mission Control paused the class. The game continues when your teacher says go.',
                   style: T.body.copyWith(color: C.muted),
                   textAlign: TextAlign.center,
@@ -1223,7 +1224,7 @@ class _SkillsEarned extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('SKILLS PRACTISED', style: T.label.copyWith(color: C.violet, letterSpacing: 2.2)),
+          GameText('SKILLS PRACTISED', style: T.label.copyWith(color: C.violet, letterSpacing: 2.2)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
@@ -1242,7 +1243,7 @@ class _SkillsEarned extends StatelessWidget {
                     children: [
                       Icon((good[k] ?? 0) == all[k] ? Icons.check_circle_rounded : Icons.trending_up_rounded, size: 16, color: (good[k] ?? 0) == all[k] ? C.cyan : C.violet),
                       const SizedBox(width: 6),
-                      Text('${k.title}  ${good[k] ?? 0}/${all[k]}', style: T.body.copyWith(fontSize: 13)),
+                      GameText('${k.title}  ${good[k] ?? 0}/${all[k]}', style: T.body.copyWith(fontSize: 13)),
                     ],
                   ),
                 ),
@@ -1277,13 +1278,13 @@ class _Journal extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text('Nova\'s journal · $day', style: T.h2.copyWith(color: ink, fontSize: 19)),
+                  child: GameText('Nova\'s journal · $day', style: T.h2.copyWith(color: ink, fontSize: 19)),
                 ),
                 const SizedBox(width: 36, height: 24, child: CustomPaint(painter: _Doodle())),
               ],
             ),
             const SizedBox(height: 6),
-            Text(
+            GameText(
               text,
               style: T.h2.copyWith(color: ink, fontSize: 17, fontWeight: FontWeight.w600, height: 1.4),
             ),
@@ -1381,7 +1382,7 @@ class _MoodBannerState extends State<_MoodBanner> with SingleTickerProviderState
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Container(width: 26, height: 1.5, color: c.withValues(alpha: 0.8)),
                 const SizedBox(width: 10),
-                Text(_name, style: T.label.copyWith(color: c, fontSize: 12, letterSpacing: 4, shadows: const [Shadow(color: Colors.black, blurRadius: 8)])),
+                GameText(_name, style: T.label.copyWith(color: c, fontSize: 12, letterSpacing: 4, shadows: const [Shadow(color: Colors.black, blurRadius: 8)])),
                 const SizedBox(width: 10),
                 Container(width: 26, height: 1.5, color: c.withValues(alpha: 0.8)),
               ]),

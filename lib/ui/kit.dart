@@ -9,6 +9,7 @@ library;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'game_helper.dart';
 import 'package:flutter/services.dart';
 
 import 'line_icons.dart';
@@ -239,10 +240,10 @@ class _KitButtonState extends State<KitButton> {
                     if (widget.icon != null) ...[LineIcon(widget.icon!, size: 20, color: t), const SizedBox(width: 10)],
                     if (widget.materialIcon != null) ...[Icon(widget.materialIcon, size: 21, color: t), const SizedBox(width: 10)],
                     Flexible(
-                      child: Text(widget.label, style: T.button.copyWith(color: t, fontSize: widget.fontSize), overflow: TextOverflow.ellipsis, maxLines: 1),
+                      child: GameText(widget.label, style: T.button.copyWith(color: t, fontSize: widget.fontSize), overflow: TextOverflow.ellipsis, maxLines: 1),
                     ),
                   ]),
-                  if (widget.sub != null) Text(widget.sub!, style: T.bodySmall.copyWith(color: t.withValues(alpha: 0.8), fontSize: 13, height: 1.1)),
+                  if (widget.sub != null) GameText(widget.sub!, style: T.bodySmall.copyWith(color: t.withValues(alpha: 0.8), fontSize: 13, height: 1.1)),
                 ]),
               ),
             ),
@@ -325,7 +326,7 @@ class Overline extends StatelessWidget {
   const Overline(this.text, {super.key, this.color = C.muted, this.size = 12});
 
   @override
-  Widget build(BuildContext context) => Text(text.toUpperCase(), style: T.label.copyWith(color: color, fontSize: size));
+  Widget build(BuildContext context) => GameText(text.toUpperCase(), style: T.label.copyWith(color: color, fontSize: size));
 }
 
 /// The top of a screen: back button, an optional cyan overline and the title.
@@ -345,7 +346,7 @@ class ScreenHeader extends StatelessWidget {
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             if (overline != null) ...[Overline(overline!, color: C.cyan, size: 11.5), const SizedBox(height: 2)],
-            Text(title, style: T.h1, maxLines: 1, overflow: TextOverflow.ellipsis),
+            GameText(title, style: T.h1, maxLines: 1, overflow: TextOverflow.ellipsis),
           ]),
         ),
         if (trailing != null) trailing!,
@@ -418,7 +419,7 @@ class TagChip extends StatelessWidget {
         decoration: BoxDecoration(color: tint(color, 0.22, on), borderRadius: BorderRadius.circular(size)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           if (icon != null) ...[LineIcon(icon!, size: size, color: color, stroke: 2.4), SizedBox(width: size * 0.35)],
-          Text(text, style: T.body.copyWith(color: color, fontSize: size, fontWeight: FontWeight.w700, height: 1.2)),
+          GameText(text, style: T.body.copyWith(color: color, fontSize: size, fontWeight: FontWeight.w700, height: 1.2)),
         ]),
       );
 }
@@ -500,7 +501,7 @@ class StatTile extends StatelessWidget {
           ]),
           const Spacer(),
           Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(value, style: compact ? T.number.copyWith(fontSize: 24) : T.number))),
+            Flexible(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: GameText(value, style: compact ? T.number.copyWith(fontSize: 24) : T.number))),
             if (delta != null && delta!.round() != 0)
               TweenAnimationBuilder<double>(
                 key: ValueKey(deltaKey),
@@ -511,7 +512,7 @@ class StatTile extends StatelessWidget {
                   opacity: v,
                   child: Padding(
                     padding: const EdgeInsets.only(left: 4, bottom: 3),
-                    child: Text('${delta! > 0 ? '+' : '−'}${delta!.abs().round()}', style: T.h3.copyWith(fontSize: 13, color: delta! > 0 ? C.green : C.red)),
+                    child: GameText('${delta! > 0 ? '+' : '−'}${delta!.abs().round()}', style: T.h3.copyWith(fontSize: 13, color: delta! > 0 ? C.green : C.red)),
                   ),
                 ),
               ),
@@ -546,8 +547,8 @@ class WarnBanner extends StatelessWidget {
             const SizedBox(width: 14),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(title, style: T.h3.copyWith(color: color, fontSize: 17)),
-                if (sub != null) Text(sub!, style: T.body.copyWith(fontSize: 13.5, height: 1.3)),
+                GameText(title, style: T.h3.copyWith(color: color, fontSize: 17)),
+                if (sub != null) GameText(sub!, style: T.body.copyWith(fontSize: 13.5, height: 1.3)),
               ]),
             ),
           ]),
@@ -575,7 +576,7 @@ class TipCard extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Overline(title, color: C.frozen, size: 11.5),
               const SizedBox(height: 4),
-              Text(text, style: T.body.copyWith(fontSize: 14.5, height: 1.4)),
+              GameText(text, style: T.body.copyWith(fontSize: 14.5, height: 1.4)),
             ]),
           ),
         ]),
@@ -608,12 +609,12 @@ class ChoiceCard extends StatelessWidget {
             height: 40,
             alignment: Alignment.center,
             decoration: BoxDecoration(color: selected ? C.cyan : C.raised, borderRadius: BorderRadius.circular(12)),
-            child: Text(letter, style: T.h3.copyWith(color: selected ? C.ink : C.frozen)),
+            child: GameText(letter, style: T.h3.copyWith(color: selected ? C.ink : C.frozen)),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: T.h3),
+              GameText(title, style: T.h3),
               if (chips.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Wrap(spacing: 6, runSpacing: 6, children: chips),
@@ -686,7 +687,7 @@ class SegmentPicker extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(color: i == value ? C.cyan : Colors.transparent, borderRadius: BorderRadius.circular(10)),
-                child: Text(labels[i], style: T.h3.copyWith(fontSize: sizes?[i] ?? 15, color: i == value ? C.ink : C.frozen)),
+                child: GameText(labels[i], style: T.h3.copyWith(fontSize: sizes?[i] ?? 15, color: i == value ? C.ink : C.frozen)),
               ),
             ),
         ]),
@@ -788,7 +789,7 @@ class BottomTabs extends StatelessWidget {
                     Positioned(right: 10, top: 2, child: Container(width: 9, height: 9, decoration: BoxDecoration(color: C.yellow, shape: BoxShape.circle, border: Border.all(color: C.ink, width: 2)))),
                 ]),
                 const SizedBox(height: 4),
-                Text(items[i].label, style: T.body.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: i == index ? C.cyan : C.frozen)),
+                GameText(items[i].label, style: T.body.copyWith(fontSize: 14, fontWeight: FontWeight.w700, color: i == index ? C.cyan : C.frozen)),
               ]),
             ),
           ),

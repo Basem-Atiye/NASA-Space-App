@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../../ui/game_helper.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
@@ -535,8 +536,8 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
                 child: Row(children: [
                   const IconBox(Ln.wrench, color: C.orange, size: 36),
                   const SizedBox(width: 12),
-                  Expanded(child: Text('Repair parts for the launch', style: T.h3.copyWith(fontSize: 16))),
-                  Text('${s.parts.round()} / ${s.mission.partsToLaunch}', style: T.h2.copyWith(color: s.parts >= s.mission.partsToLaunch ? C.green : C.frozen)),
+                  Expanded(child: GameText('Repair parts for the launch', style: T.h3.copyWith(fontSize: 16))),
+                  GameText('${s.parts.round()} / ${s.mission.partsToLaunch}', style: T.h2.copyWith(color: s.parts >= s.mission.partsToLaunch ? C.green : C.frozen)),
                 ]),
               ),
             ],
@@ -638,7 +639,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
                         GlowDisc(icon: iconNamed(e.icon), color: color, size: 104),
                         const SizedBox(height: 18),
-                        Text(
+                        GameText(
                           result == null
                               ? (useKidBaseCopy(sv.progress.ageMode) ? kidEventTitle(e.id, e.title) : e.title)
                               : result.logTitle,
@@ -646,7 +647,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
                           style: T.h1.copyWith(fontSize: result == null ? 32 : 24),
                         ),
                         const SizedBox(height: 10),
-                        Text(
+                        GameText(
                           result == null
                               ? (useKidBaseCopy(sv.progress.ageMode) ? kidEventText(e.id, e.text) : e.text)
                               : result.result,
@@ -860,9 +861,9 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
                     Container(width: 84, height: 84, alignment: Alignment.center, decoration: BoxDecoration(color: tint(C.cyan, 0.25), shape: BoxShape.circle), child: const LineIcon(Ln.pause, size: 34, color: C.cyan)),
                     const SizedBox(height: 16),
-                    const Text('Paused', style: T.h1),
+                    const GameText('Paused', style: T.h1),
                     const SizedBox(height: 6),
-                    Text('${s.mission.mars ? 'Sol' : 'Day'} ${s.day} of ${s.mission.days} · Mission ${two(s.mission.n)}', style: T.body.copyWith(color: C.muted, fontSize: 16)),
+                    GameText('${s.mission.mars ? 'Sol' : 'Day'} ${s.day} of ${s.mission.days} · Mission ${two(s.mission.n)}', style: T.body.copyWith(color: C.muted, fontSize: 16)),
                     const SizedBox(height: 22),
                     KitButton('Resume', onTap: _togglePause),
                     const SizedBox(height: 10),
@@ -877,7 +878,7 @@ class _MissionControlScreenState extends State<MissionControlScreen> with Single
                       sv.nav.resetTo(Screen.missionSelect);
                     }),
                     const SizedBox(height: 14),
-                    Text('Your progress is saved', style: T.bodySmall.copyWith(fontSize: 14)),
+                    GameText('Your progress is saved', style: T.bodySmall.copyWith(fontSize: 14)),
                   ]),
                 ),
               ),
@@ -915,7 +916,7 @@ class _NextDayButton extends StatelessWidget {
                 boxShadow: [BoxShadow(color: enabled ? (running ? const Color(0xFFB08F1E) : C.cyanEdge) : const Color(0xFF26234A), offset: const Offset(0, 4))],
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(running ? 'Stop' : 'Next Day', style: T.button.copyWith(fontSize: 18, color: enabled ? C.ink : C.dim)),
+                GameText(running ? 'Stop' : 'Next Day', style: T.button.copyWith(fontSize: 18, color: enabled ? C.ink : C.dim)),
                 const SizedBox(width: 8),
                 LineIcon(running ? Ln.pause : Ln.forward, size: 18, color: enabled ? C.ink : C.dim),
               ]),
@@ -1013,8 +1014,8 @@ class _ModuleSheetState extends State<_ModuleSheet> {
             const SizedBox(width: 14),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(sys.title, style: T.h1.copyWith(fontSize: 28)),
-                Text(_sub, style: T.body.copyWith(color: C.muted)),
+                GameText(sys.title, style: T.h1.copyWith(fontSize: 28)),
+                GameText(_sub, style: T.body.copyWith(color: C.muted)),
               ]),
             ),
             RoundButton(icon: Ln.close, tooltip: 'Close', onTap: () => Navigator.pop(context)),
@@ -1027,10 +1028,10 @@ class _ModuleSheetState extends State<_ModuleSheet> {
               Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
                 const Expanded(child: Overline('Production', size: 12)),
                 if ((_to - _from).abs() > 0.004) ...[
-                  Text(pct(_from * 100), style: T.h2.copyWith(color: C.muted, fontSize: 21)),
+                  GameText(pct(_from * 100), style: T.h2.copyWith(color: C.muted, fontSize: 21)),
                   const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: LineIcon(Ln.forward, size: 14, color: C.muted)),
                 ],
-                Text(pct(_to * 100), style: T.h1.copyWith(color: C.cyan, fontSize: 40, height: 1)),
+                GameText(pct(_to * 100), style: T.h1.copyWith(color: C.cyan, fontSize: 40, height: 1)),
               ]),
               const SizedBox(height: 6),
               KitSlider(
@@ -1044,16 +1045,16 @@ class _ModuleSheetState extends State<_ModuleSheet> {
                 },
               ),
               Row(children: [
-                Text('${(_to * sys.maxKw).round()} kW of ${sys.maxKw.round()} kW', style: T.bodySmall),
+                GameText('${(_to * sys.maxKw).round()} kW of ${sys.maxKw.round()} kW', style: T.bodySmall),
                 const Spacer(),
-                if (widget.engineer) Text('${s.flows({sys: _to}).demand.round()} kW total', style: T.bodySmall),
+                if (widget.engineer) GameText('${s.flows({sys: _to}).demand.round()} kW total', style: T.bodySmall),
               ]),
             ]),
           ),
           const SizedBox(height: 18),
           const Overline('What changes'),
           const SizedBox(height: 4),
-          const Text('Over the next 10 days', style: T.bodySmall),
+          const GameText('Over the next 10 days', style: T.bodySmall),
           const SizedBox(height: 10),
           for (final (label, v, good, icon, c) in changes) ...[
             Container(
@@ -1063,7 +1064,7 @@ class _ModuleSheetState extends State<_ModuleSheet> {
               child: Row(children: [
                 IconBox(icon, color: c, size: 34, on: C.raised),
                 const SizedBox(width: 12),
-                Expanded(child: Text(label, style: T.h3.copyWith(fontSize: 17))),
+                Expanded(child: GameText(label, style: T.h3.copyWith(fontSize: 17))),
                 if (v.abs() < 0.5)
                   const TagChip('no change', color: C.muted, on: C.raised, size: 13.5)
                 else
@@ -1095,13 +1096,13 @@ class _ModuleSheetState extends State<_ModuleSheet> {
           color: C.raised,
           padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Row(children: [
-              IconBox(Ln.droplet, color: C.water, size: 40, on: C.raised),
-              SizedBox(width: 12),
+            Row(children: [
+              const IconBox(Ln.droplet, color: C.water, size: 40, on: C.raised),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('Melt crater ice', style: T.h3),
-                  Text('Drill ice from the dark crater: +14% water for 12% battery.', style: T.bodySmall),
+                  GameText('Melt crater ice', style: T.h3),
+                  GameText('Drill ice from the dark crater: +14% water for 12% battery.', style: T.bodySmall),
                 ]),
               ),
             ]),
@@ -1162,8 +1163,8 @@ class _PanelsSheetState extends State<_PanelsSheet> {
           const SizedBox(width: 14),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Solar Panels', style: T.h1.copyWith(fontSize: 28)),
-              Text('Turn sunlight into power', style: T.body.copyWith(color: C.muted)),
+              GameText('Solar Panels', style: T.h1.copyWith(fontSize: 28)),
+              GameText('Turn sunlight into power', style: T.body.copyWith(color: C.muted)),
             ]),
           ),
           RoundButton(icon: Ln.close, tooltip: 'Close', onTap: () => Navigator.pop(context)),
@@ -1210,7 +1211,7 @@ class _PowerTab extends StatelessWidget {
     final gen = s.generation;
     return ListView(padding: const EdgeInsets.fromLTRB(24, 16, 24, 16), children: [
       Overline('${s.mission.mars ? 'Sol' : 'Day'} ${s.day} / ${s.mission.days}', color: C.cyan, size: 11.5),
-      const Text('Power', style: T.h1),
+      const GameText('Power', style: T.h1),
       const SizedBox(height: 16),
       KitCard(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
@@ -1246,7 +1247,7 @@ class _PowerTab extends StatelessWidget {
             LineIcon(Ln.sun, size: 16, color: gen < used ? C.yellow : C.green),
             const SizedBox(width: 6),
             Expanded(
-              child: Text(
+              child: GameText(
                 gen < used ? 'The panels make ${gen.round()} kW today. The battery gives the other ${(used - gen).round()} kW.' : 'The panels make ${gen.round()} kW today. Extra power charges the battery.',
                 style: T.bodySmall.copyWith(color: gen < used ? C.yellow : C.muted),
               ),
@@ -1262,8 +1263,8 @@ class _PowerTab extends StatelessWidget {
             Row(children: [
               IconBox(sysIcon(x), color: sysColor(x), size: 36),
               const SizedBox(width: 12),
-              Expanded(child: Text(x.title, style: T.h3)),
-              Text('${s.askKw(x).round()} kW', style: T.h3.copyWith(color: x == Sys.research ? C.frozen : sysColor(x))),
+              Expanded(child: GameText(x.title, style: T.h3)),
+              GameText('${s.askKw(x).round()} kW', style: T.h3.copyWith(color: x == Sys.research ? C.frozen : sysColor(x))),
             ]),
             KitSlider(
               value: s.setting[x]!,
@@ -1285,7 +1286,7 @@ class _PowerTab extends StatelessWidget {
       Row(children: [
         const LineIcon(Ln.bulb, size: 18, color: C.muted),
         const SizedBox(width: 8),
-        Expanded(child: Text('Give more to one, and another gets less.', style: T.body.copyWith(color: C.muted))),
+        Expanded(child: GameText('Give more to one, and another gets less.', style: T.body.copyWith(color: C.muted))),
       ]),
     ]);
   }
@@ -1304,7 +1305,7 @@ class _CrewTab extends StatelessWidget {
     final (word, color) = h >= 80 ? ('Doing well', C.green) : (h >= 50 ? ('Needs care', C.yellow) : ('In danger', C.red));
     return ListView(padding: const EdgeInsets.fromLTRB(24, 16, 24, 16), children: [
       Overline('${s.mission.mars ? 'Sol' : 'Day'} ${s.day} / ${s.mission.days}', color: C.cyan, size: 11.5),
-      const Text('Crew', style: T.h1),
+      const GameText('Crew', style: T.h1),
       const SizedBox(height: 16),
       KitCard(
         padding: const EdgeInsets.fromLTRB(16, 18, 18, 18),
@@ -1315,16 +1316,16 @@ class _CrewTab extends StatelessWidget {
             child: TweenAnimationBuilder<double>(
               tween: Tween(end: h / 100),
               duration: const Duration(milliseconds: 700),
-              builder: (context, v, _) => CustomPaint(painter: _Ring(v, color), child: Center(child: Text(pct(h), style: T.h2.copyWith(fontSize: 22)))),
+              builder: (context, v, _) => CustomPaint(painter: _Ring(v, color), child: Center(child: GameText(pct(h), style: T.h2.copyWith(fontSize: 22)))),
             ),
           ),
           const SizedBox(width: 18),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Overline('Crew health', size: 11.5),
-              Text(word, style: T.h1.copyWith(color: color, fontSize: 25)),
+              GameText(word, style: T.h1.copyWith(color: color, fontSize: 25)),
               const SizedBox(height: 4),
-              Text('Health goes down when air, water, food or protection runs low.', style: T.body.copyWith(color: C.muted, fontSize: 14)),
+              GameText('Health goes down when air, water, food or protection runs low.', style: T.body.copyWith(color: C.muted, fontSize: 14)),
             ]),
           ),
         ]),
@@ -1341,7 +1342,7 @@ class _CrewTab extends StatelessWidget {
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Row(children: [
-                  Expanded(child: Text(c.role, style: T.h3.copyWith(fontSize: 19))),
+                  Expanded(child: GameText(c.role, style: T.h3.copyWith(fontSize: 19))),
                   TagChip(c.status, color: _statusColor(c), size: 13.5),
                 ]),
                 const SizedBox(height: 10),
@@ -1391,7 +1392,7 @@ class _LogTab extends StatelessWidget {
     final entries = state.log.reversed.toList();
     return ListView(padding: const EdgeInsets.fromLTRB(24, 16, 24, 16), children: [
       const Overline('What happened so far', color: C.cyan, size: 11.5),
-      const Text('Mission Log', style: T.h1),
+      const GameText('Mission Log', style: T.h1),
       const SizedBox(height: 16),
       for (var i = 0; i < entries.length; i++) LogRow(entry: entries[i], last: i == entries.length - 1),
     ]);
@@ -1433,7 +1434,7 @@ class LogRow extends StatelessWidget {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Overline('Day ${e.day}', color: C.muted, size: 11.5),
                 const SizedBox(height: 4),
-                Text(e.title, style: T.h3.copyWith(fontSize: 17.5, height: 1.3)),
+                GameText(e.title, style: T.h3.copyWith(fontSize: 17.5, height: 1.3)),
                 if (e.action != null) ...[const SizedBox(height: 8), TagChip(e.action!, color: C.yellow, size: 13.5)],
                 if (e.changes.isNotEmpty) ...[
                   const SizedBox(height: 8),
