@@ -1383,7 +1383,7 @@ class _MeTab extends StatelessWidget {
               FilledButton.tonalIcon(onPressed: () => onCards(c), icon: const Icon(Icons.badge_rounded), label: const GameText('Make sign-in cards')),
               OutlinedButton.icon(
                 onPressed: () async {
-                  await Clipboard.setData(ClipboardData(text: 'Join ${c.name} in Open Bounds: open the app, sign in, tap "Join a class" and enter the code ${c.joinCode}.'));
+                  await Clipboard.setData(ClipboardData(text: 'Join ${c.name} in Space Bounds: open the app, sign in, tap "Join a class" and enter the code ${c.joinCode}.'));
                   if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: GameText('Invitation copied.')));
                 },
                 icon: const Icon(Icons.copy_rounded),

@@ -290,7 +290,7 @@ class _ShackletonAppState extends State<ShackletonApp> with WidgetsBindingObserv
       session: widget.session,
       base: widget.base,
       child: MaterialApp(
-        title: 'Open Bounds',
+        title: 'Space Bounds',
         debugShowCheckedModeBanner: false,
         theme: buildTheme(),
         builder: (context, child) {
